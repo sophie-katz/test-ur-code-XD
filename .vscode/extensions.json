@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+        "tamasfe.even-better-toml",
+        "serayuzgur.crates",
+        "vadimcn.vscode-lldb",
+        "ryanluker.vscode-coverage-gutters",
+        "jedeop.crates-completer",
+        "rust-lang.rust-analyzer",
+        "JScearcy.rust-doc-viewer"
+    ]
+}

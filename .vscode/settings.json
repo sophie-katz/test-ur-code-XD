@@ -1,0 +1,30 @@
+{
+    // Allow LLDB expression evaluation to take longer
+    "lldb.evaluationTimeout": 30,
+    // Tweaking TOML style
+    "evenBetterToml.formatter.alignEntries": true,
+    "evenBetterToml.formatter.indentTables": true,
+    "evenBetterToml.formatter.reorderKeys": true,
+    // More advanced linting with Clippy
+    "rust-analyzer.checkOnSave": true,
+    "rust-analyzer.check.command": "clippy",
+    "rust-analyzer.check.extraArgs": [
+        "--",
+        "-W",
+        "clippy::all"
+    ],
+    "rust-analyzer.lens.enable": true,
+    // Formatting
+    "editor.formatOnSave": true,
+    // Coverage
+    "coverage-gutters.coverageReportFileName": "**/target/llvm-cov/html/index.html",
+    "coverage-gutters.coverageBaseDir": "target",
+    "coverage-gutters.coverageFileNames": [
+        "lcov.info"
+    ],
+    // Misc
+    "rust-analyzer.imports.granularity.enforce": true,
+    "editor.rulers": [
+        100
+    ]
+}
