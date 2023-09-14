@@ -7,35 +7,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'example-bin'",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=example-bin",
-                    "--package=example-bin"
-                ],
-                "filter": {
-                    "name": "example-bin",
-                    "kind": "bin"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}",
-            "preLaunchTask": "Rust: Build"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug unit tests in library 'example-lib'",
+            "name": "Debug unit tests in library 'test-ur-code-xd'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
                     "--lib",
-                    "--package=example-lib"
+                    "--package=test-ur-code-xd"
                 ],
                 "filter": {
-                    "name": "example-lib",
+                    "name": "test-ur-code-xd",
                     "kind": "lib"
                 }
             },

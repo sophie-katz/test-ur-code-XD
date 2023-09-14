@@ -1,6 +1,6 @@
 [package]
 edition = "2021"
-name    = "example-lib"
+name    = "test-ur-code-xd"
 version = "0.1.0"
 
 [dependencies]
