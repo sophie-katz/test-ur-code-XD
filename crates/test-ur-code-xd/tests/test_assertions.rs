@@ -12,7 +12,3 @@
 //
 // You should have received a copy of the GNU General Public License along with test-ur-code-XD. If
 // not, see <https://www.gnu.org/licenses/>.
-
-#[doc(hidden)]
-pub mod assertions;
-mod capture_output;
