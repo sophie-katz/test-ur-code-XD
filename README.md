@@ -19,7 +19,13 @@ not, see <https://www.gnu.org/licenses/>.
 
 <img src="https://img.shields.io/badge/license-MIT-green" /> <img src="https://img.shields.io/badge/rust-1.74-blue" /> <img src="https://img.shields.io/badge/platform-linux%7Cmacos-lightgrey" />
 
+This crate tries to improve testing in Rust with a more full-featured framework. It makes tests more readable with better assertions and with more readable errors:
+
 ![A screenshot of an assertion](doc/assertion-screenshot.png)
+
+## Usage
+
+See [docs.rs](example.com) for the API documentation and [crates.io](example.com) to install.
 
 ## Features
 
@@ -48,6 +54,8 @@ fn example(x: i32, y: i32) {
 * Panic assertions
 * Output assertions for `stdout` and `stderr`
 * Filesystem assertions
+
+See [the documentation](example.com) for a full list of assertion macros you can use.
 
 <br />
 
