@@ -18,7 +18,7 @@ use std::collections::HashMap;
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
 use syn::{
-    parse::Parser, punctuated::Punctuated, Expr, ExprAssign, FnArg, Ident, ItemFn, Pat, Token, Type,
+    parse::Parser, punctuated::Punctuated, Expr, ExprAssign, FnArg, ItemFn, Pat, Token, Type,
 };
 
 use super::permute::permute_maps;

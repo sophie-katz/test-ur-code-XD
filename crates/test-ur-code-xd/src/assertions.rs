@@ -19,7 +19,9 @@ use panic_message::panic_message;
 use regex::Regex;
 use std::{
     fmt::{Debug, Display},
+    fs,
     panic::{self, UnwindSafe},
+    path::Path,
 };
 
 use crate::capture_output::capture_output;
@@ -464,6 +466,180 @@ pub fn assert_str_matches_impl(
             .with_argument("lhs", lhs_description, lhs_value.as_ref())
             .with_argument("rhs", rhs_description, rhs_value.as_ref())
             .with_failure_description(failure_description)
+            .panic();
+    }
+}
+
+#[doc(hidden)]
+pub fn assert_path_exists_impl(
+    path_value: impl AsRef<Path>,
+    path_description: impl Display,
+    failure_description: Option<impl Display>,
+) {
+    if !path_value.as_ref().exists() {
+        PanicMessageBuilder::new("path exists")
+            .with_argument("path", path_description, path_value.as_ref())
+            .with_failure_description(failure_description)
+            .panic();
+    }
+}
+
+#[doc(hidden)]
+pub fn assert_path_is_file_impl(
+    path_value: impl AsRef<Path>,
+    path_description: impl Display,
+    failure_description: Option<impl Display>,
+) {
+    if !path_value.as_ref().is_file() {
+        PanicMessageBuilder::new("path is file")
+            .with_argument("path", path_description, path_value.as_ref())
+            .with_failure_description(failure_description)
+            .panic();
+    }
+}
+
+#[doc(hidden)]
+pub fn assert_path_is_symlink_impl(
+    path_value: impl AsRef<Path>,
+    path_description: impl Display,
+    failure_description: Option<impl Display>,
+) {
+    if !path_value.as_ref().is_symlink() {
+        PanicMessageBuilder::new("path is symlink")
+            .with_argument("path", path_description, path_value.as_ref())
+            .with_failure_description(failure_description)
+            .panic();
+    }
+}
+
+#[doc(hidden)]
+pub fn assert_path_is_dir_impl(
+    path_value: impl AsRef<Path>,
+    path_description: impl Display,
+    failure_description: Option<impl Display>,
+) {
+    if !path_value.as_ref().is_dir() {
+        PanicMessageBuilder::new("path is directory")
+            .with_argument("path", path_description, path_value.as_ref())
+            .with_failure_description(failure_description)
+            .panic();
+    }
+}
+
+#[doc(hidden)]
+pub fn assert_path_is_relative_impl(
+    path_value: impl AsRef<Path>,
+    path_description: impl Display,
+    failure_description: Option<impl Display>,
+) {
+    if !path_value.as_ref().is_relative() {
+        PanicMessageBuilder::new("path is relative")
+            .with_argument("path", path_description, path_value.as_ref())
+            .with_failure_description(failure_description)
+            .panic();
+    }
+}
+
+#[doc(hidden)]
+pub fn assert_path_is_absolute_impl(
+    path_value: impl AsRef<Path>,
+    path_description: impl Display,
+    failure_description: Option<impl Display>,
+) {
+    if !path_value.as_ref().is_absolute() {
+        PanicMessageBuilder::new("path is absolute")
+            .with_argument("path", path_description, path_value.as_ref())
+            .with_failure_description(failure_description)
+            .panic();
+    }
+}
+
+#[doc(hidden)]
+pub fn assert_path_starts_with_impl(
+    path_value: impl AsRef<Path>,
+    path_description: impl Display,
+    base_value: impl AsRef<Path>,
+    base_description: impl Display,
+    failure_description: Option<impl Display>,
+) {
+    if !path_value.as_ref().starts_with(base_value.as_ref()) {
+        PanicMessageBuilder::new("path starts with base")
+            .with_argument("path", path_description, path_value.as_ref())
+            .with_argument("base", base_description, base_value.as_ref())
+            .with_failure_description(failure_description)
+            .panic();
+    }
+}
+
+#[doc(hidden)]
+pub fn assert_path_ends_with_impl(
+    path_value: impl AsRef<Path>,
+    path_description: impl Display,
+    base_value: impl AsRef<Path>,
+    base_description: impl Display,
+    failure_description: Option<impl Display>,
+) {
+    if !path_value.as_ref().ends_with(base_value.as_ref()) {
+        PanicMessageBuilder::new("path ends with base")
+            .with_argument("path", path_description, path_value.as_ref())
+            .with_argument("base", base_description, base_value.as_ref())
+            .with_failure_description(failure_description)
+            .panic();
+    }
+}
+
+fn file_text_helper(path_value: impl AsRef<Path>, path_description: impl Display) -> String {
+    if !path_value.as_ref().is_file() {
+        PanicMessageBuilder::new("path is file")
+            .with_argument("path", &path_description, path_value.as_ref())
+            .panic();
+    }
+
+    match fs::read_to_string(path_value.as_ref()) {
+        Ok(file_text) => file_text,
+        Err(error) => PanicMessageBuilder::new(format!("error reading file: {}", error))
+            .with_argument("path", path_description, path_value.as_ref())
+            .panic(),
+    }
+}
+
+#[doc(hidden)]
+pub fn assert_file_text_eq_impl(
+    path_value: impl AsRef<Path>,
+    path_description: impl Display,
+    text_value: impl AsRef<str>,
+    text_description: impl Display,
+    failure_description: Option<impl Display>,
+) {
+    let file_text = file_text_helper(&path_value, &path_description);
+
+    if !file_text.eq(text_value.as_ref()) {
+        PanicMessageBuilder::new("read file text equals expected text")
+            .with_argument("path", path_description, path_value.as_ref())
+            .with_argument("read file text", "--", file_text)
+            .with_argument("expected text", text_description, text_value.as_ref())
+            .with_failure_description(failure_description.as_ref())
+            .panic();
+    }
+}
+
+#[doc(hidden)]
+pub fn assert_file_text_matches_impl(
+    path_value: impl AsRef<Path>,
+    path_description: impl Display,
+    pattern_value: impl AsRef<str>,
+    pattern_description: impl Display,
+    failure_description: Option<impl Display>,
+) {
+    let file_text = file_text_helper(&path_value, &path_description);
+    let pattern_value_regex = Regex::new(pattern_value.as_ref()).unwrap();
+
+    if !pattern_value_regex.is_match(file_text.as_ref()) {
+        PanicMessageBuilder::new("read file text matches pattern")
+            .with_argument("path", path_description, path_value.as_ref())
+            .with_argument("read file text", "--", file_text)
+            .with_argument("pattern", pattern_description, pattern_value.as_ref())
+            .with_failure_description(failure_description.as_ref())
             .panic();
     }
 }
@@ -949,6 +1125,202 @@ macro_rules! assert_str_matches {
             stringify!($lhs),
             $rhs,
             stringify!($rhs),
+            ::std::option::Option::Some($failure_description),
+        );
+    };
+}
+
+#[macro_export]
+macro_rules! assert_path_exists {
+    ($path:expr $(,)?) => {
+        $crate::assertions::assert_path_exists_impl(
+            $path,
+            stringify!($path),
+            ::std::option::Option::<&str>::None,
+        );
+    };
+    ($path:expr, $failure_description:expr $(,)?) => {
+        $crate::assertions::assert_path_exists_impl(
+            $path,
+            stringify!($path),
+            ::std::option::Option::Some($failure_description),
+        );
+    };
+}
+
+#[macro_export]
+macro_rules! assert_path_is_file {
+    ($path:expr $(,)?) => {
+        $crate::assertions::assert_path_is_file_impl(
+            $path,
+            stringify!($path),
+            ::std::option::Option::<&str>::None,
+        );
+    };
+    ($path:expr, $failure_description:expr $(,)?) => {
+        $crate::assertions::assert_path_is_file_impl(
+            $path,
+            stringify!($path),
+            ::std::option::Option::Some($failure_description),
+        );
+    };
+}
+
+#[macro_export]
+macro_rules! assert_path_is_symlink {
+    ($path:expr $(,)?) => {
+        $crate::assertions::assert_path_is_symlink_impl(
+            $path,
+            stringify!($path),
+            ::std::option::Option::<&str>::None,
+        );
+    };
+    ($path:expr, $failure_description:expr $(,)?) => {
+        $crate::assertions::assert_path_is_symlink_impl(
+            $path,
+            stringify!($path),
+            ::std::option::Option::Some($failure_description),
+        );
+    };
+}
+
+#[macro_export]
+macro_rules! assert_path_is_dir {
+    ($path:expr $(,)?) => {
+        $crate::assertions::assert_path_is_dir_impl(
+            $path,
+            stringify!($path),
+            ::std::option::Option::<&str>::None,
+        );
+    };
+    ($path:expr, $failure_description:expr $(,)?) => {
+        $crate::assertions::assert_path_is_dir_impl(
+            $path,
+            stringify!($path),
+            ::std::option::Option::Some($failure_description),
+        );
+    };
+}
+
+#[macro_export]
+macro_rules! assert_path_is_relative {
+    ($path:expr $(,)?) => {
+        $crate::assertions::assert_path_is_relative_impl(
+            $path,
+            stringify!($path),
+            ::std::option::Option::<&str>::None,
+        );
+    };
+    ($path:expr, $failure_description:expr $(,)?) => {
+        $crate::assertions::assert_path_is_relative_impl(
+            $path,
+            stringify!($path),
+            ::std::option::Option::Some($failure_description),
+        );
+    };
+}
+
+#[macro_export]
+macro_rules! assert_path_is_absolute {
+    ($path:expr $(,)?) => {
+        $crate::assertions::assert_path_is_absolute_impl(
+            $path,
+            stringify!($path),
+            ::std::option::Option::<&str>::None,
+        );
+    };
+    ($path:expr, $failure_description:expr $(,)?) => {
+        $crate::assertions::assert_path_is_absolute_impl(
+            $path,
+            stringify!($path),
+            ::std::option::Option::Some($failure_description),
+        );
+    };
+}
+
+#[macro_export]
+macro_rules! assert_path_starts_with {
+    ($path:expr, $base:expr $(,)?) => {
+        $crate::assertions::assert_path_starts_with_impl(
+            $path,
+            stringify!($path),
+            $base,
+            stringify!($base),
+            ::std::option::Option::<&str>::None,
+        );
+    };
+    ($path:expr, $base:expr, $failure_description:expr $(,)?) => {
+        $crate::assertions::assert_path_starts_with_impl(
+            $path,
+            stringify!($path),
+            $base,
+            stringify!($base),
+            ::std::option::Option::Some($failure_description),
+        );
+    };
+}
+
+#[macro_export]
+macro_rules! assert_path_ends_with {
+    ($path:expr, $base:expr $(,)?) => {
+        $crate::assertions::assert_path_ends_with_impl(
+            $path,
+            stringify!($path),
+            $base,
+            stringify!($base),
+            ::std::option::Option::<&str>::None,
+        );
+    };
+    ($path:expr, $base:expr, $failure_description:expr $(,)?) => {
+        $crate::assertions::assert_path_ends_with_impl(
+            $path,
+            stringify!($path),
+            $base,
+            stringify!($base),
+            ::std::option::Option::Some($failure_description),
+        );
+    };
+}
+
+#[macro_export]
+macro_rules! assert_file_text_eq {
+    ($path:expr, $text:expr $(,)?) => {
+        $crate::assertions::assert_file_text_eq_impl(
+            $path,
+            stringify!($path),
+            $text,
+            stringify!($text),
+            ::std::option::Option::<&str>::None,
+        );
+    };
+    ($path:expr, $text:expr, $failure_description:expr $(,)?) => {
+        $crate::assertions::assert_file_text_eq_impl(
+            $path,
+            stringify!($path),
+            $text,
+            stringify!($text),
+            ::std::option::Option::Some($failure_description),
+        );
+    };
+}
+
+#[macro_export]
+macro_rules! assert_file_text_matches {
+    ($path:expr, $pattern:expr $(,)?) => {
+        $crate::assertions::assert_file_text_matches_impl(
+            $path,
+            stringify!($path),
+            $pattern,
+            stringify!($pattern),
+            ::std::option::Option::<&str>::None,
+        );
+    };
+    ($path:expr, $pattern:expr, $failure_description:expr $(,)?) => {
+        $crate::assertions::assert_file_text_matches_impl(
+            $path,
+            stringify!($path),
+            $pattern,
+            stringify!($pattern),
             ::std::option::Option::Some($failure_description),
         );
     };
