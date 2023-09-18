@@ -13,6 +13,18 @@
 // You should have received a copy of the GNU General Public License along with test-ur-code-XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
+//! This crate provides:
+//! * More readable assertion messages
+//! * More assertions including:
+//!     * Floating-point assertions
+//!     * String assertions
+//!     * Filesystem assertions
+//!     * Assertions for `stdout` and `stderr`
+//!     * Inline panic assertions
+//! * Parameterized tests
+//!
+//! 
+
 #[doc(hidden)]
 pub mod assertions;
 mod capture_output;

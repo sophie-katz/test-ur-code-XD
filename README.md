@@ -19,4 +19,36 @@ not, see <https://www.gnu.org/licenses/>.
 
 <img src="https://img.shields.io/badge/license-MIT-green" /> <img src="https://img.shields.io/badge/rust-1.74-blue" /> <img src="https://img.shields.io/badge/platform-linux%7Cmacos-lightgrey" />
 
-This project uses [rust-vscode-template](https://github.com/sophie-katz/rust-vscode-template), which has instructions on how to use this project.
+![A screenshot of an assertion](doc/assertion-screenshot.png)
+
+## Features
+
+### Parameterized tests
+
+```rust
+#[test_with_parameter_values(
+    x = [5, 6, 7],
+    y = [1, 2])
+]
+fn example(x: i32, y: i32) {
+    // This will permute the values and automatically run all of these cases:
+    //   x == 5, y == 1
+    //   x == 5, y == 2
+    //   x == 6, y == 1
+    //   x == 6, y == 2
+    //   x == 7, y == 1
+    //   x == 7, y == 2
+}
+```
+
+### More assertions
+
+* Floating-point assertions
+* String assertions
+* Panic assertions
+* Output assertions for `stdout` and `stderr`
+* Filesystem assertions
+
+<br />
+
+<div style="text-align: center"><i>This project uses <a href="https://github.com/sophie-katz/rust-vscode-template">rust-vscode-template</a>, which has instructions on how to use it.</i></div>

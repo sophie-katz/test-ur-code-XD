@@ -20,7 +20,7 @@ use regex::Regex;
 use std::{
     fmt::{Debug, Display},
     fs,
-    panic::{self, UnwindSafe},
+    panic::{self, Location, UnwindSafe},
     path::Path,
 };
 
@@ -31,15 +31,16 @@ struct PanicMessageBuilder {
 }
 
 impl PanicMessageBuilder {
-    pub fn new(predicate_description: impl Display) -> Self {
+    pub fn new(predicate_description: impl Display, location: &'static Location<'static>) -> Self {
         Self {
             buffer: format!(
-                "{} assertion failed: {}",
+                "{} assertion failed {}: {}",
                 style("\u{26CC}").fg(Color::Red).bright().bold(),
+                style(format!("at {}:{}", location.file(), location.line(),)).dim(),
                 style(predicate_description)
                     .fg(Color::White)
                     .bright()
-                    .bold()
+                    .bold(),
             ),
         }
     }
@@ -56,7 +57,7 @@ impl PanicMessageBuilder {
         self.buffer.push_str(
             format!(
                 "\n  {} {}",
-                style(format!("{}:", argument_description)).dim().bold(),
+                style(format!("{}:", argument_description)),
                 style(value_description).fg(if value_description_string == value_string {
                     Color::Cyan
                 } else {
@@ -89,8 +90,21 @@ impl PanicMessageBuilder {
         self
     }
 
-    pub fn panic(self) -> String {
-        panic!("{}", self.buffer);
+    pub fn panic(mut self) -> String {
+        self.buffer.push_str(
+            style(
+                "\n\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace",
+            )
+            .dim()
+            .to_string()
+            .as_str(),
+        );
+
+        panic::set_hook(Box::new(move |_| {
+            eprintln!("{}", self.buffer);
+        }));
+
+        panic!();
     }
 }
 
@@ -101,7 +115,7 @@ pub fn assert_impl(
     failure_description: Option<impl Display>,
 ) {
     if !value {
-        PanicMessageBuilder::new("value is true")
+        PanicMessageBuilder::new("value is true", Location::caller())
             .with_argument("value", description, value)
             .with_failure_description(failure_description)
             .panic();
@@ -115,7 +129,7 @@ pub fn assert_not_impl(
     failure_description: Option<impl Display>,
 ) {
     if value {
-        PanicMessageBuilder::new("value is false")
+        PanicMessageBuilder::new("value is false", Location::caller())
             .with_argument("value", description, value)
             .with_failure_description(failure_description)
             .panic();
@@ -131,7 +145,7 @@ pub fn assert_eq_impl<LHSType: Debug + PartialEq<RHSType>, RHSType: Debug>(
     failure_description: Option<impl Display>,
 ) {
     if !lhs_value.eq(rhs_value) {
-        PanicMessageBuilder::new("lhs == rhs")
+        PanicMessageBuilder::new("lhs == rhs", Location::caller())
             .with_argument("lhs", lhs_description, lhs_value)
             .with_argument("rhs", rhs_description, rhs_value)
             .with_failure_description(failure_description)
@@ -148,7 +162,7 @@ pub fn assert_ne_impl<LHSType: Debug + PartialEq<RHSType>, RHSType: Debug>(
     failure_description: Option<impl Display>,
 ) {
     if lhs_value.eq(rhs_value) {
-        PanicMessageBuilder::new("lhs != rhs")
+        PanicMessageBuilder::new("lhs != rhs", Location::caller())
             .with_argument("lhs", lhs_description, lhs_value)
             .with_argument("rhs", rhs_description, rhs_value)
             .with_failure_description(failure_description)
@@ -165,7 +179,7 @@ pub fn assert_lt_impl<LHSType: Debug + PartialOrd<RHSType>, RHSType: Debug>(
     failure_description: Option<impl Display>,
 ) {
     if !lhs_value.lt(rhs_value) {
-        PanicMessageBuilder::new("lhs < rhs")
+        PanicMessageBuilder::new("lhs < rhs", Location::caller())
             .with_argument("lhs", lhs_description, lhs_value)
             .with_argument("rhs", rhs_description, rhs_value)
             .with_failure_description(failure_description)
@@ -182,7 +196,7 @@ pub fn assert_le_impl<LHSType: Debug + PartialOrd<RHSType>, RHSType: Debug>(
     failure_description: Option<impl Display>,
 ) {
     if !lhs_value.le(rhs_value) {
-        PanicMessageBuilder::new("lhs <= rhs")
+        PanicMessageBuilder::new("lhs <= rhs", Location::caller())
             .with_argument("lhs", lhs_description, lhs_value)
             .with_argument("rhs", rhs_description, rhs_value)
             .with_failure_description(failure_description)
@@ -191,6 +205,7 @@ pub fn assert_le_impl<LHSType: Debug + PartialOrd<RHSType>, RHSType: Debug>(
 }
 
 #[doc(hidden)]
+#[track_caller]
 pub fn assert_gt_impl<LHSType: Debug + PartialOrd<RHSType>, RHSType: Debug>(
     lhs_value: &LHSType,
     lhs_description: impl Display,
@@ -199,7 +214,7 @@ pub fn assert_gt_impl<LHSType: Debug + PartialOrd<RHSType>, RHSType: Debug>(
     failure_description: Option<impl Display>,
 ) {
     if !lhs_value.gt(rhs_value) {
-        PanicMessageBuilder::new("lhs > rhs")
+        PanicMessageBuilder::new("lhs > rhs", Location::caller())
             .with_argument("lhs", lhs_description, lhs_value)
             .with_argument("rhs", rhs_description, rhs_value)
             .with_failure_description(failure_description)
@@ -216,7 +231,7 @@ pub fn assert_ge_impl<LHSType: Debug + PartialOrd<RHSType>, RHSType: Debug>(
     failure_description: Option<impl Display>,
 ) {
     if !lhs_value.ge(rhs_value) {
-        PanicMessageBuilder::new("lhs >= rhs")
+        PanicMessageBuilder::new("lhs >= rhs", Location::caller())
             .with_argument("lhs", lhs_description, lhs_value)
             .with_argument("rhs", rhs_description, rhs_value)
             .with_failure_description(failure_description)
@@ -234,11 +249,14 @@ pub fn assert_f32_eq_impl(
     failure_description: Option<impl Display>,
 ) {
     if !approx_eq!(f32, lhs_value, rhs_value, ulps = ulps) {
-        PanicMessageBuilder::new(format!(
-            "lhs == rhs (within {} 32-bit float ulp{})",
-            ulps,
-            if ulps == 1 { "" } else { "s" }
-        ))
+        PanicMessageBuilder::new(
+            format!(
+                "lhs == rhs (within {} 32-bit float ulp{})",
+                ulps,
+                if ulps == 1 { "" } else { "s" }
+            ),
+            Location::caller(),
+        )
         .with_argument("lhs", lhs_description, lhs_value)
         .with_argument("rhs", rhs_description, rhs_value)
         .with_failure_description(failure_description)
@@ -256,11 +274,14 @@ pub fn assert_f32_ne_impl(
     failure_description: Option<impl Display>,
 ) {
     if approx_eq!(f32, lhs_value, rhs_value, ulps = ulps) {
-        PanicMessageBuilder::new(format!(
-            "lhs != rhs (within {} 32-bit float ulp{})",
-            ulps,
-            if ulps == 1 { "" } else { "s" }
-        ))
+        PanicMessageBuilder::new(
+            format!(
+                "lhs != rhs (within {} 32-bit float ulp{})",
+                ulps,
+                if ulps == 1 { "" } else { "s" }
+            ),
+            Location::caller(),
+        )
         .with_argument("lhs", lhs_description, lhs_value)
         .with_argument("rhs", rhs_description, rhs_value)
         .with_failure_description(failure_description)
@@ -278,11 +299,14 @@ pub fn assert_f32_le_impl(
     failure_description: Option<impl Display>,
 ) {
     if !(lhs_value < rhs_value || approx_eq!(f32, lhs_value, rhs_value, ulps = ulps)) {
-        PanicMessageBuilder::new(format!(
-            "lhs <= rhs (within {} 32-bit float ulp{})",
-            ulps,
-            if ulps == 1 { "" } else { "s" }
-        ))
+        PanicMessageBuilder::new(
+            format!(
+                "lhs <= rhs (within {} 32-bit float ulp{})",
+                ulps,
+                if ulps == 1 { "" } else { "s" }
+            ),
+            Location::caller(),
+        )
         .with_argument("lhs", lhs_description, lhs_value)
         .with_argument("rhs", rhs_description, rhs_value)
         .with_failure_description(failure_description)
@@ -300,11 +324,14 @@ pub fn assert_f32_ge_impl(
     failure_description: Option<impl Display>,
 ) {
     if !(lhs_value > rhs_value || approx_eq!(f32, lhs_value, rhs_value, ulps = ulps)) {
-        PanicMessageBuilder::new(format!(
-            "lhs >= rhs (within {} 32-bit float ulp{})",
-            ulps,
-            if ulps == 1 { "" } else { "s" }
-        ))
+        PanicMessageBuilder::new(
+            format!(
+                "lhs >= rhs (within {} 32-bit float ulp{})",
+                ulps,
+                if ulps == 1 { "" } else { "s" }
+            ),
+            Location::caller(),
+        )
         .with_argument("lhs", lhs_description, lhs_value)
         .with_argument("rhs", rhs_description, rhs_value)
         .with_failure_description(failure_description)
@@ -322,11 +349,14 @@ pub fn assert_f64_eq_impl(
     failure_description: Option<impl Display>,
 ) {
     if !approx_eq!(f64, lhs_value, rhs_value, ulps = ulps) {
-        PanicMessageBuilder::new(format!(
-            "lhs == rhs (within {} 64-bit float ulp{})",
-            ulps,
-            if ulps == 1 { "" } else { "s" }
-        ))
+        PanicMessageBuilder::new(
+            format!(
+                "lhs == rhs (within {} 64-bit float ulp{})",
+                ulps,
+                if ulps == 1 { "" } else { "s" }
+            ),
+            Location::caller(),
+        )
         .with_argument("lhs", lhs_description, lhs_value)
         .with_argument("rhs", rhs_description, rhs_value)
         .with_failure_description(failure_description)
@@ -344,11 +374,14 @@ pub fn assert_f64_ne_impl(
     failure_description: Option<impl Display>,
 ) {
     if approx_eq!(f64, lhs_value, rhs_value, ulps = ulps) {
-        PanicMessageBuilder::new(format!(
-            "lhs != rhs (within {} 64-bit float ulp{})",
-            ulps,
-            if ulps == 1 { "" } else { "s" }
-        ))
+        PanicMessageBuilder::new(
+            format!(
+                "lhs != rhs (within {} 64-bit float ulp{})",
+                ulps,
+                if ulps == 1 { "" } else { "s" }
+            ),
+            Location::caller(),
+        )
         .with_argument("lhs", lhs_description, lhs_value)
         .with_argument("rhs", rhs_description, rhs_value)
         .with_failure_description(failure_description)
@@ -366,11 +399,14 @@ pub fn assert_f64_le_impl(
     failure_description: Option<impl Display>,
 ) {
     if !(lhs_value < rhs_value || approx_eq!(f64, lhs_value, rhs_value, ulps = ulps)) {
-        PanicMessageBuilder::new(format!(
-            "lhs <= rhs (within {} 64-bit float ulp{})",
-            ulps,
-            if ulps == 1 { "" } else { "s" }
-        ))
+        PanicMessageBuilder::new(
+            format!(
+                "lhs <= rhs (within {} 64-bit float ulp{})",
+                ulps,
+                if ulps == 1 { "" } else { "s" }
+            ),
+            Location::caller(),
+        )
         .with_argument("lhs", lhs_description, lhs_value)
         .with_argument("rhs", rhs_description, rhs_value)
         .with_failure_description(failure_description)
@@ -388,11 +424,14 @@ pub fn assert_f64_ge_impl(
     failure_description: Option<impl Display>,
 ) {
     if !(lhs_value > rhs_value || approx_eq!(f64, lhs_value, rhs_value, ulps = ulps)) {
-        PanicMessageBuilder::new(format!(
-            "lhs >= rhs (within {} 64-bit float ulp{})",
-            ulps,
-            if ulps == 1 { "" } else { "s" }
-        ))
+        PanicMessageBuilder::new(
+            format!(
+                "lhs >= rhs (within {} 64-bit float ulp{})",
+                ulps,
+                if ulps == 1 { "" } else { "s" }
+            ),
+            Location::caller(),
+        )
         .with_argument("lhs", lhs_description, lhs_value)
         .with_argument("rhs", rhs_description, rhs_value)
         .with_failure_description(failure_description)
@@ -409,7 +448,7 @@ pub fn assert_str_contains_impl(
     failure_description: Option<impl Display>,
 ) {
     if !lhs_value.as_ref().contains(rhs_value.as_ref()) {
-        PanicMessageBuilder::new("lhs contains rhs")
+        PanicMessageBuilder::new("lhs contains rhs", Location::caller())
             .with_argument("lhs", lhs_description, lhs_value.as_ref())
             .with_argument("rhs", rhs_description, rhs_value.as_ref())
             .with_failure_description(failure_description)
@@ -426,7 +465,7 @@ pub fn assert_str_starts_with_impl(
     failure_description: Option<impl Display>,
 ) {
     if !lhs_value.as_ref().starts_with(rhs_value.as_ref()) {
-        PanicMessageBuilder::new("lhs starts with rhs")
+        PanicMessageBuilder::new("lhs starts with rhs", Location::caller())
             .with_argument("lhs", lhs_description, lhs_value.as_ref())
             .with_argument("rhs", rhs_description, rhs_value.as_ref())
             .with_failure_description(failure_description)
@@ -443,7 +482,7 @@ pub fn assert_str_ends_with_impl(
     failure_description: Option<impl Display>,
 ) {
     if !lhs_value.as_ref().ends_with(rhs_value.as_ref()) {
-        PanicMessageBuilder::new("lhs ends with rhs")
+        PanicMessageBuilder::new("lhs ends with rhs", Location::caller())
             .with_argument("lhs", lhs_description, lhs_value.as_ref())
             .with_argument("rhs", rhs_description, rhs_value.as_ref())
             .with_failure_description(failure_description)
@@ -462,7 +501,7 @@ pub fn assert_str_matches_impl(
     let rhs_value_regex = Regex::new(rhs_value.as_ref()).unwrap();
 
     if !rhs_value_regex.is_match(lhs_value.as_ref()) {
-        PanicMessageBuilder::new("lhs matches regex rhs")
+        PanicMessageBuilder::new("lhs matches regex rhs", Location::caller())
             .with_argument("lhs", lhs_description, lhs_value.as_ref())
             .with_argument("rhs", rhs_description, rhs_value.as_ref())
             .with_failure_description(failure_description)
@@ -477,7 +516,7 @@ pub fn assert_path_exists_impl(
     failure_description: Option<impl Display>,
 ) {
     if !path_value.as_ref().exists() {
-        PanicMessageBuilder::new("path exists")
+        PanicMessageBuilder::new("path exists", Location::caller())
             .with_argument("path", path_description, path_value.as_ref())
             .with_failure_description(failure_description)
             .panic();
@@ -491,7 +530,7 @@ pub fn assert_path_is_file_impl(
     failure_description: Option<impl Display>,
 ) {
     if !path_value.as_ref().is_file() {
-        PanicMessageBuilder::new("path is file")
+        PanicMessageBuilder::new("path is file", Location::caller())
             .with_argument("path", path_description, path_value.as_ref())
             .with_failure_description(failure_description)
             .panic();
@@ -505,7 +544,7 @@ pub fn assert_path_is_symlink_impl(
     failure_description: Option<impl Display>,
 ) {
     if !path_value.as_ref().is_symlink() {
-        PanicMessageBuilder::new("path is symlink")
+        PanicMessageBuilder::new("path is symlink", Location::caller())
             .with_argument("path", path_description, path_value.as_ref())
             .with_failure_description(failure_description)
             .panic();
@@ -519,7 +558,7 @@ pub fn assert_path_is_dir_impl(
     failure_description: Option<impl Display>,
 ) {
     if !path_value.as_ref().is_dir() {
-        PanicMessageBuilder::new("path is directory")
+        PanicMessageBuilder::new("path is directory", Location::caller())
             .with_argument("path", path_description, path_value.as_ref())
             .with_failure_description(failure_description)
             .panic();
@@ -533,7 +572,7 @@ pub fn assert_path_is_relative_impl(
     failure_description: Option<impl Display>,
 ) {
     if !path_value.as_ref().is_relative() {
-        PanicMessageBuilder::new("path is relative")
+        PanicMessageBuilder::new("path is relative", Location::caller())
             .with_argument("path", path_description, path_value.as_ref())
             .with_failure_description(failure_description)
             .panic();
@@ -547,7 +586,7 @@ pub fn assert_path_is_absolute_impl(
     failure_description: Option<impl Display>,
 ) {
     if !path_value.as_ref().is_absolute() {
-        PanicMessageBuilder::new("path is absolute")
+        PanicMessageBuilder::new("path is absolute", Location::caller())
             .with_argument("path", path_description, path_value.as_ref())
             .with_failure_description(failure_description)
             .panic();
@@ -563,7 +602,7 @@ pub fn assert_path_starts_with_impl(
     failure_description: Option<impl Display>,
 ) {
     if !path_value.as_ref().starts_with(base_value.as_ref()) {
-        PanicMessageBuilder::new("path starts with base")
+        PanicMessageBuilder::new("path starts with base", Location::caller())
             .with_argument("path", path_description, path_value.as_ref())
             .with_argument("base", base_description, base_value.as_ref())
             .with_failure_description(failure_description)
@@ -580,7 +619,7 @@ pub fn assert_path_ends_with_impl(
     failure_description: Option<impl Display>,
 ) {
     if !path_value.as_ref().ends_with(base_value.as_ref()) {
-        PanicMessageBuilder::new("path ends with base")
+        PanicMessageBuilder::new("path ends with base", Location::caller())
             .with_argument("path", path_description, path_value.as_ref())
             .with_argument("base", base_description, base_value.as_ref())
             .with_failure_description(failure_description)
@@ -590,16 +629,18 @@ pub fn assert_path_ends_with_impl(
 
 fn file_text_helper(path_value: impl AsRef<Path>, path_description: impl Display) -> String {
     if !path_value.as_ref().is_file() {
-        PanicMessageBuilder::new("path is file")
+        PanicMessageBuilder::new("path is file", Location::caller())
             .with_argument("path", &path_description, path_value.as_ref())
             .panic();
     }
 
     match fs::read_to_string(path_value.as_ref()) {
         Ok(file_text) => file_text,
-        Err(error) => PanicMessageBuilder::new(format!("error reading file: {}", error))
-            .with_argument("path", path_description, path_value.as_ref())
-            .panic(),
+        Err(error) => {
+            PanicMessageBuilder::new(format!("error reading file: {}", error), Location::caller())
+                .with_argument("path", path_description, path_value.as_ref())
+                .panic()
+        }
     }
 }
 
@@ -614,7 +655,7 @@ pub fn assert_file_text_eq_impl(
     let file_text = file_text_helper(&path_value, &path_description);
 
     if !file_text.eq(text_value.as_ref()) {
-        PanicMessageBuilder::new("read file text equals expected text")
+        PanicMessageBuilder::new("read file text equals expected text", Location::caller())
             .with_argument("path", path_description, path_value.as_ref())
             .with_argument("read file text", "--", file_text)
             .with_argument("expected text", text_description, text_value.as_ref())
@@ -635,7 +676,7 @@ pub fn assert_file_text_matches_impl(
     let pattern_value_regex = Regex::new(pattern_value.as_ref()).unwrap();
 
     if !pattern_value_regex.is_match(file_text.as_ref()) {
-        PanicMessageBuilder::new("read file text matches pattern")
+        PanicMessageBuilder::new("read file text matches pattern", Location::caller())
             .with_argument("path", path_description, path_value.as_ref())
             .with_argument("read file text", "--", file_text)
             .with_argument("pattern", pattern_description, pattern_value.as_ref())
@@ -678,7 +719,7 @@ pub fn assert_panics_impl<
             on_message(panic_message(&error).to_owned());
         }
     } else {
-        PanicMessageBuilder::new("action panics").panic();
+        PanicMessageBuilder::new("action panics", Location::caller()).panic();
     }
 }
 
