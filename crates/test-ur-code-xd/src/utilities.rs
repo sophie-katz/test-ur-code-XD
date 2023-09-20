@@ -13,12 +13,7 @@
 // You should have received a copy of the GNU General Public License along with test-ur-code-XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
-use test_ur_code_xd_macro::test_with_parameter_values;
+//! Utilities for the crate.
 
-#[test_with_parameter_values(
-    x = [5, 6, 7],
-    y = [1, 2])
-]
-fn example(x: i32, y: i32) {
-    assert!(x + y > 0);
-}
+pub mod capture_output;
+pub mod panic_message_builder;

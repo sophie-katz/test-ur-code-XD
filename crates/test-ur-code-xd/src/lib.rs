@@ -20,7 +20,7 @@
 //!
 //! # Assertions
 //!
-//! [test-ur-code-XD](#) has some basic assertions that are similar to the ones in the standard library:
+//! test-ur-code-XD has some basic assertions that are similar to the ones in the standard library:
 //!
 //! * [`assert`] - Asserts that a boolean is true.
 //! * [`assert_not`] - Asserts that a boolean is false.
@@ -40,10 +40,12 @@
 //!
 //! ## Panic assertions
 //!
-//! Rust already has the built-in [`assert_panics`] macro, but [test-ur-code-XD](#) has a macro
+//! Rust already has the built-in [`assert_panics`] macro, but test-ur-code-XD has a macro
 //! which can assert that only specific lines of code panic:
 //!
 //! ```
+//! # use test_ur_code_xd::assert_panics;
+//! #
 //! // This code runs normally.
 //!
 //! assert_panics!(|| {
@@ -59,12 +61,14 @@
 //! This assertion allows you to write custom assertions for `stdout` and `stderr`:
 //!
 //! ```
+//! # use test_ur_code_xd::assert_outputs;
+//! #
 //! assert_outputs!(|| {
 //!     println!("print something to stdout");
 //!     eprintln!("print something else to stderr");
-//! }, |stdout| {
+//! }, on_stdout = |stdout| {
 //!     assert_eq!(stdout, "print something to stdout\n");
-//! }, |stderr| {
+//! }, on_stderr = |stderr| {
 //!     assert_eq!(stderr, "print something else to stderr\n");
 //! });
 //! ```
@@ -91,6 +95,8 @@
 //! ## Floating-point assertions
 //!
 //! ```
+//! # use test_ur_code_xd::assert_f32_eq;
+//! #
 //! // assert_eq! would fail here because of floating-point rounding errors, but assert_f32_eq!
 //! // takes this into account.
 //! assert_f32_eq!(
@@ -112,6 +118,8 @@
 //! # Parameterized tests
 //!
 //! ```
+//! # use test_ur_code_xd_macro::test_with_parameter_values;
+//! #
 //! #[test_with_parameter_values(
 //!   x = [5, 6, 7],
 //!   y = [1, 2])
@@ -127,6 +135,5 @@
 //! }
 //! ```
 
-#[doc(hidden)]
 pub mod assertions;
-mod capture_output;
+pub mod utilities;

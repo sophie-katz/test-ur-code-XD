@@ -113,7 +113,7 @@ pub fn parameterize_test_function(
     std::mem::swap(&mut item.attrs, &mut attrs);
 
     let original_ident = item.sig.ident.clone();
-    let with_parameters_ident = format_ident!("__{}_with_parameters", original_ident);
+    let with_parameters_ident = format_ident!("_{}_with_parameters", original_ident);
 
     item.sig.ident = with_parameters_ident.clone();
 
@@ -122,7 +122,7 @@ pub fn parameterize_test_function(
     };
 
     for (counter, parameterization) in parameterizations.into_iter().enumerate() {
-        let ident = format_ident!("{}__{}", original_ident, counter);
+        let ident = format_ident!("{}_{}", original_ident, counter);
 
         let let_expressions = get_let_expressions_from_inputs(&item, parameterization);
 

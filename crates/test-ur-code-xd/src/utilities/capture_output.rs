@@ -13,89 +13,62 @@
 // You should have received a copy of the GNU General Public License along with test-ur-code-XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
-use gag::BufferRedirect;
+mod captured_output;
+mod error;
+mod output_capturer;
+
 use lazy_static::lazy_static;
-use std::{
-    io::{Read, Write},
-    result::Result,
-    {io, sync::Mutex},
-};
+use output_capturer::OutputCapturer;
+use std::{result::Result, sync::Mutex};
 
-#[derive(Default)]
-pub(crate) struct OutputCapturer {
-    buffer_stdout: Option<BufferRedirect>,
-    buffer_stderr: Option<BufferRedirect>,
-}
-
-impl OutputCapturer {
-    pub fn start(&mut self) -> Result<(), io::Error> {
-        // Flush stdout/stderr before redirecting them so we don't get any extra output in the
-        // buffers
-        std::io::stdout().flush().unwrap();
-        std::io::stderr().flush().unwrap();
-
-        // Start the redirects
-        self.buffer_stdout = Some(BufferRedirect::stdout()?);
-        self.buffer_stderr = Some(BufferRedirect::stderr()?);
-
-        Ok(())
-    }
-
-    pub fn stop(&mut self) -> CapturedOutputs {
-        // Flush stdout/stderr before stopping so we get all of the output in the buffers
-        std::io::stdout().flush().unwrap();
-        std::io::stderr().flush().unwrap();
-
-        // Allocate strings to store the output
-        let mut string_stdout = String::new();
-        let mut string_stderr = String::new();
-
-        // Read the buffers into the output strings
-        self.buffer_stdout
-            .as_mut()
-            .expect("OutputCapturer::stop() called before OutputCapturer::start()")
-            .read_to_string(&mut string_stdout)
-            .unwrap();
-        self.buffer_stderr
-            .as_mut()
-            .expect("OutputCapturer::stop() called before OutputCapturer::start()")
-            .read_to_string(&mut string_stderr)
-            .unwrap();
-
-        // Drop the redirects
-        self.buffer_stdout = None;
-        self.buffer_stderr = None;
-
-        // Return the output strings
-        CapturedOutputs {
-            stdout: string_stdout,
-            stderr: string_stderr,
-        }
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub(crate) struct CapturedOutputs {
-    pub stdout: String,
-    pub stderr: String,
-}
+pub use captured_output::CapturedOutputs;
+pub use error::Error;
 
 lazy_static! {
     static ref OUTPUT_CAPTURER: Mutex<OutputCapturer> = Mutex::new(OutputCapturer::default());
 }
 
-pub(crate) fn capture_output<ActionType: FnOnce()>(action: ActionType) -> CapturedOutputs {
-    let mut output_captuerer = OUTPUT_CAPTURER
-        .lock()
-        .expect("failed to lock output capturer mutex");
+/// Captures `stdout` and `stderr` output from a closure in a thread-safe manner.
+///
+/// It is essentially a thread-safe wrapper on top of the excellent [gag] crate. It works by
+/// synchronizing code with captured output so that only one captured action can run at a time.
+///
+/// # Example
+///
+/// ```
+/// # use test_ur_code_xd::utilities::capture_output::capture_output;
+/// #
+/// let output = capture_output(|| {
+///    println!("print something to stdout");
+/// }).expect("error while capturing output");
+///
+/// assert_eq!(output.stdout, "print something to stdout\n");
+/// ```
+///
+/// # Returns
+///
+/// A [`CapturedOutputs`] instance containing the captured output for both `stdout` and `stderr`.
+///
+/// # Errors
+///
+/// * If there are any issues with redirecting `stdout` or `stderr`, this function will return an
+///   error.
+/// * If there are any issues with flushing `stdout` or `stderr`, this function will return an
+///   error.
+/// * If there are any issues with reading the buffers, this function will return an error.
+/// * If there are any issues with locking mutexes, this function will return an error.
+pub fn capture_output<ActionType: FnOnce()>(action: ActionType) -> Result<CapturedOutputs, Error> {
+    // Lock the output capturer for the process to this thread.
+    let mut output_captuerer = OUTPUT_CAPTURER.lock().map_err(Error::CapturerMutexError)?;
 
-    output_captuerer
-        .start()
-        .expect("failed to start output capturer");
+    // Start capturing
+    output_captuerer.start()?;
 
+    // Run the closure
     action();
 
-    output_captuerer.stop()
+    // Stop the capture and return the captured output
+    output_captuerer.stop().map_err(Error::from)
 }
 
 #[cfg(test)]
@@ -105,7 +78,7 @@ mod tests {
     #[test]
     fn empty() {
         assert_eq!(
-            capture_output(|| ()),
+            capture_output(|| ()).unwrap(),
             CapturedOutputs {
                 stdout: "".to_owned(),
                 stderr: "".to_owned(),
@@ -118,7 +91,8 @@ mod tests {
         assert_eq!(
             capture_output(|| {
                 println!("hello, world");
-            }),
+            })
+            .unwrap(),
             CapturedOutputs {
                 stdout: "hello, world\n".to_owned(),
                 stderr: "".to_owned(),
@@ -131,7 +105,8 @@ mod tests {
         assert_eq!(
             capture_output(|| {
                 eprintln!("hello, world");
-            }),
+            })
+            .unwrap(),
             CapturedOutputs {
                 stdout: "".to_owned(),
                 stderr: "hello, world\n".to_owned(),
@@ -145,7 +120,8 @@ mod tests {
             capture_output(|| {
                 println!("hello, world");
                 eprintln!("hello, world");
-            }),
+            })
+            .unwrap(),
             CapturedOutputs {
                 stdout: "hello, world\n".to_owned(),
                 stderr: "hello, world\n".to_owned(),
@@ -159,7 +135,8 @@ mod tests {
             capture_output(|| {
                 println!("hello, world");
                 eprintln!("hello, world");
-            }),
+            })
+            .unwrap(),
             CapturedOutputs {
                 stdout: "hello, world\n".to_owned(),
                 stderr: "hello, world\n".to_owned(),
@@ -173,7 +150,8 @@ mod tests {
             capture_output(|| {
                 println!("hello, world");
                 eprintln!("hello, world");
-            }),
+            })
+            .unwrap(),
             CapturedOutputs {
                 stdout: "hello, world\n".to_owned(),
                 stderr: "hello, world\n".to_owned(),

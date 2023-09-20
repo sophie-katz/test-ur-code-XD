@@ -269,10 +269,12 @@ dependencies = [
  "lazy_static",
  "panic-message",
  "regex",
+ "test-ur-code-xd-macro",
+ "thiserror",
 ]
 
 [[package]]
-name = "test-ur-code-xd-proc-macro"
+name = "test-ur-code-xd-macro"
 version = "0.1.0"
 dependencies = [
  "proc-macro2",

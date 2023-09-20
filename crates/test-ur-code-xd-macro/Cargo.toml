@@ -1,6 +1,6 @@
 [package]
 edition = "2021"
-name    = "test-ur-code-xd-proc-macro"
+name    = "test-ur-code-xd-macro"
 version = "0.1.0"
 
 [lib]
