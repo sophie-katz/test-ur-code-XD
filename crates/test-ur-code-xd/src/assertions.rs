@@ -15,7 +15,7 @@
 
 //! The assertions included within the crate as well as extendability for user-defined assertions.
 
-pub mod assertion_parts;
+pub mod config;
 
 use float_cmp::approx_eq;
 use panic_message::panic_message;
@@ -31,48 +31,59 @@ use crate::utilities::{
     capture_output::capture_output, panic_message_builder::PanicMessageBuilder,
 };
 
-use self::assertion_parts::AssertionConfig;
+use self::config::Config;
 
 pub fn assert_impl_predicate(value: bool) -> bool {
     value
 }
 
-pub fn assert_impl_on_panic(config: AssertionConfig, value: bool, description: impl Display) -> ! {
-    PanicMessageBuilder::new("value is true", Location::caller())
-        .with_argument("value", description, value)
-        .with_assertion_description(config.assertion_description)
-        .with_assertion_description(config.assertion_description_owned)
-        .panic();
-}
+// pub fn assert_impl_on_panic(config: AssertionConfig, value: bool, description: impl Display) -> ! {
+//     PanicMessageBuilder::new("value is true", Location::caller())
+//         .with_argument("value", description, value)
+//         .with_assertion_description(config.assertion_description)
+//         .with_assertion_description(config.assertion_description_owned)
+//         .panic();
+// }
 
 #[macro_export]
 macro_rules! assert {
     ($value:expr $(, $keys:ident = $values:expr)* $(,)?) => {
-        // $crate::assertions::assertion_parts::make_assertion_part_config()
-        $crate::assertions::assertion_parts::AssertionConfig {
-            $($keys: $values ,)*
-            ..::std::default::Default::default()
-        } | $crate::make_assertion_part_executor!(
-            || $crate::assertions::assert_impl_predicate($value),
-            |config| $crate::assertions::assert_impl_on_panic(
-                config,
-                $value,
-                stringify!($value)
-            )
-        )
-    };
-    // ($value:expr, $failure_description:expr $(,)?) => {
-    //     $crate::assertions::assertion_parts::make_assertion_part_config()
-    //         | $crate::make_assertion_part_executor!(|| $value, || {
-    //             $crate::utilities::panic_message_builder::PanicMessageBuilder::new(
-    //                 "value is true",
-    //                 ::std::panic::Location::caller(),
-    //             )
-    //             .with_argument("value", stringify!($value), $value)
-    //             .with_failure_description(::std::option::Option::<&str>::Some($failure_description))
-    //             .panic()
-    //         })
-    // };
+        // // $crate::assertions::assertion_parts::make_assertion_part_config()
+        // $crate::assertions::config::Config {
+        //     $($keys: $values ,)*
+        //     ..::std::default::Default::default()
+        // }.execute_assertion(
+        //     "value is true",
+        //     $value,
+        //     ::std::panic::Location::caller(),
+        //     |panic_message_builder| {
+        //         panic_message_builder
+        //             .with_argument("value", stringify!($value), $value)
+        //     },
+        // )
+        $crate::execute_assertion!("value is true", $value, |panic_message_builder| {
+            panic_message_builder.with_argument("value", stringify!($value), $value)
+        } $(, $keys = $values)*)
+        // } | $crate::make_assertion_part_executor!(
+        //     || $crate::assertions::assert_impl_predicate($value),
+        //     |config| $crate::assertions::assert_impl_on_panic(
+        //         config,
+        //         $value,
+        //         stringify!($value)
+        //     )
+        // )
+    }; // ($value:expr, $failure_description:expr $(,)?) => {
+       //     $crate::assertions::assertion_parts::make_assertion_part_config()
+       //         | $crate::make_assertion_part_executor!(|| $value, || {
+       //             $crate::utilities::panic_message_builder::PanicMessageBuilder::new(
+       //                 "value is true",
+       //                 ::std::panic::Location::caller(),
+       //             )
+       //             .with_argument("value", stringify!($value), $value)
+       //             .with_failure_description(::std::option::Option::<&str>::Some($failure_description))
+       //             .panic()
+       //         })
+       // };
 }
 
 // pub fn assert_not_impl(
@@ -1361,12 +1372,12 @@ mod tests {
                 negate = true,
                 assertion_description_owned = "assertion description".to_owned()
             );
-            !crate::assert!(false);
-            !crate::assert!(false, assertion_description = "assertion description");
-            !crate::assert!(
-                false,
-                assertion_description_owned = "assertion description".to_owned()
-            );
+            // !crate::assert!(false);
+            // !crate::assert!(false, assertion_description = "assertion description");
+            // !crate::assert!(
+            //     false,
+            //     assertion_description_owned = "assertion description".to_owned()
+            // );
             // crate::assert_not!(false);
             // crate::assert_not!(false, "failure message");
             // crate::assert_eq!(5, 5);
