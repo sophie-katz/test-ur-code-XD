@@ -267,6 +267,7 @@ dependencies = [
  "float-cmp",
  "gag",
  "lazy_static",
+ "num-traits",
  "panic-message",
  "regex",
  "test-ur-code-xd-macro",

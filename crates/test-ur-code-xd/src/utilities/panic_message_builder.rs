@@ -33,12 +33,12 @@ use std::{
 /// let rhs_description = "y";
 /// let rhs_value = 6;
 ///
-/// let failure_description = "these two things should always be equal";
+/// let assertion_description = "these two things should always be equal";
 ///
 /// PanicMessageBuilder::new("lhs == rhs", Location::caller())
-///     .with_argument("lhs", lhs_description, lhs_value)
-///     .with_argument("rhs", rhs_description, rhs_value)
-///     .with_failure_description(Some(failure_description))
+///     .with_argument("lhs", lhs_description, &lhs_value)
+///     .with_argument("rhs", rhs_description, &rhs_value)
+///     .with_assertion_description(assertion_description)
 ///     .panic();
 /// ```
 //
@@ -114,13 +114,13 @@ impl PanicMessageBuilder {
     /// # let failure_description = "these two things should always be equal";
     /// #
     /// # PanicMessageBuilder::new("lhs == rhs", Location::caller())
-    /// .with_argument("lhs", lhs_description, lhs_value);
+    /// .with_argument("lhs", lhs_description, &lhs_value);
     /// ```
     pub fn with_argument(
         mut self,
         argument_description: impl Display,
         value_description: impl Display,
-        value: impl Debug,
+        value: &impl Debug,
     ) -> Self {
         let value_description_string = format!("{}", value_description);
         let value_string = format!("{:?}", value);
@@ -242,7 +242,7 @@ mod tests {
     #[test]
     fn format_one_argument_description_matches() {
         let message = PanicMessageBuilder::new("", Location::caller())
-            .with_argument("lhs", "5", 5)
+            .with_argument("lhs", "5", &5)
             .format();
 
         assert!(message.contains("lhs"));
@@ -253,7 +253,7 @@ mod tests {
     #[test]
     fn format_one_argument_description_doesnt_match() {
         let message = PanicMessageBuilder::new("", Location::caller())
-            .with_argument("lhs", "x", 5)
+            .with_argument("lhs", "x", &5)
             .format();
 
         assert!(message.contains("lhs"));
@@ -265,8 +265,8 @@ mod tests {
     #[test]
     fn format_two_arguments() {
         let message = PanicMessageBuilder::new("", Location::caller())
-            .with_argument("lhs", "x", 5)
-            .with_argument("rhs", "y", 6)
+            .with_argument("lhs", "x", &5)
+            .with_argument("rhs", "y", &6)
             .format();
 
         assert!(message.contains("lhs"));

@@ -101,7 +101,9 @@
 //! // takes this into account.
 //! assert_f32_eq!(
 //!     0.15 + 0.15 + 0.15,
-//!     0.1 + 0.1 + 0.25
+//!     0.1 + 0.1 + 0.25,
+//!     ulps_tolerance = 1,
+//!     epsilon_near_zero = 0.0,
 //! );
 //! ```
 //!

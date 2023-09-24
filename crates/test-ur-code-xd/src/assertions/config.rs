@@ -13,23 +13,11 @@
 // You should have received a copy of the GNU General Public License along with test-ur-code-XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
-//! Assertions are configurable in test-ur-code-XD. This is to allow for flexible arguments to
-//! assertions.
-//!
-//! # Negating assertions
-//!
-//! You can take any test-ur-code-XD assertion and negate it like this:
-//!
-//! ```ignore
-//! assert_str_contains!("hello, world", "hi", negate = true);
-//! ```
-//!
-//! This will pass because `"hello, world"` does not contain `"hi"`.
-//!
-//! # Implementation
+//! Assertions are configurable in test-ur-code-XD using flexible arguments.
 //!
 //! This works because all assertion macros allow `<key> = <value>` arguments with the same keys as
-//! the [`Config`] struct.
+//! the [`Config`] struct. See the fields of that structure for details on what arguments are
+//! usable.
 
 use std::{fmt::Display, panic::Location};
 
@@ -40,12 +28,62 @@ use crate::utilities::panic_message_builder::PanicMessageBuilder;
 /// Contains modifiers that can be applied to the assertion to change its behavior.
 #[derive(Default)]
 pub struct Config {
+    /// A flag that negates the assertion.
     pub negate: bool,
+
+    /// A description of what the assertion means.
+    ///
+    /// This is used in the panic message. Only one of `assertion_description` and
+    /// `assertion_description_owned` can be used.
     pub assertion_description: &'static str,
+
+    /// A description of what the assertion means.
+    ///
+    /// This is used in the panic message. Only one of `assertion_description` and
+    /// `assertion_description_owned` can be used.
     pub assertion_description_owned: String,
 }
 
 impl Config {
+    /// A helper function for executing assertions.
+    ///
+    /// # Arguments
+    ///
+    /// * `predicate_description` - A description of the predicate. An assertion that checks for
+    ///                             equality might have a predicate description like `"lhs == rhs"`.
+    /// * `predicate_value` - The value of the predicate. When this is true the assertion passes.
+    ///                       When this is false the assertion fails. An assertion that checks for
+    ///                       equality might use the expression `lhs.eq(rhs)` to check the equality
+    ///                       of the two values.
+    /// * `location` - The calling location of the assertion. This is used in the panic message.
+    ///                This should always be `std::panic::Location::caller()`.
+    /// * `configure_panic_message` - A closure that takes a [`PanicMessageBuilder`] and returns an
+    ///                               optionally modified [`PanicMessageBuilder`]. This is used to
+    ///                               configure the panic message, usually to add arguments to it.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use test_ur_code_xd::assertions::config::Config;
+    /// use std::panic::Location;
+    ///
+    /// let lhs = 5;
+    /// let rhs = 6;
+    ///
+    /// Config {
+    ///     negate: true,
+    ///     ..Default::default()
+    /// }.execute_assertion(
+    ///     "lhs == rhs",
+    ///     lhs.eq(&rhs),
+    ///     Location::caller(),
+    ///     |panic_message_builder| {
+    ///         panic_message_builder
+    ///             .with_argument("lhs", "lhs", &lhs)
+    ///             .with_argument("rhs", "rhs", &rhs)
+    ///     }
+    /// );
+    /// ```
     pub fn execute_assertion<
         ConfigurePanicMessage: FnOnce(PanicMessageBuilder) -> PanicMessageBuilder,
     >(
@@ -69,7 +107,6 @@ impl Config {
         // This truth table is the same as `negate == predicate`, which is used as the condition
         // below. It's hard to read, but efficient!
         if self.negate == predicate_value {
-            // (executor.on_panic)(self);
             let panic_message_builder =
                 self.create_panic_message_builder(predicate_description, location);
 
@@ -79,6 +116,7 @@ impl Config {
         }
     }
 
+    /// Helper method to create a panic message from the configuration.
     fn create_panic_message_builder(
         self,
         predicate_description: impl Display,
@@ -90,69 +128,63 @@ impl Config {
     }
 }
 
-#[macro_export]
-macro_rules! execute_assertion {
-    ($predicate_description:expr, $predicate_value:expr, $configure_panic_message:expr $(, $keys:ident = $values:expr)* $(,)?) => {
-        $crate::assertions::config::Config {
-            $($keys: $values ,)*
-            ..::std::default::Default::default()
-        }.execute_assertion(
-            $predicate_description,
-            $predicate_value,
-            ::std::panic::Location::caller(),
-            $configure_panic_message,
-        )
-    };
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    // #[test]
-    // fn no_panic() {
-    //     AssertionConfig {
-    //         ..Default::default()
-    //     } | make_assertion_part_executor!(|| true, |config| panic!());
-    // }
+    #[test]
+    fn using_struct_no_panic() {
+        Config {
+            ..Default::default()
+        }
+        .execute_assertion(
+            "value is true",
+            true,
+            Location::caller(),
+            |panic_message_builder| panic_message_builder,
+        );
+    }
 
-    // #[test]
-    // #[should_panic]
-    // fn does_panic() {
-    //     AssertionConfig {
-    //         ..Default::default()
-    //     } | make_assertion_part_executor!(|| false, |config| panic!());
-    // }
+    #[test]
+    #[should_panic]
+    fn using_struct_does_panic() {
+        Config {
+            ..Default::default()
+        }
+        .execute_assertion(
+            "value is true",
+            false,
+            Location::caller(),
+            |panic_message_builder| panic_message_builder,
+        );
+    }
 
-    // #[test]
-    // fn no_panic_negated_by_flag() {
-    //     AssertionConfig {
-    //         negate: true,
-    //         ..Default::default()
-    //     } | make_assertion_part_executor!(|| false, |config| panic!());
-    // }
+    #[test]
+    fn using_struct_no_panic_negated() {
+        Config {
+            negate: true,
+            ..Default::default()
+        }
+        .execute_assertion(
+            "value is true",
+            false,
+            Location::caller(),
+            |panic_message_builder| panic_message_builder,
+        );
+    }
 
-    // #[test]
-    // #[should_panic]
-    // fn does_panic_negated_by_flag() {
-    //     AssertionConfig {
-    //         negate: true,
-    //         ..Default::default()
-    //     } | make_assertion_part_executor!(|| true, |config| panic!());
-    // }
-
-    // #[test]
-    // fn no_panic_negated_by_operation() {
-    //     !AssertionConfig {
-    //         ..Default::default()
-    //     } | make_assertion_part_executor!(|| false, |config| panic!());
-    // }
-
-    // #[test]
-    // #[should_panic]
-    // fn does_panic_negated_by_operation() {
-    //     !AssertionConfig {
-    //         ..Default::default()
-    //     } | make_assertion_part_executor!(|| true, |config| panic!());
-    // }
+    #[test]
+    #[should_panic]
+    fn using_struct_does_panic_negated() {
+        Config {
+            negate: true,
+            ..Default::default()
+        }
+        .execute_assertion(
+            "value is true",
+            true,
+            Location::caller(),
+            |panic_message_builder| panic_message_builder,
+        );
+    }
 }
