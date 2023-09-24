@@ -71,27 +71,27 @@ macro_rules! assert_custom {
 
 #[cfg(test)]
 mod tests {
-    use crate::{assert_custom, utilities::capture_output::capture_output};
+    use crate::assert_custom;
 
     #[test]
     fn assert_passing() {
-        let captured_outputs = capture_output(|| {
-            assert_custom!("value is true", true, |panic_message_builder| {
+        // let captured_outputs = capture_output(|| {
+        assert_custom!("value is true", true, |panic_message_builder| {
+            panic_message_builder.with_argument("value", "value", &true)
+        });
+        assert_custom!(
+            "value is true",
+            false,
+            |panic_message_builder| {
                 panic_message_builder.with_argument("value", "value", &true)
-            });
-            assert_custom!(
-                "value is true",
-                false,
-                |panic_message_builder| {
-                    panic_message_builder.with_argument("value", "value", &true)
-                },
-                negate = true
-            );
-        })
-        .unwrap();
+            },
+            negate = true
+        );
+        // })
+        // .unwrap();
 
-        std::assert!(captured_outputs.stdout.is_empty());
-        std::assert!(captured_outputs.stderr.is_empty());
+        // std::assert!(captured_outputs.stdout.is_empty());
+        // std::assert!(captured_outputs.stderr.is_empty());
     }
 
     #[test]

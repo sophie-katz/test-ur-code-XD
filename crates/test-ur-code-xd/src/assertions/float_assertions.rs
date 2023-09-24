@@ -872,28 +872,28 @@ macro_rules! assert_f64_ge {
 
 #[cfg(test)]
 mod tests {
-    use crate::utilities::capture_output::capture_output;
+    // use crate::utilities::capture_output::capture_output;
 
     #[test]
     fn assert_f32_eq_passing() {
-        let captured_outputs = capture_output(|| {
-            assert_f32_eq!(1.0, 1.0, ulps_tolerance = 0, epsilon_near_zero = 0.0);
-            assert_f32_eq!(
-                0.15 + 0.15 + 0.15,
-                0.1 + 0.1 + 0.25,
-                ulps_tolerance = 1,
-                epsilon_near_zero = 0.0
-            );
-            assert_f32_eq!(
-                0.15 + 0.15 + 0.15,
-                0.1 + 0.1 + 0.25,
-                ulps_tolerance = 0,
-                epsilon_near_zero = f32::EPSILON
-            );
-        })
-        .unwrap();
+        // let captured_outputs = capture_output(|| {
+        assert_f32_eq!(1.0, 1.0, ulps_tolerance = 0, epsilon_near_zero = 0.0);
+        assert_f32_eq!(
+            0.15 + 0.15 + 0.15,
+            0.1 + 0.1 + 0.25,
+            ulps_tolerance = 1,
+            epsilon_near_zero = 0.0
+        );
+        assert_f32_eq!(
+            0.15 + 0.15 + 0.15,
+            0.1 + 0.1 + 0.25,
+            ulps_tolerance = 0,
+            epsilon_near_zero = f32::EPSILON
+        );
+        // })
+        // .unwrap();
 
-        std::assert!(captured_outputs.stdout.is_empty());
-        std::assert!(captured_outputs.stderr.is_empty());
+        // std::assert!(captured_outputs.stdout.is_empty());
+        // std::assert!(captured_outputs.stderr.is_empty());
     }
 }

@@ -15,6 +15,7 @@
 
 use console::{style, Color};
 use std::{
+    backtrace::{Backtrace, BacktraceStatus},
     fmt::{Debug, Display},
     panic::{self, Location},
 };
@@ -189,14 +190,20 @@ impl PanicMessageBuilder {
     ///
     /// The formatted panic message.
     pub fn format(mut self) -> String {
-        self.buffer.push_str(
-            style(
-                "\n\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace",
-            )
-            .dim()
-            .to_string()
-            .as_str(),
-        );
+        let backtrace = Backtrace::capture();
+
+        if backtrace.status() == BacktraceStatus::Captured {
+            self.buffer.push_str(format!("\n{}", backtrace).as_str());
+        } else {
+            self.buffer.push_str(
+                style(
+                    "\n\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace",
+                )
+                .dim()
+                .to_string()
+                .as_str(),
+            );
+        }
 
         self.buffer
     }

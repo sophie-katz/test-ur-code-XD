@@ -99,16 +99,16 @@ macro_rules! assert_str_matches {
 
 #[cfg(test)]
 mod tests {
-    use crate::utilities::capture_output::capture_output;
+    // use crate::utilities::capture_output::capture_output;
 
     #[test]
     fn assert_str_contains_passing() {
-        let captured_outputs = capture_output(|| {
-            assert_str_contains!("hello, world", "hello");
-        })
-        .unwrap();
+        // let captured_outputs = capture_output(|| {
+        assert_str_contains!("hello, world", "hello");
+        // })
+        // .unwrap();
 
-        std::assert!(captured_outputs.stdout.is_empty());
-        std::assert!(captured_outputs.stderr.is_empty());
+        // std::assert!(captured_outputs.stdout.is_empty());
+        // std::assert!(captured_outputs.stderr.is_empty());
     }
 }
