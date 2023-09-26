@@ -1,3 +1,23 @@
 site_name: test-ur-code-XD
 theme:
   name: material
+  features:
+    - navigation.tabs
+    - search.suggest
+    - search.highlight
+  palette:
+    primary: purple
+    accent: indigo
+  font:
+    text: Poppins
+markdown_extensions:
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+nav:
+  - 'Home': 'index.md'
+  - 'Getting Started': 'getting-started.md'
+  - 'Assertions': 'assertions.md'
+  - 'Tests': 'tests.md'
