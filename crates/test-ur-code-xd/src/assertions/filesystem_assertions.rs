@@ -13,14 +13,29 @@
 // You should have received a copy of the GNU General Public License along with test-ur-code-XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
+//! Assertions for the filesystem.
+
 use std::{fs, panic::Location, path::Path};
 
 use crate::utilities::panic_message_builder::PanicMessageBuilder;
 
+#[doc(hidden)]
 pub fn assert_path_exists_impl(path: impl AsRef<Path>) -> bool {
     path.as_ref().exists()
 }
 
+/// Asserts that the path exists on the filesystem.
+///
+/// # Arguments
+///
+/// * `path` - The path to check.
+/// * Optional keyword arguments for assertions.
+///
+/// # Example
+///
+/// ```
+/// assert_path_exists!("/dev/null");
+/// ```
 #[macro_export]
 macro_rules! assert_path_exists {
     ($path:expr $(, $keys:ident = $values:expr)* $(,)?) => {
@@ -36,10 +51,23 @@ macro_rules! assert_path_exists {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_path_is_file_impl(path: impl AsRef<Path>) -> bool {
     path.as_ref().is_file()
 }
 
+/// Asserts that the path exists on the filesystem and is a regular file.
+///
+/// # Arguments
+///
+/// * `path` - The path to check.
+/// * Optional keyword arguments for assertions.
+///
+/// # Example
+///
+/// ```
+/// assert_path_is_file!("/dev/null");
+/// ```
 #[macro_export]
 macro_rules! assert_path_is_file {
     ($path:expr $(, $keys:ident = $values:expr)* $(,)?) => {
@@ -55,10 +83,23 @@ macro_rules! assert_path_is_file {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_path_is_symlink_impl(path: impl AsRef<Path>) -> bool {
     path.as_ref().is_symlink()
 }
 
+/// Asserts that the path exists on the filesystem and is a symbolic link.
+///
+/// # Arguments
+///
+/// * `path` - The path to check.
+/// * Optional keyword arguments for assertions.
+///
+/// # Example
+///
+/// ```
+/// assert_path_is_symlink!("/etc/localtime");
+/// ```
 #[macro_export]
 macro_rules! assert_path_is_symlink {
     ($path:expr $(, $keys:ident = $values:expr)* $(,)?) => {
@@ -74,10 +115,23 @@ macro_rules! assert_path_is_symlink {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_path_is_dir_impl(path: impl AsRef<Path>) -> bool {
     path.as_ref().is_dir()
 }
 
+/// Asserts that the path exists on the filesystem and is a directory.
+///
+/// # Arguments
+///
+/// * `path` - The path to check.
+/// * Optional keyword arguments for assertions.
+///
+/// # Example
+///
+/// ```
+/// assert_path_is_dir!("/etc");
+/// ```
 #[macro_export]
 macro_rules! assert_path_is_dir {
     ($path:expr $(, $keys:ident = $values:expr)* $(,)?) => {
@@ -93,10 +147,23 @@ macro_rules! assert_path_is_dir {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_path_is_relative_impl(path: impl AsRef<Path>) -> bool {
     path.as_ref().is_relative()
 }
 
+/// Asserts that the path is relative.
+///
+/// # Arguments
+///
+/// * `path` - The path to check.
+/// * Optional keyword arguments for assertions.
+///
+/// # Example
+///
+/// ```
+/// assert_path_is_relative!("../");
+/// ```
 #[macro_export]
 macro_rules! assert_path_is_relative {
     ($path:expr $(, $keys:ident = $values:expr)* $(,)?) => {
@@ -112,10 +179,23 @@ macro_rules! assert_path_is_relative {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_path_is_absolute_impl(path: impl AsRef<Path>) -> bool {
     path.as_ref().is_absolute()
 }
 
+/// Asserts that the path is absolute.
+///
+/// # Arguments
+///
+/// * `path` - The path to check.
+/// * Optional keyword arguments for assertions.
+///
+/// # Example
+///
+/// ```
+/// assert_path_is_absolute!("/etc");
+/// ```
 #[macro_export]
 macro_rules! assert_path_is_absolute {
     ($path:expr $(, $keys:ident = $values:expr)* $(,)?) => {
@@ -131,10 +211,24 @@ macro_rules! assert_path_is_absolute {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_path_starts_with_impl(path: impl AsRef<Path>, base: impl AsRef<Path>) -> bool {
     path.as_ref().starts_with(base.as_ref())
 }
 
+/// Asserts that the path starts with a base path.
+///
+/// # Arguments
+///
+/// * `path` - The path to check.
+/// * `base` - The base path to be used as a prefix.
+/// * Optional keyword arguments for assertions.
+///
+/// # Example
+///
+/// ```
+/// assert_path_starts_with!("/etc/localtime", "/etc");
+/// ```
 #[macro_export]
 macro_rules! assert_path_starts_with {
     ($path:expr, $base:expr $(, $keys:ident = $values:expr)* $(,)?) => {
@@ -151,10 +245,24 @@ macro_rules! assert_path_starts_with {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_path_ends_with_impl(path: impl AsRef<Path>, child: impl AsRef<Path>) -> bool {
     path.as_ref().ends_with(child.as_ref())
 }
 
+/// Asserts that the path ends with a child path.
+///
+/// # Arguments
+///
+/// * `path` - The path to check.
+/// * `child` - The child path to be used as a suffix.
+/// * Optional keyword arguments for assertions.
+///
+/// # Example
+///
+/// ```
+/// assert_path_starts_with!("/etc/localtime", "localtime");
+/// ```
 #[macro_export]
 macro_rules! assert_path_ends_with {
     ($path:expr, $child:expr $(, $keys:ident = $values:expr)* $(,)?) => {
@@ -171,6 +279,7 @@ macro_rules! assert_path_ends_with {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_file_text<OnTextType: FnOnce(String)>(path: impl AsRef<Path>, on_text: OnTextType) {
     if !path.as_ref().is_file() {
         PanicMessageBuilder::new("path is file", Location::caller())
@@ -188,6 +297,27 @@ pub fn assert_file_text<OnTextType: FnOnce(String)>(path: impl AsRef<Path>, on_t
     }
 }
 
+/// Asserts that the file contains text that matches assertions.
+///
+/// **Warning:** this will read the whole file into memory as a string! Do not use on very large
+/// files.
+///
+/// # Arguments
+///
+/// * `path` - The path of the file to read.
+/// * `on_text` - A closure that takes the file content string as an argument.
+/// * Optional keyword arguments for assertions.
+///
+/// # Example
+///
+/// ```
+/// assert_file_text!(
+///     "hello_world_file.txt",
+///     on_text = |text| {
+///         assert_eq!(text, "hello, world");
+///     }
+/// );
+/// ```
 #[macro_export]
 macro_rules! assert_file_text {
     ($path:expr, on_text = $on_text:expr) => {

@@ -13,8 +13,10 @@
 // You should have received a copy of the GNU General Public License along with test-ur-code-XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
-// TODO: Add this to documentation
-// https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
+//! Assertions that operate on floats.
+//!
+//! The assertions in this module are based off of
+//! <a href="https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/">this excellent article</a>.
 
 use float_cmp::{approx_eq, Ulps};
 use num_traits::Float;
@@ -22,6 +24,19 @@ use std::fmt::{Debug, Display};
 
 use crate::utilities::panic_message_builder::PanicMessageBuilder;
 
+/// Checks if two numbers are non-finite and equal
+///
+/// # Arguments
+///
+/// * `lhs` - The left-hand side of the comparison.
+/// * `rhs` - The right-hand side of the comparison.
+///
+/// # Returns
+///
+/// * If both numbers are non-finite (either infinite or NaN):
+///     * If they are equal, return `Some(true)`
+///     * If they are inequal, return `Some(false)`
+/// * Otherwise, return `None`
 fn is_float_eq_non_finite<FloatType: Float>(lhs: FloatType, rhs: FloatType) -> Option<bool> {
     if lhs.is_infinite() != rhs.is_infinite() {
         // One is infinite and the other is not: inequal
@@ -47,7 +62,20 @@ fn is_float_eq_non_finite<FloatType: Float>(lhs: FloatType, rhs: FloatType) -> O
     None
 }
 
-pub fn is_float_eq_relative<FloatType: Float>(
+/// Checks if two numbers are equal using a relative epsilon tolerance
+///
+/// If the two numbers are both finite, a relative epsilon tolerance will be used to compare them.
+/// If either are not, [`is_float_eq_non_finite`] will be used instead.
+///
+/// # Arguments
+///
+/// * `lhs` - The left-hand side of the comparison.
+/// * `rhs` - The right-hand side of the comparison.
+/// * `absolute_tolerance` - The absolute tolerance to use when `lhs` and `rhs` are very close to
+///                          each other.
+/// * `relative_tolerance` - The epsilon to use for tolerance relative to the magnitude of the
+///                          largest operand.
+fn is_float_eq_relative<FloatType: Float>(
     lhs: FloatType,
     rhs: FloatType,
     absolute_tolerance: FloatType,
@@ -74,12 +102,19 @@ pub fn is_float_eq_relative<FloatType: Float>(
     false
 }
 
-pub fn is_float_eq_ulps_f32(
-    lhs: f32,
-    rhs: f32,
-    absolute_tolerance: f32,
-    ulps_tolerance: i32,
-) -> bool {
+/// Checks if two numbers are equal using an ULPs tolerance
+///
+/// If the two numbers are both finite, an ULPs tolerance will be used to compare them.
+/// If either are not, [`is_float_eq_non_finite`] will be used instead.
+///
+/// # Arguments
+///
+/// * `lhs` - The left-hand side of the comparison.
+/// * `rhs` - The right-hand side of the comparison.
+/// * `absolute_tolerance` - The absolute tolerance to use when `lhs` and `rhs` are very close to
+///                          each other.
+/// * `ulps_tolerance` - The number of ULPs to use for tolerance.
+fn is_float_eq_ulps_f32(lhs: f32, rhs: f32, absolute_tolerance: f32, ulps_tolerance: i32) -> bool {
     // Check for non-finite cases
     if let Some(equal) = is_float_eq_non_finite(lhs, rhs) {
         return equal;
@@ -106,12 +141,19 @@ pub fn is_float_eq_ulps_f32(
     false
 }
 
-pub fn is_float_eq_ulps_f64(
-    lhs: f64,
-    rhs: f64,
-    absolute_tolerance: f64,
-    ulps_tolerance: i64,
-) -> bool {
+/// Checks if two numbers are equal using an ULPs tolerance
+///
+/// If the two numbers are both finite, an ULPs tolerance will be used to compare them.
+/// If either are not, [`is_float_eq_non_finite`] will be used instead.
+///
+/// # Arguments
+///
+/// * `lhs` - The left-hand side of the comparison.
+/// * `rhs` - The right-hand side of the comparison.
+/// * `absolute_tolerance` - The absolute tolerance to use when `lhs` and `rhs` are very close to
+///                          each other.
+/// * `ulps_tolerance` - The number of ULPs to use for tolerance.
+fn is_float_eq_ulps_f64(lhs: f64, rhs: f64, absolute_tolerance: f64, ulps_tolerance: i64) -> bool {
     // Check for non-finite cases
     if let Some(equal) = is_float_eq_non_finite(lhs, rhs) {
         return equal;
@@ -138,6 +180,15 @@ pub fn is_float_eq_ulps_f64(
     false
 }
 
+/// Formats a predicate description message for a float assertion using an ULPs tolerance
+///
+/// # Arguments
+///
+/// * `operator` - The comparison operator (for example `==` or `<`)
+/// * `ulps_tolerance` - The ULPs tolerance
+/// * `bit_width` - The bit width of the float (either 32 or 64)
+/// * `epsilon_near_zero` - The epsilon to use when comparing values near zero
+#[doc(hidden)]
 pub fn format_float_predicate_description_ulps<
     UlpsType: Display + PartialEq<i32>,
     FloatType: Display,
@@ -148,7 +199,7 @@ pub fn format_float_predicate_description_ulps<
     epsilon_near_zero: FloatType,
 ) -> String {
     format!(
-        "lhs {} rhs (within {} {}-bit float ulp{} or {} near zero)",
+        "lhs {} rhs (within {} {}-bit float ulp{} or {} near equal)",
         operator,
         ulps_tolerance,
         bit_width,
@@ -157,17 +208,35 @@ pub fn format_float_predicate_description_ulps<
     )
 }
 
+/// Formats a predicate description message for a float assertion using a relative epsilon tolerance
+///
+/// # Arguments
+///
+/// * `operator` - The comparison operator (for example `==` or `<`)
+/// * `relative_epsilon` - The relative epsilon tolerance
+/// * `epsilon_near_zero` - The epsilon to use when comparing values near zero
+#[doc(hidden)]
 pub fn format_float_predicate_description_relative<FloatType: Display>(
     operator: &str,
     relative_epsilon: FloatType,
     epsilon_near_zero: FloatType,
 ) -> String {
     format!(
-        "lhs {} rhs (within {} relative to magnitude or {} near zero)",
+        "lhs {} rhs (within {} relative to magnitude or {} near equal)",
         operator, relative_epsilon, epsilon_near_zero
     )
 }
 
+/// Configures a panic message builder for a float assertion using an ULPs tolerance
+///
+/// # Arguments
+///
+/// * `panic_message_builder` - The panic message builder to configure
+/// * `lhs_description` - The description of the left-hand side of the comparison
+/// * `lhs_value` - The left-hand side of the comparison
+/// * `rhs_description` - The description of the right-hand side of the comparison
+/// * `rhs_value` - The right-hand side of the comparison
+#[doc(hidden)]
 pub fn configure_float_panic_message_ulps<
     UlpsType: Debug,
     FloatType: Float + Debug + Ulps<U = UlpsType>,
@@ -189,7 +258,17 @@ pub fn configure_float_panic_message_ulps<
         )
 }
 
-pub fn configure_float_panic_message<FloatType: Float + Debug>(
+/// Configures a panic message builder for a float assertion using a relative epsilon  tolerance
+///
+/// # Arguments
+///
+/// * `panic_message_builder` - The panic message builder to configure
+/// * `lhs_description` - The description of the left-hand side of the comparison
+/// * `lhs_value` - The left-hand side of the comparison
+/// * `rhs_description` - The description of the right-hand side of the comparison
+/// * `rhs_value` - The right-hand side of the comparison
+#[doc(hidden)]
+pub fn configure_float_panic_message_relative<FloatType: Float + Debug>(
     panic_message_builder: PanicMessageBuilder,
     lhs_description: &str,
     lhs_value: FloatType,
@@ -202,6 +281,7 @@ pub fn configure_float_panic_message<FloatType: Float + Debug>(
         .with_argument("absolute difference", "--", &(lhs_value - rhs_value).abs())
 }
 
+#[doc(hidden)]
 pub fn assert_f32_eq_impl_ulps(
     lhs: f32,
     rhs: f32,
@@ -211,6 +291,7 @@ pub fn assert_f32_eq_impl_ulps(
     is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps_tolerance)
 }
 
+#[doc(hidden)]
 pub fn assert_f32_eq_impl_relative(
     lhs: f32,
     rhs: f32,
@@ -220,6 +301,29 @@ pub fn assert_f32_eq_impl_relative(
     is_float_eq_relative(lhs, rhs, epsilon_near_zero, relative_epsilon)
 }
 
+/// Asserts that two `f32` values are equal.
+///
+/// # Arguents
+///
+/// * `lhs` - The left-hand side
+/// * `rhs` - The right-hand side
+/// * Can use one of:
+///     * `ulps_tolerance = <value>` - The number of ULPs to use for tolerance
+///     * `relative_epsilon = <value>` - The epsilon to use for tolerance relative to the magnitude
+/// * Optional keyword arguments for assertions
+///
+/// # Example
+///
+/// ```
+/// // Compare `x` to 3.0 within 2 ULPs
+/// assert_f32_eq!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 0.0);
+///
+/// // Compare `x` to 3.0 within 2 ULPs or within 1e-7 if they are very close
+/// assert_f32_eq!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 1e-7);
+///
+/// // Compare `x` to 3.0 within `f32::EPSILON`, relative to magnitude
+/// assert_f32_eq!(x, 3.0, relative_epsilon = f32::EPSILON, epsilon_near_zero = 0.0);
+/// ```
 #[macro_export]
 macro_rules! assert_f32_eq {
     (
@@ -288,6 +392,7 @@ macro_rules! assert_f32_eq {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_f32_ne_impl_ulps(
     lhs: f32,
     rhs: f32,
@@ -297,6 +402,7 @@ pub fn assert_f32_ne_impl_ulps(
     !is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps_tolerance)
 }
 
+#[doc(hidden)]
 pub fn assert_f32_ne_impl_relative(
     lhs: f32,
     rhs: f32,
@@ -306,6 +412,29 @@ pub fn assert_f32_ne_impl_relative(
     !is_float_eq_relative(lhs, rhs, epsilon_near_zero, relative_epsilon)
 }
 
+/// Asserts that two `f32` values are inequal.
+///
+/// # Arguents
+///
+/// * `lhs` - The left-hand side
+/// * `rhs` - The right-hand side
+/// * Can use one of:
+///     * `ulps_tolerance = <value>` - The number of ULPs to use for tolerance
+///     * `relative_epsilon = <value>` - The epsilon to use for tolerance relative to the magnitude
+/// * Optional keyword arguments for assertions
+///
+/// # Example
+///
+/// ```
+/// // Compare `x` to 3.0 within 2 ULPs
+/// assert_f32_ne!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 0.0);
+///
+/// // Compare `x` to 3.0 within 2 ULPs or within 1e-7 if they are very close
+/// assert_f32_ne!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 1e-7);
+///
+/// // Compare `x` to 3.0 within `f32::EPSILON`, relative to magnitude
+/// assert_f32_ne!(x, 3.0, relative_epsilon = f32::EPSILON, epsilon_near_zero = 0.0);
+/// ```
 #[macro_export]
 macro_rules! assert_f32_ne {
     (
@@ -374,6 +503,7 @@ macro_rules! assert_f32_ne {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_f32_le_impl_ulps(
     lhs: f32,
     rhs: f32,
@@ -383,6 +513,7 @@ pub fn assert_f32_le_impl_ulps(
     lhs <= rhs || is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps_tolerance)
 }
 
+#[doc(hidden)]
 pub fn assert_f32_le_impl_relative(
     lhs: f32,
     rhs: f32,
@@ -392,6 +523,29 @@ pub fn assert_f32_le_impl_relative(
     lhs <= rhs || is_float_eq_relative(lhs, rhs, epsilon_near_zero, relative_epsilon)
 }
 
+/// Asserts that one `f32` value is less than or equal to the other.
+///
+/// # Arguents
+///
+/// * `lhs` - The left-hand side
+/// * `rhs` - The right-hand side
+/// * Can use one of:
+///     * `ulps_tolerance = <value>` - The number of ULPs to use for tolerance
+///     * `relative_epsilon = <value>` - The epsilon to use for tolerance relative to the magnitude
+/// * Optional keyword arguments for assertions
+///
+/// # Example
+///
+/// ```
+/// // Compare `x` to 3.0 within 2 ULPs
+/// assert_f32_le!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 0.0);
+///
+/// // Compare `x` to 3.0 within 2 ULPs or within 1e-7 if they are very close
+/// assert_f32_le!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 1e-7);
+///
+/// // Compare `x` to 3.0 within `f32::EPSILON`, relative to magnitude
+/// assert_f32_le!(x, 3.0, relative_epsilon = f32::EPSILON, epsilon_near_zero = 0.0);
+/// ```
 #[macro_export]
 macro_rules! assert_f32_le {
     (
@@ -460,6 +614,7 @@ macro_rules! assert_f32_le {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_f32_ge_impl_ulps(
     lhs: f32,
     rhs: f32,
@@ -469,6 +624,7 @@ pub fn assert_f32_ge_impl_ulps(
     lhs >= rhs || is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps_tolerance)
 }
 
+#[doc(hidden)]
 pub fn assert_f32_ge_impl_relative(
     lhs: f32,
     rhs: f32,
@@ -478,6 +634,29 @@ pub fn assert_f32_ge_impl_relative(
     lhs >= rhs || is_float_eq_relative(lhs, rhs, epsilon_near_zero, relative_epsilon)
 }
 
+/// Asserts that one `f32` value is greater than or equal to the other.
+///
+/// # Arguents
+///
+/// * `lhs` - The left-hand side
+/// * `rhs` - The right-hand side
+/// * Can use one of:
+///     * `ulps_tolerance = <value>` - The number of ULPs to use for tolerance
+///     * `relative_epsilon = <value>` - The epsilon to use for tolerance relative to the magnitude
+/// * Optional keyword arguments for assertions
+///
+/// # Example
+///
+/// ```
+/// // Compare `x` to 3.0 within 2 ULPs
+/// assert_f32_ge!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 0.0);
+///
+/// // Compare `x` to 3.0 within 2 ULPs or within 1e-7 if they are very close
+/// assert_f32_ge!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 1e-7);
+///
+/// // Compare `x` to 3.0 within `f32::EPSILON`, relative to magnitude
+/// assert_f32_ge!(x, 3.0, relative_epsilon = f32::EPSILON, epsilon_near_zero = 0.0);
+/// ```
 #[macro_export]
 macro_rules! assert_f32_ge {
     (
@@ -546,10 +725,12 @@ macro_rules! assert_f32_ge {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_f64_eq_impl_ulps(lhs: f64, rhs: f64, epsilon_near_zero: f64, ulps: i64) -> bool {
     is_float_eq_ulps_f64(lhs, rhs, epsilon_near_zero, ulps)
 }
 
+#[doc(hidden)]
 pub fn assert_f64_eq_impl_relative(
     lhs: f64,
     rhs: f64,
@@ -559,6 +740,29 @@ pub fn assert_f64_eq_impl_relative(
     is_float_eq_relative(lhs, rhs, epsilon_near_zero, relative_epsilon)
 }
 
+/// Asserts that two `f64` values are equal.
+///
+/// # Arguents
+///
+/// * `lhs` - The left-hand side
+/// * `rhs` - The right-hand side
+/// * Can use one of:
+///     * `ulps_tolerance = <value>` - The number of ULPs to use for tolerance
+///     * `relative_epsilon = <value>` - The epsilon to use for tolerance relative to the magnitude
+/// * Optional keyword arguments for assertions
+///
+/// # Example
+///
+/// ```
+/// // Compare `x` to 3.0 within 2 ULPs
+/// assert_f64_eq!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 0.0);
+///
+/// // Compare `x` to 3.0 within 2 ULPs or within 1e-7 if they are very close
+/// assert_f64_eq!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 1e-7);
+///
+/// // Compare `x` to 3.0 within `f64::EPSILON`, relative to magnitude
+/// assert_f64_eq!(x, 3.0, relative_epsilon = f64::EPSILON, epsilon_near_zero = 0.0);
+/// ```
 #[macro_export]
 macro_rules! assert_f64_eq {
     (
@@ -627,10 +831,12 @@ macro_rules! assert_f64_eq {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_f64_ne_impl_ulps(lhs: f64, rhs: f64, epsilon_near_zero: f64, ulps: i64) -> bool {
     !is_float_eq_ulps_f64(lhs, rhs, epsilon_near_zero, ulps)
 }
 
+#[doc(hidden)]
 pub fn assert_f64_ne_impl_relative(
     lhs: f64,
     rhs: f64,
@@ -640,6 +846,29 @@ pub fn assert_f64_ne_impl_relative(
     !is_float_eq_relative(lhs, rhs, epsilon_near_zero, relative_epsilon)
 }
 
+/// Asserts that two `f64` values are inequal.
+///
+/// # Arguents
+///
+/// * `lhs` - The left-hand side
+/// * `rhs` - The right-hand side
+/// * Can use one of:
+///     * `ulps_tolerance = <value>` - The number of ULPs to use for tolerance
+///     * `relative_epsilon = <value>` - The epsilon to use for tolerance relative to the magnitude
+/// * Optional keyword arguments for assertions
+///
+/// # Example
+///
+/// ```
+/// // Compare `x` to 3.0 within 2 ULPs
+/// assert_f64_ne!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 0.0);
+///
+/// // Compare `x` to 3.0 within 2 ULPs or within 1e-7 if they are very close
+/// assert_f64_ne!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 1e-7);
+///
+/// // Compare `x` to 3.0 within `f64::EPSILON`, relative to magnitude
+/// assert_f64_ne!(x, 3.0, relative_epsilon = f64::EPSILON, epsilon_near_zero = 0.0);
+/// ```
 #[macro_export]
 macro_rules! assert_f64_ne {
     (
@@ -708,10 +937,12 @@ macro_rules! assert_f64_ne {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_f64_le_impl_ulps(lhs: f64, rhs: f64, epsilon_near_zero: f64, ulps: i64) -> bool {
     lhs <= rhs || is_float_eq_ulps_f64(lhs, rhs, epsilon_near_zero, ulps)
 }
 
+#[doc(hidden)]
 pub fn assert_f64_le_impl_relative(
     lhs: f64,
     rhs: f64,
@@ -721,6 +952,29 @@ pub fn assert_f64_le_impl_relative(
     lhs <= rhs || is_float_eq_relative(lhs, rhs, epsilon_near_zero, relative_epsilon)
 }
 
+/// Asserts that one `f64` value is less than or equal to the other.
+///
+/// # Arguents
+///
+/// * `lhs` - The left-hand side
+/// * `rhs` - The right-hand side
+/// * Can use one of:
+///     * `ulps_tolerance = <value>` - The number of ULPs to use for tolerance
+///     * `relative_epsilon = <value>` - The epsilon to use for tolerance relative to the magnitude
+/// * Optional keyword arguments for assertions
+///
+/// # Example
+///
+/// ```
+/// // Compare `x` to 3.0 within 2 ULPs
+/// assert_f64_le!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 0.0);
+///
+/// // Compare `x` to 3.0 within 2 ULPs or within 1e-7 if they are very close
+/// assert_f64_le!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 1e-7);
+///
+/// // Compare `x` to 3.0 within `f64::EPSILON`, relative to magnitude
+/// assert_f64_le!(x, 3.0, relative_epsilon = f64::EPSILON, epsilon_near_zero = 0.0);
+/// ```
 #[macro_export]
 macro_rules! assert_f64_le {
     (
@@ -789,10 +1043,12 @@ macro_rules! assert_f64_le {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_f64_ge_impl_ulps(lhs: f64, rhs: f64, epsilon_near_zero: f64, ulps: i64) -> bool {
     lhs >= rhs || is_float_eq_ulps_f64(lhs, rhs, epsilon_near_zero, ulps)
 }
 
+#[doc(hidden)]
 pub fn assert_f64_ge_impl_relative(
     lhs: f64,
     rhs: f64,
@@ -802,6 +1058,29 @@ pub fn assert_f64_ge_impl_relative(
     lhs >= rhs || is_float_eq_relative(lhs, rhs, epsilon_near_zero, relative_epsilon)
 }
 
+/// Asserts that one `f64` value is greater than or equal to the other.
+///
+/// # Arguents
+///
+/// * `lhs` - The left-hand side
+/// * `rhs` - The right-hand side
+/// * Can use one of:
+///     * `ulps_tolerance = <value>` - The number of ULPs to use for tolerance
+///     * `relative_epsilon = <value>` - The epsilon to use for tolerance relative to the magnitude
+/// * Optional keyword arguments for assertions
+///
+/// # Example
+///
+/// ```
+/// // Compare `x` to 3.0 within 2 ULPs
+/// assert_f64_ge!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 0.0);
+///
+/// // Compare `x` to 3.0 within 2 ULPs or within 1e-7 if they are very close
+/// assert_f64_ge!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 1e-7);
+///
+/// // Compare `x` to 3.0 within `f64::EPSILON`, relative to magnitude
+/// assert_f64_ge!(x, 3.0, relative_epsilon = f64::EPSILON, epsilon_near_zero = 0.0);
+/// ```
 #[macro_export]
 macro_rules! assert_f64_ge {
     (

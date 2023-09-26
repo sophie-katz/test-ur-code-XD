@@ -13,10 +13,26 @@
 // You should have received a copy of the GNU General Public License along with test-ur-code-XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
+//! Assertions that use arithmetic comparisons.
+
+#[doc(hidden)]
 pub fn assert_eq_impl<LhsType: PartialEq<RhsType>, RhsType>(lhs: &LhsType, rhs: &RhsType) -> bool {
     lhs.eq(rhs)
 }
 
+/// Asserts that two values are equal to each other using the [`PartialEq`] trait.
+///
+/// # Arguments
+///
+/// * `lhs` - The value on the left-hand side.
+/// * `rhs` - The value on the right-hand side.
+/// * Optional keyword arguments for assertions.
+///
+/// # Example
+///
+/// ```
+/// assert_eq!(x, 5);
+/// ```
 #[macro_export]
 macro_rules! assert_eq {
     ($lhs:expr, $rhs:expr $(, $keys:ident = $values:expr)* $(,)?) => {
@@ -33,10 +49,24 @@ macro_rules! assert_eq {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_ne_impl<LhsType: PartialEq<RhsType>, RhsType>(lhs: &LhsType, rhs: &RhsType) -> bool {
     !lhs.eq(rhs)
 }
 
+/// Asserts that two values are inequal to each other using the [`PartialEq`] trait.
+///
+/// # Arguments
+///
+/// * `lhs` - The value on the left-hand side.
+/// * `rhs` - The value on the right-hand side.
+/// * Optional keyword arguments for assertions.
+///
+/// # Example
+///
+/// ```
+/// assert_ne!(x, 5);
+/// ```
 #[macro_export]
 macro_rules! assert_ne {
     ($lhs:expr, $rhs:expr $(, $keys:ident = $values:expr)* $(,)?) => {
@@ -53,10 +83,24 @@ macro_rules! assert_ne {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_lt_impl<LhsType: PartialOrd<RhsType>, RhsType>(lhs: &LhsType, rhs: &RhsType) -> bool {
     lhs.lt(rhs)
 }
 
+/// Asserts that one value is less than the other using the [`PartialOrd`] trait.
+///
+/// # Arguments
+///
+/// * `lhs` - The value on the left-hand side.
+/// * `rhs` - The value on the right-hand side.
+/// * Optional keyword arguments for assertions.
+///
+/// # Example
+///
+/// ```
+/// assert_lt!(x, 5);
+/// ```
 #[macro_export]
 macro_rules! assert_lt {
     ($lhs:expr, $rhs:expr $(, $keys:ident = $values:expr)* $(,)?) => {
@@ -73,10 +117,24 @@ macro_rules! assert_lt {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_le_impl<LhsType: PartialOrd<RhsType>, RhsType>(lhs: &LhsType, rhs: &RhsType) -> bool {
     lhs.le(rhs)
 }
 
+/// Asserts that one value is less than or equal to the other using the [`PartialOrd`] trait.
+///
+/// # Arguments
+///
+/// * `lhs` - The value on the left-hand side.
+/// * `rhs` - The value on the right-hand side.
+/// * Optional keyword arguments for assertions.
+///
+/// # Example
+///
+/// ```
+/// assert_le!(x, 5);
+/// ```
 #[macro_export]
 macro_rules! assert_le {
     ($lhs:expr, $rhs:expr $(, $keys:ident = $values:expr)* $(,)?) => {
@@ -93,10 +151,24 @@ macro_rules! assert_le {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_gt_impl<LhsType: PartialOrd<RhsType>, RhsType>(lhs: &LhsType, rhs: &RhsType) -> bool {
     lhs.gt(rhs)
 }
 
+/// Asserts that one value is greater than the other using the [`PartialOrd`] trait.
+///
+/// # Arguments
+///
+/// * `lhs` - The value on the left-hand side.
+/// * `rhs` - The value on the right-hand side.
+/// * Optional keyword arguments for assertions.
+///
+/// # Example
+///
+/// ```
+/// assert_gt!(x, 5);
+/// ```
 #[macro_export]
 macro_rules! assert_gt {
     ($lhs:expr, $rhs:expr $(, $keys:ident = $values:expr)* $(,)?) => {
@@ -113,10 +185,24 @@ macro_rules! assert_gt {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_ge_impl<LhsType: PartialOrd<RhsType>, RhsType>(lhs: &LhsType, rhs: &RhsType) -> bool {
     lhs.ge(rhs)
 }
 
+/// Asserts that one value is greater than or equal to the other using the [`PartialOrd`] trait.
+///
+/// # Arguments
+///
+/// * `lhs` - The value on the left-hand side.
+/// * `rhs` - The value on the right-hand side.
+/// * Optional keyword arguments for assertions.
+///
+/// # Example
+///
+/// ```
+/// assert_ge!(x, 5);
+/// ```
 #[macro_export]
 macro_rules! assert_ge {
     ($lhs:expr, $rhs:expr $(, $keys:ident = $values:expr)* $(,)?) => {

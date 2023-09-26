@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU General Public License along with test-ur-code-XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
+//! A macro to allow you to write your own custom assertions, either inline or as macros.
+
 /// Helper macro to execute an assertion.
 ///
 ///

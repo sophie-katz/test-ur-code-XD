@@ -13,8 +13,11 @@
 // You should have received a copy of the GNU General Public License along with test-ur-code-XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
+//! Assertions that capture output to `stdout` and `stderr`.
+
 use crate::utilities::capture_output::capture_output;
 
+#[doc(hidden)]
 pub fn assert_outputs_impl<
     ActionType: FnOnce(),
     StdoutCallbackType: FnOnce(String),
@@ -35,6 +38,33 @@ pub fn assert_outputs_impl<
     }
 }
 
+/// Assertion wrapper for capturing `stdout` and `stderr`.
+///
+/// # Arguments
+///
+/// * `action` - A function with no arguments or returns whose output will be captured.
+/// * Optional: `on_stdout = <value>` - A closure that accepts a `String` as an argument and returns
+///                                     nothing. The `String` is the content of `stdout` that was
+///                                     outputted by `action`.
+/// * Optional: `on_stderr = <value>` - A closure that accepts a `String` as an argument and returns
+///                                     nothing. The `String` is the content of `stderr` that was
+///                                     outputted by `action`.
+///
+/// **NOTE:** At least one of `on_stdout` and `on_stderr` must be passed. `on_stdout` must always
+/// come before `on_stderr`.
+///
+/// # Example
+///
+/// ```
+/// assert_outputs!(
+///     || {
+///         println!("hello, world");
+///     },
+///     on_stdout = |stdout| {
+///         assert_eq!(stdout, "hello, world\n");
+///     }
+/// );
+/// ```
 #[macro_export]
 macro_rules! assert_outputs {
     ($action:expr, on_stdout = $on_stdout:expr) => {

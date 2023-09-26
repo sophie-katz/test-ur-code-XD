@@ -13,10 +13,13 @@
 // You should have received a copy of the GNU General Public License along with test-ur-code-XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
+//! Assertions that catch panics.
+
 use std::panic::{self, Location, UnwindSafe};
 
 use crate::utilities::panic_message_builder::PanicMessageBuilder;
 
+#[doc(hidden)]
 pub fn assert_panics_impl<
     ActionType: FnOnce() + UnwindSafe,
     MessageCallbackType: FnOnce(String),
@@ -33,6 +36,27 @@ pub fn assert_panics_impl<
     }
 }
 
+/// Assertion wrapper for panics.
+///
+/// # Arguments
+///
+/// * `action` - A function with no arguments or returns whose panic will be captured.
+/// * Optional: `on_message = <value>` - A closure that accepts a `String` as an argument and
+///                                      returns nothing. The `String` is the content of the panic
+///                                      message that was raised by `action`.
+///
+/// # Example
+///
+/// ```
+/// assert_panics!(
+///     || {
+///         panic!("hello, world");
+///     },
+///     on_message = |message| {
+///         assert_eq!(message, "hello, world");
+///     }
+/// );
+/// ```
 #[macro_export]
 macro_rules! assert_panics {
     ($action:expr, on_message = $on_message:expr) => {

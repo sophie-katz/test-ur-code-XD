@@ -13,11 +13,10 @@
 // You should have received a copy of the GNU General Public License along with test-ur-code-XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
-//! Assertions are configurable in test-ur-code-XD using flexible arguments.
-//!
-//! This works because all assertion macros allow `<key> = <value>` arguments with the same keys as
-//! the [`Config`] struct. See the fields of that structure for details on what arguments are
-//! usable.
+//! All assertion macros accept a variable list of `<key> = <value>` arguments. The keys in these
+//! arguments are identifiers that correspond to the fields of the [`Config`] struct. The [`Config`]
+//! instance is then used to modify the behavior of the assertion in various ways. See the fields
+//! of teh structure for details on how to use these arguments.
 
 use std::{fmt::Display, panic::Location};
 
@@ -26,26 +25,89 @@ use crate::utilities::panic_message_builder::PanicMessageBuilder;
 /// The configuration for an assertion.
 ///
 /// Contains modifiers that can be applied to the assertion to change its behavior.
+//
+// Non-documentation note for developers:
+//
+//   Make sure to put <br /> tags after all field doc comments except for the last one. This is to
+//   work around Rustdoc's formatting with examples for fields. It just makes it more readable.
 #[derive(Default)]
 pub struct Config {
     /// A flag that negates the assertion.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// assert!(true);
+    ///
+    /// // The above assertion is equivalent to:
+    ///
+    /// assert!(false, negate = true);
+    /// ```
+    ///
+    /// <br />
     pub negate: bool,
 
     /// A description of what the assertion means.
     ///
     /// This is used in the panic message. Only one of `assertion_description` and
     /// `assertion_description_owned` can be used.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// assert!(
+    ///     some_function(),
+    ///     assertion_description = "`some_function` is always expected to return true"
+    /// );
+    /// ```
+    ///
+    /// Note that you cannot use both of these at the same time:
+    ///
+    /// ```should_panic
+    /// assert!(
+    ///     some_function(),
+    ///     assertion_description = "..."
+    ///     assertion_description_owned = "...".to_owned() // this will panic without running the
+    ///                                                    // assertion
+    /// );
+    /// ```
+    ///
+    /// <br />
     pub assertion_description: &'static str,
 
     /// A description of what the assertion means.
     ///
     /// This is used in the panic message. Only one of `assertion_description` and
     /// `assertion_description_owned` can be used.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// assert!(
+    ///     some_function(),
+    ///     assertion_description_owned = format!(
+    ///         "`some_function` is always expected to return {}",
+    ///         true
+    ///     )
+    /// );
+    /// ```
+    ///
+    /// Note that you cannot use both of these at the same time:
+    ///
+    /// ```should_panic
+    /// assert!(
+    ///     some_function(),
+    ///     assertion_description = "..."
+    ///     assertion_description_owned = "...".to_owned() // this will panic without running the
+    ///                                                    // assertion
+    /// );
+    /// ```
     pub assertion_description_owned: String,
 }
 
 impl Config {
-    /// A helper function for executing assertions.
+    /// A helper function for executing assertions. This will almost always be wrapped by the
+    /// `assert_custom` macro.
     ///
     /// # Arguments
     ///

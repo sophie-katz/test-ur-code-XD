@@ -13,12 +13,29 @@
 // You should have received a copy of the GNU General Public License along with test-ur-code-XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
+//! Assertions that operate on strings.
+
 use regex::Regex;
 
+#[doc(hidden)]
 pub fn assert_str_contains_impl(value: impl AsRef<str>, substring: impl AsRef<str>) -> bool {
     value.as_ref().contains(substring.as_ref())
 }
 
+/// Asserts that a string contains a substring.
+///
+/// # Arguments
+///
+/// * `value` - The string to check.
+/// * `substring` - The substring for which to check.
+///
+/// # Example
+///
+/// ```
+/// assert_str_contains!("hello, world", "hello");
+///
+/// assert_str_contains!("hello, world", "asdf", negate = true);
+/// ```
 #[macro_export]
 macro_rules! assert_str_contains {
     ($value:expr, $substring:expr $(, $keys:ident = $values:expr)* $(,)?) => {
@@ -35,10 +52,25 @@ macro_rules! assert_str_contains {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_str_starts_with_impl(value: impl AsRef<str>, prefix: impl AsRef<str>) -> bool {
     value.as_ref().starts_with(prefix.as_ref())
 }
 
+/// Asserts that a string starts with a prefix.
+///
+/// # Arguments
+///
+/// * `value` - The string to check.
+/// * `prefix` - The prefix for which to check.
+///
+/// # Example
+///
+/// ```
+/// assert_str_starts_with!("hello, world", "hello");
+///
+/// assert_str_starts_with!("hello, world", "world", negate = true);
+/// ```
 #[macro_export]
 macro_rules! assert_str_starts_with {
     ($value:expr, $prefix:expr $(, $keys:ident = $values:expr)* $(,)?) => {
@@ -55,10 +87,25 @@ macro_rules! assert_str_starts_with {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_str_ends_with_impl(value: impl AsRef<str>, suffix: impl AsRef<str>) -> bool {
     value.as_ref().ends_with(suffix.as_ref())
 }
 
+/// Asserts that a string ends with a suffix.
+///
+/// # Arguments
+///
+/// * `value` - The string to check.
+/// * `suffix` - The suffix for which to check.
+///
+/// # Example
+///
+/// ```
+/// assert_str_ends_with!("hello, world", "world");
+///
+/// assert_str_ends_with!("hello, world", "hello", negate = true);
+/// ```
 #[macro_export]
 macro_rules! assert_str_ends_with {
     ($value:expr, $suffix:expr $(, $keys:ident = $values:expr)* $(,)?) => {
@@ -75,12 +122,27 @@ macro_rules! assert_str_ends_with {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_str_matches_impl(value: impl AsRef<str>, pattern: impl AsRef<str>) -> bool {
     let pattern = Regex::new(pattern.as_ref()).unwrap();
 
     pattern.is_match(value.as_ref())
 }
 
+/// Asserts that a string matches a regular expression.
+///
+/// # Arguments
+///
+/// * `value` - The string to check.
+/// * `pattern` - The pattern for which to check.
+///
+/// # Example
+///
+/// ```
+/// assert_str_matches!("hello, world", "[a-z]+");
+///
+/// assert_str_ends_with!("hello, world", "^[a-z]+$", negate = true);
+/// ```
 #[macro_export]
 macro_rules! assert_str_matches {
     ($value:expr, $pattern:expr $(, $keys:ident = $values:expr)* $(,)?) => {

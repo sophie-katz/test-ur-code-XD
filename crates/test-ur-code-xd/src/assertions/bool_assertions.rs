@@ -13,10 +13,25 @@
 // You should have received a copy of the GNU General Public License along with test-ur-code-XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
+//! Assertions that operate on booleans.
+
+#[doc(hidden)]
 pub fn assert_impl(value: bool) -> bool {
     value
 }
 
+/// Asserts that the boolean value is `true`.
+///
+/// # Arguments
+///
+/// * `value` - The `bool` value to check.
+/// * Optional keyword arguments for assertions.
+///
+/// # Example
+///
+/// ```
+/// assert!(true);
+/// ```
 #[macro_export]
 macro_rules! assert {
     ($value:expr $(, $keys:ident = $values:expr)* $(,)?) => {
@@ -32,10 +47,23 @@ macro_rules! assert {
     };
 }
 
+#[doc(hidden)]
 pub fn assert_not_impl(value: bool) -> bool {
     !value
 }
 
+/// Asserts that the boolean value is `false`.
+///
+/// # Arguments
+///
+/// * `value` - The `bool` value to check.
+/// * Optional keyword arguments for assertions.
+///
+/// # Example
+///
+/// ```
+/// assert_not!(false);
+/// ```
 #[macro_export]
 macro_rules! assert_not {
     ($value:expr $(, $keys:ident = $values:expr)* $(,)?) => {
