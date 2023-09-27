@@ -16,8 +16,28 @@ markdown_extensions:
       alternate_style: true
   - attr_list
   - md_in_html
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - tables
+  - footnotes
+  - pymdownx.arithmatex:
+      generic: true
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 nav:
   - 'Home': 'index.md'
   - 'Getting Started': 'getting-started.md'
-  - 'Assertions': 'assertions.md'
+  - 'Assertions':
+    - 'Boolean': 'assertions/boolean.md'
+    - 'Arithmetic': 'assertions/arithmetic.md'
+    - 'String': 'assertions/string.md'
+    - 'Float': 'assertions/float.md'
+    - 'Filesystem': 'assertions/filesystem.md'
+    - 'Panic': 'assertions/panic.md'
+    - 'Output': 'assertions/output.md'
+    - 'Custom': 'assertions/custom.md'
+    - 'Configuring assertions': 'assertions/configuring-assertions.md'
   - 'Tests': 'tests.md'

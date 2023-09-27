@@ -43,8 +43,8 @@ fn is_float_eq_non_finite<FloatType: Float>(lhs: FloatType, rhs: FloatType) -> O
         return Some(false);
     } else if lhs.is_infinite() {
         assert!(rhs.is_infinite());
-        // Both are infinite: equal
-        return Some(true);
+        // Both are infinite: check for equality between positive and negative
+        return Some(lhs == rhs);
     }
 
     if lhs.is_nan() != rhs.is_nan() {
@@ -282,13 +282,8 @@ pub fn configure_float_panic_message_relative<FloatType: Float + Debug>(
 }
 
 #[doc(hidden)]
-pub fn assert_f32_eq_impl_ulps(
-    lhs: f32,
-    rhs: f32,
-    epsilon_near_zero: f32,
-    ulps_tolerance: i32,
-) -> bool {
-    is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps_tolerance)
+pub fn assert_f32_eq_impl_ulps(lhs: f32, rhs: f32, epsilon_near_zero: f32, ulps: i32) -> bool {
+    is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps)
 }
 
 #[doc(hidden)]
@@ -308,7 +303,7 @@ pub fn assert_f32_eq_impl_relative(
 /// * `lhs` - The left-hand side
 /// * `rhs` - The right-hand side
 /// * Can use one of:
-///     * `ulps_tolerance = <value>` - The number of ULPs to use for tolerance
+///     * `ulps = <value>` - The number of ULPs to use for tolerance
 ///     * `relative_epsilon = <value>` - The epsilon to use for tolerance relative to the magnitude
 /// * Optional keyword arguments for assertions
 ///
@@ -316,10 +311,10 @@ pub fn assert_f32_eq_impl_relative(
 ///
 /// ```
 /// // Compare `x` to 3.0 within 2 ULPs
-/// assert_f32_eq!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 0.0);
+/// assert_f32_eq!(x, 3.0, ulps = 2, epsilon_near_zero = 0.0);
 ///
 /// // Compare `x` to 3.0 within 2 ULPs or within 1e-7 if they are very close
-/// assert_f32_eq!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 1e-7);
+/// assert_f32_eq!(x, 3.0, ulps = 2, epsilon_near_zero = 1e-7);
 ///
 /// // Compare `x` to 3.0 within `f32::EPSILON`, relative to magnitude
 /// assert_f32_eq!(x, 3.0, relative_epsilon = f32::EPSILON, epsilon_near_zero = 0.0);
@@ -329,14 +324,14 @@ macro_rules! assert_f32_eq {
     (
         $lhs:expr,
         $rhs:expr,
-        ulps_tolerance = $ulps_tolerance:expr,
+        ulps = $ulps:expr,
         epsilon_near_zero = $epsilon_near_zero:expr
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
             $crate::assertions::float_assertions::format_float_predicate_description_ulps(
                 "==",
-                $ulps_tolerance,
+                $ulps,
                 32,
                 $epsilon_near_zero,
             ),
@@ -344,7 +339,7 @@ macro_rules! assert_f32_eq {
                 $lhs,
                 $rhs,
                 $epsilon_near_zero,
-                $ulps_tolerance
+                $ulps
             ),
             |panic_message_builder| {
                 $crate::assertions::float_assertions::configure_float_panic_message_ulps(
@@ -393,13 +388,8 @@ macro_rules! assert_f32_eq {
 }
 
 #[doc(hidden)]
-pub fn assert_f32_ne_impl_ulps(
-    lhs: f32,
-    rhs: f32,
-    epsilon_near_zero: f32,
-    ulps_tolerance: i32,
-) -> bool {
-    !is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps_tolerance)
+pub fn assert_f32_ne_impl_ulps(lhs: f32, rhs: f32, epsilon_near_zero: f32, ulps: i32) -> bool {
+    !is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps)
 }
 
 #[doc(hidden)]
@@ -419,7 +409,7 @@ pub fn assert_f32_ne_impl_relative(
 /// * `lhs` - The left-hand side
 /// * `rhs` - The right-hand side
 /// * Can use one of:
-///     * `ulps_tolerance = <value>` - The number of ULPs to use for tolerance
+///     * `ulps = <value>` - The number of ULPs to use for tolerance
 ///     * `relative_epsilon = <value>` - The epsilon to use for tolerance relative to the magnitude
 /// * Optional keyword arguments for assertions
 ///
@@ -427,10 +417,10 @@ pub fn assert_f32_ne_impl_relative(
 ///
 /// ```
 /// // Compare `x` to 3.0 within 2 ULPs
-/// assert_f32_ne!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 0.0);
+/// assert_f32_ne!(x, 3.0, ulps = 2, epsilon_near_zero = 0.0);
 ///
 /// // Compare `x` to 3.0 within 2 ULPs or within 1e-7 if they are very close
-/// assert_f32_ne!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 1e-7);
+/// assert_f32_ne!(x, 3.0, ulps = 2, epsilon_near_zero = 1e-7);
 ///
 /// // Compare `x` to 3.0 within `f32::EPSILON`, relative to magnitude
 /// assert_f32_ne!(x, 3.0, relative_epsilon = f32::EPSILON, epsilon_near_zero = 0.0);
@@ -440,14 +430,14 @@ macro_rules! assert_f32_ne {
     (
         $lhs:expr,
         $rhs:expr,
-        ulps_tolerance = $ulps_tolerance:expr,
+        ulps = $ulps:expr,
         epsilon_near_zero = $epsilon_near_zero:expr,
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
             $crate::assertions::float_assertions::format_float_predicate_description_ulps(
                 "!=",
-                $ulps_tolerance,
+                $ulps,
                 32,
                 $epsilon_near_zero,
             ),
@@ -504,13 +494,8 @@ macro_rules! assert_f32_ne {
 }
 
 #[doc(hidden)]
-pub fn assert_f32_le_impl_ulps(
-    lhs: f32,
-    rhs: f32,
-    epsilon_near_zero: f32,
-    ulps_tolerance: i32,
-) -> bool {
-    lhs <= rhs || is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps_tolerance)
+pub fn assert_f32_le_impl_ulps(lhs: f32, rhs: f32, epsilon_near_zero: f32, ulps: i32) -> bool {
+    lhs <= rhs || is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps)
 }
 
 #[doc(hidden)]
@@ -530,7 +515,7 @@ pub fn assert_f32_le_impl_relative(
 /// * `lhs` - The left-hand side
 /// * `rhs` - The right-hand side
 /// * Can use one of:
-///     * `ulps_tolerance = <value>` - The number of ULPs to use for tolerance
+///     * `ulps = <value>` - The number of ULPs to use for tolerance
 ///     * `relative_epsilon = <value>` - The epsilon to use for tolerance relative to the magnitude
 /// * Optional keyword arguments for assertions
 ///
@@ -538,10 +523,10 @@ pub fn assert_f32_le_impl_relative(
 ///
 /// ```
 /// // Compare `x` to 3.0 within 2 ULPs
-/// assert_f32_le!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 0.0);
+/// assert_f32_le!(x, 3.0, ulps = 2, epsilon_near_zero = 0.0);
 ///
 /// // Compare `x` to 3.0 within 2 ULPs or within 1e-7 if they are very close
-/// assert_f32_le!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 1e-7);
+/// assert_f32_le!(x, 3.0, ulps = 2, epsilon_near_zero = 1e-7);
 ///
 /// // Compare `x` to 3.0 within `f32::EPSILON`, relative to magnitude
 /// assert_f32_le!(x, 3.0, relative_epsilon = f32::EPSILON, epsilon_near_zero = 0.0);
@@ -551,14 +536,14 @@ macro_rules! assert_f32_le {
     (
         $lhs:expr,
         $rhs:expr,
-        ulps_tolerance = $ulps_tolerance:expr,
+        ulps = $ulps:expr,
         epsilon_near_zero = $epsilon_near_zero:expr,
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
             $crate::assertions::float_assertions::format_float_predicate_description_ulps(
                 "<=",
-                $ulps_tolerance,
+                $ulps,
                 32,
                 $epsilon_near_zero,
             ),
@@ -615,13 +600,8 @@ macro_rules! assert_f32_le {
 }
 
 #[doc(hidden)]
-pub fn assert_f32_ge_impl_ulps(
-    lhs: f32,
-    rhs: f32,
-    epsilon_near_zero: f32,
-    ulps_tolerance: i32,
-) -> bool {
-    lhs >= rhs || is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps_tolerance)
+pub fn assert_f32_ge_impl_ulps(lhs: f32, rhs: f32, epsilon_near_zero: f32, ulps: i32) -> bool {
+    lhs >= rhs || is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps)
 }
 
 #[doc(hidden)]
@@ -641,7 +621,7 @@ pub fn assert_f32_ge_impl_relative(
 /// * `lhs` - The left-hand side
 /// * `rhs` - The right-hand side
 /// * Can use one of:
-///     * `ulps_tolerance = <value>` - The number of ULPs to use for tolerance
+///     * `ulps = <value>` - The number of ULPs to use for tolerance
 ///     * `relative_epsilon = <value>` - The epsilon to use for tolerance relative to the magnitude
 /// * Optional keyword arguments for assertions
 ///
@@ -649,10 +629,10 @@ pub fn assert_f32_ge_impl_relative(
 ///
 /// ```
 /// // Compare `x` to 3.0 within 2 ULPs
-/// assert_f32_ge!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 0.0);
+/// assert_f32_ge!(x, 3.0, ulps = 2, epsilon_near_zero = 0.0);
 ///
 /// // Compare `x` to 3.0 within 2 ULPs or within 1e-7 if they are very close
-/// assert_f32_ge!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 1e-7);
+/// assert_f32_ge!(x, 3.0, ulps = 2, epsilon_near_zero = 1e-7);
 ///
 /// // Compare `x` to 3.0 within `f32::EPSILON`, relative to magnitude
 /// assert_f32_ge!(x, 3.0, relative_epsilon = f32::EPSILON, epsilon_near_zero = 0.0);
@@ -662,14 +642,14 @@ macro_rules! assert_f32_ge {
     (
         $lhs:expr,
         $rhs:expr,
-        ulps_tolerance = $ulps_tolerance:expr,
+        ulps = $ulps:expr,
         epsilon_near_zero = $epsilon_near_zero:expr,
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
             $crate::assertions::float_assertions::format_float_predicate_description_ulps(
                 ">=",
-                $ulps_tolerance,
+                $ulps,
                 32,
                 $epsilon_near_zero,
             ),
@@ -747,7 +727,7 @@ pub fn assert_f64_eq_impl_relative(
 /// * `lhs` - The left-hand side
 /// * `rhs` - The right-hand side
 /// * Can use one of:
-///     * `ulps_tolerance = <value>` - The number of ULPs to use for tolerance
+///     * `ulps = <value>` - The number of ULPs to use for tolerance
 ///     * `relative_epsilon = <value>` - The epsilon to use for tolerance relative to the magnitude
 /// * Optional keyword arguments for assertions
 ///
@@ -755,10 +735,10 @@ pub fn assert_f64_eq_impl_relative(
 ///
 /// ```
 /// // Compare `x` to 3.0 within 2 ULPs
-/// assert_f64_eq!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 0.0);
+/// assert_f64_eq!(x, 3.0, ulps = 2, epsilon_near_zero = 0.0);
 ///
 /// // Compare `x` to 3.0 within 2 ULPs or within 1e-7 if they are very close
-/// assert_f64_eq!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 1e-7);
+/// assert_f64_eq!(x, 3.0, ulps = 2, epsilon_near_zero = 1e-7);
 ///
 /// // Compare `x` to 3.0 within `f64::EPSILON`, relative to magnitude
 /// assert_f64_eq!(x, 3.0, relative_epsilon = f64::EPSILON, epsilon_near_zero = 0.0);
@@ -768,14 +748,14 @@ macro_rules! assert_f64_eq {
     (
         $lhs:expr,
         $rhs:expr,
-        ulps_tolerance = $ulps_tolerance:expr,
+        ulps = $ulps:expr,
         epsilon_near_zero = $epsilon_near_zero:expr,
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
             $crate::assertions::float_assertions::format_float_predicate_description_ulps(
                 "==",
-                $ulps_tolerance,
+                $ulps,
                 64,
                 $epsilon_near_zero,
             ),
@@ -853,7 +833,7 @@ pub fn assert_f64_ne_impl_relative(
 /// * `lhs` - The left-hand side
 /// * `rhs` - The right-hand side
 /// * Can use one of:
-///     * `ulps_tolerance = <value>` - The number of ULPs to use for tolerance
+///     * `ulps = <value>` - The number of ULPs to use for tolerance
 ///     * `relative_epsilon = <value>` - The epsilon to use for tolerance relative to the magnitude
 /// * Optional keyword arguments for assertions
 ///
@@ -861,10 +841,10 @@ pub fn assert_f64_ne_impl_relative(
 ///
 /// ```
 /// // Compare `x` to 3.0 within 2 ULPs
-/// assert_f64_ne!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 0.0);
+/// assert_f64_ne!(x, 3.0, ulps = 2, epsilon_near_zero = 0.0);
 ///
 /// // Compare `x` to 3.0 within 2 ULPs or within 1e-7 if they are very close
-/// assert_f64_ne!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 1e-7);
+/// assert_f64_ne!(x, 3.0, ulps = 2, epsilon_near_zero = 1e-7);
 ///
 /// // Compare `x` to 3.0 within `f64::EPSILON`, relative to magnitude
 /// assert_f64_ne!(x, 3.0, relative_epsilon = f64::EPSILON, epsilon_near_zero = 0.0);
@@ -874,14 +854,14 @@ macro_rules! assert_f64_ne {
     (
         $lhs:expr,
         $rhs:expr,
-        ulps_tolerance = $ulps_tolerance:expr,
+        ulps = $ulps:expr,
         epsilon_near_zero = $epsilon_near_zero:expr,
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
             $crate::assertions::float_assertions::format_float_predicate_description_ulps(
                 "!=",
-                $ulps_tolerance,
+                $ulps,
                 64,
                 $epsilon_near_zero,
             ),
@@ -959,7 +939,7 @@ pub fn assert_f64_le_impl_relative(
 /// * `lhs` - The left-hand side
 /// * `rhs` - The right-hand side
 /// * Can use one of:
-///     * `ulps_tolerance = <value>` - The number of ULPs to use for tolerance
+///     * `ulps = <value>` - The number of ULPs to use for tolerance
 ///     * `relative_epsilon = <value>` - The epsilon to use for tolerance relative to the magnitude
 /// * Optional keyword arguments for assertions
 ///
@@ -967,10 +947,10 @@ pub fn assert_f64_le_impl_relative(
 ///
 /// ```
 /// // Compare `x` to 3.0 within 2 ULPs
-/// assert_f64_le!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 0.0);
+/// assert_f64_le!(x, 3.0, ulps = 2, epsilon_near_zero = 0.0);
 ///
 /// // Compare `x` to 3.0 within 2 ULPs or within 1e-7 if they are very close
-/// assert_f64_le!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 1e-7);
+/// assert_f64_le!(x, 3.0, ulps = 2, epsilon_near_zero = 1e-7);
 ///
 /// // Compare `x` to 3.0 within `f64::EPSILON`, relative to magnitude
 /// assert_f64_le!(x, 3.0, relative_epsilon = f64::EPSILON, epsilon_near_zero = 0.0);
@@ -980,14 +960,14 @@ macro_rules! assert_f64_le {
     (
         $lhs:expr,
         $rhs:expr,
-        ulps_tolerance = $ulps_tolerance:expr,
+        ulps = $ulps:expr,
         epsilon_near_zero = $epsilon_near_zero:expr,
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
             $crate::assertions::float_assertions::format_float_predicate_description_ulps(
                 "<=",
-                $ulps_tolerance,
+                $ulps,
                 64,
                 $epsilon_near_zero,
             ),
@@ -1065,7 +1045,7 @@ pub fn assert_f64_ge_impl_relative(
 /// * `lhs` - The left-hand side
 /// * `rhs` - The right-hand side
 /// * Can use one of:
-///     * `ulps_tolerance = <value>` - The number of ULPs to use for tolerance
+///     * `ulps = <value>` - The number of ULPs to use for tolerance
 ///     * `relative_epsilon = <value>` - The epsilon to use for tolerance relative to the magnitude
 /// * Optional keyword arguments for assertions
 ///
@@ -1073,10 +1053,10 @@ pub fn assert_f64_ge_impl_relative(
 ///
 /// ```
 /// // Compare `x` to 3.0 within 2 ULPs
-/// assert_f64_ge!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 0.0);
+/// assert_f64_ge!(x, 3.0, ulps = 2, epsilon_near_zero = 0.0);
 ///
 /// // Compare `x` to 3.0 within 2 ULPs or within 1e-7 if they are very close
-/// assert_f64_ge!(x, 3.0, ulps_tolerance = 2, epsilon_near_zero = 1e-7);
+/// assert_f64_ge!(x, 3.0, ulps = 2, epsilon_near_zero = 1e-7);
 ///
 /// // Compare `x` to 3.0 within `f64::EPSILON`, relative to magnitude
 /// assert_f64_ge!(x, 3.0, relative_epsilon = f64::EPSILON, epsilon_near_zero = 0.0);
@@ -1086,14 +1066,14 @@ macro_rules! assert_f64_ge {
     (
         $lhs:expr,
         $rhs:expr,
-        ulps_tolerance = $ulps_tolerance:expr,
+        ulps = $ulps:expr,
         epsilon_near_zero = $epsilon_near_zero:expr,
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
             $crate::assertions::float_assertions::format_float_predicate_description_ulps(
                 ">=",
-                $ulps_tolerance,
+                $ulps,
                 64,
                 $epsilon_near_zero,
             ),
@@ -1156,17 +1136,17 @@ mod tests {
     #[test]
     fn assert_f32_eq_passing() {
         // let captured_outputs = capture_output(|| {
-        assert_f32_eq!(1.0, 1.0, ulps_tolerance = 0, epsilon_near_zero = 0.0);
+        assert_f32_eq!(1.0, 1.0, ulps = 0, epsilon_near_zero = 0.0);
         assert_f32_eq!(
             0.15 + 0.15 + 0.15,
             0.1 + 0.1 + 0.25,
-            ulps_tolerance = 1,
+            ulps = 1,
             epsilon_near_zero = 0.0
         );
         assert_f32_eq!(
             0.15 + 0.15 + 0.15,
             0.1 + 0.1 + 0.25,
-            ulps_tolerance = 0,
+            ulps = 0,
             epsilon_near_zero = f32::EPSILON
         );
         // })

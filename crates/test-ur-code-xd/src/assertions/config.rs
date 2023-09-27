@@ -49,15 +49,15 @@ pub struct Config {
 
     /// A description of what the assertion means.
     ///
-    /// This is used in the panic message. Only one of `assertion_description` and
-    /// `assertion_description_owned` can be used.
+    /// This is used in the panic message. Only one of `description` and
+    /// `description_owned` can be used.
     ///
     /// # Example
     ///
     /// ```
     /// assert!(
     ///     some_function(),
-    ///     assertion_description = "`some_function` is always expected to return true"
+    ///     description = "`some_function` is always expected to return true"
     /// );
     /// ```
     ///
@@ -66,26 +66,26 @@ pub struct Config {
     /// ```should_panic
     /// assert!(
     ///     some_function(),
-    ///     assertion_description = "..."
-    ///     assertion_description_owned = "...".to_owned() // this will panic without running the
+    ///     description = "..."
+    ///     description_owned = "...".to_owned() // this will panic without running the
     ///                                                    // assertion
     /// );
     /// ```
     ///
     /// <br />
-    pub assertion_description: &'static str,
+    pub description: &'static str,
 
     /// A description of what the assertion means.
     ///
-    /// This is used in the panic message. Only one of `assertion_description` and
-    /// `assertion_description_owned` can be used.
+    /// This is used in the panic message. Only one of `description` and
+    /// `description_owned` can be used.
     ///
     /// # Example
     ///
     /// ```
     /// assert!(
     ///     some_function(),
-    ///     assertion_description_owned = format!(
+    ///     description_owned = format!(
     ///         "`some_function` is always expected to return {}",
     ///         true
     ///     )
@@ -97,12 +97,12 @@ pub struct Config {
     /// ```should_panic
     /// assert!(
     ///     some_function(),
-    ///     assertion_description = "..."
-    ///     assertion_description_owned = "...".to_owned() // this will panic without running the
+    ///     description = "..."
+    ///     description_owned = "...".to_owned() // this will panic without running the
     ///                                                    // assertion
     /// );
     /// ```
-    pub assertion_description_owned: String,
+    pub description_owned: String,
 }
 
 impl Config {
@@ -185,8 +185,8 @@ impl Config {
         location: &'static Location,
     ) -> PanicMessageBuilder {
         PanicMessageBuilder::new(predicate_description, location)
-            .with_assertion_description(self.assertion_description)
-            .with_assertion_description(self.assertion_description_owned)
+            .with_description(self.description)
+            .with_description(self.description_owned)
     }
 }
 

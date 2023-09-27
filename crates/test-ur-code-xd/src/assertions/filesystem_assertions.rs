@@ -321,6 +321,7 @@ pub fn assert_file_text<OnTextType: FnOnce(String)>(path: impl AsRef<Path>, on_t
 #[macro_export]
 macro_rules! assert_file_text {
     ($path:expr, on_text = $on_text:expr) => {
+        // TODO: Add a max file size limit
         $crate::assertions::filesystem_assertions::assert_file_text($path, $on_text)
     };
 }

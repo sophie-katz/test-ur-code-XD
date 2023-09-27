@@ -15,29 +15,16 @@ You should have received a copy of the GNU General Public License along with tes
 not, see <https://www.gnu.org/licenses/>.
 -->
 
-# Parameterized tests
+# Boolean assertions
 
-test-ur-code-XD provides an attribute to parameterize tests:
+There are two boolean assertions:
 
 ```rust
-#[test_with_parameter_values(
-    x = [5, 6, 7],
-    y = [1, 2])
-]
-fn example(x: i32, y: i32) {
-    assert!(x + y > 0);
-}
+// Ensure that value is true
+assert!(value);
+
+// Ensure that value is false
+assert_not!(value);
 ```
 
-This will permute the values of `x` and `y` and run the test for each permutation. In this case, the test will run 6 times:
-
-| `x` | `y` |
-| --- | --- |
-| 5   | 1   |
-| 5   | 2   |
-| 6   | 1   |
-| 6   | 2   |
-| 7   | 1   |
-| 7   | 2   |
-
-The values must be array literals. Vectors or other dynamically generated values are not supported.
+They both take a single argument of type `bool`.
