@@ -280,7 +280,10 @@ macro_rules! assert_path_ends_with {
 }
 
 #[doc(hidden)]
-pub fn assert_file_text<OnTextType: FnOnce(String)>(path: impl AsRef<Path>, on_text: OnTextType) {
+pub fn assert_file_text_impl<OnTextType: FnOnce(String)>(
+    path: impl AsRef<Path>,
+    on_text: OnTextType,
+) {
     if !path.as_ref().is_file() {
         PanicMessageBuilder::new("path is file", Location::caller())
             .with_argument("path", "--", &path.as_ref())
@@ -322,6 +325,56 @@ pub fn assert_file_text<OnTextType: FnOnce(String)>(path: impl AsRef<Path>, on_t
 macro_rules! assert_file_text {
     ($path:expr, on_text = $on_text:expr) => {
         // TODO: Add a max file size limit
-        $crate::assertions::filesystem_assertions::assert_file_text($path, $on_text)
+        $crate::assertions::filesystem_assertions::assert_file_text_impl($path, $on_text)
+    };
+}
+
+#[doc(hidden)]
+pub fn assert_file_text_raw_impl<OnTextType: FnOnce(&[u8])>(
+    path: impl AsRef<Path>,
+    on_text: OnTextType,
+) {
+    if !path.as_ref().is_file() {
+        PanicMessageBuilder::new("path is file", Location::caller())
+            .with_argument("path", "--", &path.as_ref())
+            .panic();
+    }
+
+    match fs::read(path.as_ref()) {
+        Ok(file_text) => on_text(&file_text),
+        Err(error) => {
+            PanicMessageBuilder::new(format!("error reading file: {}", error), Location::caller())
+                .with_argument("path", "--", &path.as_ref())
+                .panic()
+        }
+    }
+}
+
+/// Asserts that the raw file contains text that matches assertions.
+///
+/// **Warning:** this will read the whole file into memory as a string! Do not use on very large
+/// files.
+///
+/// # Arguments
+///
+/// * `path` - The path of the file to read.
+/// * `on_text` - A closure that takes the file content byte array as an argument.
+/// * Optional keyword arguments for assertions.
+///
+/// # Example
+///
+/// ```
+/// assert_file_text_raw!(
+///     "hello_world_file.txt",
+///     on_text = |text| {
+///         assert_eq!(text, "hello, world");
+///     }
+/// );
+/// ```
+#[macro_export]
+macro_rules! assert_file_text_raw {
+    ($path:expr, on_text = $on_text:expr) => {
+        // TODO: Add a max file size limit
+        $crate::assertions::filesystem_assertions::assert_file_text_raw_impl($path, $on_text)
     };
 }
