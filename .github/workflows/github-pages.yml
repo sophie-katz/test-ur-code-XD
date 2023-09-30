@@ -39,7 +39,7 @@ jobs:
         run: |
           echo ${{ github.workspace }}
           ls ${{ github.workspace }}
-          ls ${{ github.workspace }}/docs/test-ur-code-XD/mkdocs.yml
+          ls ${{ github.workspace }}/doc/test-ur-code-XD/mkdocs.yml
       
       - name: Deploy documentation
         uses: mhausenblas/mkdocs-deploy-gh-pages@master
