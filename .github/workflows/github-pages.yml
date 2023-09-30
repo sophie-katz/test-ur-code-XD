@@ -35,8 +35,13 @@ jobs:
       - name: Checkout main
         uses: actions/checkout@v4
       
+      - name: Debug
+        run: |
+          echo ${{ github.workspace }}
+          ls ${{ github.workspace }}
+      
       - name: Deploy documentation
         uses: mhausenblas/mkdocs-deploy-gh-pages@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CONFIG_FILE: ${{ github.workspace }}/doc/mkdocs.yml
+          CONFIG_FILE: doc/mkdocs.yml
