@@ -15,7 +15,7 @@
 
 /// A simple structure for storing the captured outputs from `stdout` and `stderr`.
 #[derive(Debug, PartialEq)]
-pub struct CapturedOutputs {
-    pub stdout: String,
-    pub stderr: String,
+pub struct CapturedOutputs<OutputType> {
+    pub stdout: OutputType,
+    pub stderr: OutputType,
 }

@@ -39,7 +39,7 @@ use std::{
 /// PanicMessageBuilder::new("lhs == rhs", Location::caller())
 ///     .with_argument("lhs", lhs_description, &lhs_value)
 ///     .with_argument("rhs", rhs_description, &rhs_value)
-///     .with_assertion_description(assertion_description)
+///     .with_description(assertion_description)
 ///     .panic();
 /// ```
 //
@@ -165,7 +165,7 @@ impl PanicMessageBuilder {
     /// # Panics
     ///
     /// Panics if assertion description is already set.
-    pub fn with_assertion_description(mut self, assertion_description: impl AsRef<str>) -> Self {
+    pub fn with_description(mut self, assertion_description: impl AsRef<str>) -> Self {
         if self.has_assertion_description {
             panic!("assertion description already set");
         }
@@ -288,7 +288,7 @@ mod tests {
     #[test]
     fn format_assertion_description_str() {
         let message = PanicMessageBuilder::new("", Location::caller())
-            .with_assertion_description("assertion description")
+            .with_description("assertion description")
             .format();
 
         assert!(message.contains("assertion description"));
@@ -298,7 +298,7 @@ mod tests {
     #[test]
     fn format_assertion_description_string() {
         let message = PanicMessageBuilder::new("", Location::caller())
-            .with_assertion_description("assertion description".to_owned())
+            .with_description("assertion description".to_owned())
             .format();
 
         assert!(message.contains("assertion description"));
@@ -309,7 +309,7 @@ mod tests {
     #[should_panic]
     fn two_assertion_descriptions() {
         let _ = PanicMessageBuilder::new("", Location::caller())
-            .with_assertion_description("assertion description")
-            .with_assertion_description("assertion description");
+            .with_description("assertion description")
+            .with_description("assertion description");
     }
 }

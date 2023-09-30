@@ -14,7 +14,7 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 use gag::BufferRedirect;
-use std::io::{Read, Write};
+use std::io::{self, Read, Write};
 
 use super::{captured_output::CapturedOutputs, error::OutputStream, Error};
 
@@ -59,12 +59,7 @@ impl OutputCapturer {
     pub fn start(&mut self) -> Result<(), Error> {
         // Flush stdout/stderr before redirecting them so we don't get any extra output in the
         // buffers
-        std::io::stdout()
-            .flush()
-            .map_err(|error| Error::OutputStreamFlushError(OutputStream::Stdout, error))?;
-        std::io::stderr()
-            .flush()
-            .map_err(|error| Error::OutputStreamFlushError(OutputStream::Stderr, error))?;
+        Self::flush_streams()?;
 
         // Start the redirects
         self.buffer_stdout = Some(
@@ -94,39 +89,107 @@ impl OutputCapturer {
     /// * If there are issues with flushing `stdout` or `stderr`, this function will return an
     ///   error.
     /// * If there are any issues with reading the buffers, this function will return an error.
-    pub fn stop(&mut self) -> Result<CapturedOutputs, Error> {
+    pub fn stop(&mut self) -> Result<CapturedOutputs<String>, Error> {
         // Flush stdout/stderr before stopping so we get all of the output in the buffers
-        std::io::stdout()
-            .flush()
-            .map_err(|error| Error::OutputStreamFlushError(OutputStream::Stdout, error))?;
-        std::io::stderr()
-            .flush()
-            .map_err(|error| Error::OutputStreamFlushError(OutputStream::Stderr, error))?;
-
-        // Allocate strings to store the output
-        let mut string_stdout = String::new();
-        let mut string_stderr = String::new();
+        Self::flush_streams()?;
 
         // Read the buffers into the output strings
-        self.buffer_stdout
-            .as_mut()
-            .expect("OutputCapturer::stop() called before OutputCapturer::start()")
-            .read_to_string(&mut string_stdout)
-            .map_err(|error| Error::OutputStreamBufferReadingError(OutputStream::Stdout, error))?;
-        self.buffer_stderr
-            .as_mut()
-            .expect("OutputCapturer::stop() called before OutputCapturer::start()")
-            .read_to_string(&mut string_stderr)
-            .map_err(|error| Error::OutputStreamBufferReadingError(OutputStream::Stderr, error))?;
+        let string_stdout =
+            Self::read_buffer_as_string(&mut self.buffer_stdout, OutputStream::Stdout)?;
+        let string_stderr =
+            Self::read_buffer_as_string(&mut self.buffer_stderr, OutputStream::Stderr)?;
 
         // Drop the redirects
-        self.buffer_stdout = None;
-        self.buffer_stderr = None;
+        self.drop_redirects();
 
         // Return the output strings
         Ok(CapturedOutputs {
             stdout: string_stdout,
             stderr: string_stderr,
         })
+    }
+
+    /// Stops capturing output and return as raw buffers.
+    ///
+    /// It will flush `stdout` and `stderr` before stopping so we don't get any missing output in
+    /// the capture.
+    ///
+    /// # Returns
+    ///
+    /// A [`CapturedOutputs`] instance containing the captured output for both `stdout` and
+    /// `stderr`.
+    ///
+    /// # Errors
+    ///
+    /// * If there are issues with flushing `stdout` or `stderr`, this function will return an
+    ///   error.
+    /// * If there are any issues with reading the buffers, this function will return an error.
+    pub fn stop_raw(&mut self) -> Result<CapturedOutputs<Vec<u8>>, Error> {
+        // Flush stdout/stderr before stopping so we get all of the output in the buffers
+        Self::flush_streams()?;
+
+        // Read the buffers into the output strings
+        let bytes_stdout =
+            Self::read_buffer_as_bytes(&mut self.buffer_stdout, OutputStream::Stdout)?;
+        let bytes_stderr =
+            Self::read_buffer_as_bytes(&mut self.buffer_stderr, OutputStream::Stderr)?;
+
+        // Drop the redirects
+        self.drop_redirects();
+
+        // Return the output strings
+        Ok(CapturedOutputs {
+            stdout: bytes_stdout,
+            stderr: bytes_stderr,
+        })
+    }
+
+    /// Flush both `stdout` and `stderr`.
+    ///
+    /// # Errors
+    ///
+    /// * If there is an IO error while flushing either stream, this function will return an error.
+    fn flush_streams() -> Result<(), Error> {
+        std::io::stdout()
+            .flush()
+            .map_err(|error| Error::OutputStreamFlushError(OutputStream::Stdout, error))?;
+        std::io::stderr()
+            .flush()
+            .map_err(|error| Error::OutputStreamFlushError(OutputStream::Stderr, error))
+    }
+
+    /// Reads a [`gag`] [`BufferRedect`] as a string.
+    fn read_buffer_as_string(
+        buffer_redirect: &mut Option<BufferRedirect>,
+        output_stream: OutputStream,
+    ) -> Result<String, Error> {
+        let mut string = String::new();
+
+        buffer_redirect
+            .as_mut()
+            .expect("OutputCapturer::stop() called before OutputCapturer::start()")
+            .read_to_string(&mut string)
+            .map_err(|error| Error::OutputStreamBufferReadingError(output_stream, error))?;
+
+        Ok(string)
+    }
+
+    /// Reads a [`gag`] [`BufferRedect`] as a vector of bytes.
+    fn read_buffer_as_bytes(
+        buffer_redirect: &mut Option<BufferRedirect>,
+        output_stream: OutputStream,
+    ) -> Result<Vec<u8>, Error> {
+        buffer_redirect
+            .as_mut()
+            .expect("OutputCapturer::stop() called before OutputCapturer::start()")
+            .bytes()
+            .collect::<Result<Vec<u8>, io::Error>>()
+            .map_err(|error| Error::OutputStreamBufferReadingError(output_stream, error))
+    }
+
+    /// Drop redirects to stop capturing output
+    fn drop_redirects(&mut self) {
+        self.buffer_stdout = None;
+        self.buffer_stderr = None;
     }
 }
