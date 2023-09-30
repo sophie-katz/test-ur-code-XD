@@ -29,7 +29,7 @@ concurrency:
 
 jobs:
   publish:
-    name: Publish documentation to Pages
+    name: Publish
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main
@@ -39,4 +39,4 @@ jobs:
         uses: mhausenblas/mkdocs-deploy-gh-pages@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CONFIG_FILE: docs/mkdocs.yml
+          CONFIG_FILE: doc/mkdocs.yml
