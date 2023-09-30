@@ -39,4 +39,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CUSTOM_DOMAIN: optionaldomain.com
-          CONFIG_FILE: folder/mkdocs.yml
+          CONFIG_FILE: docs/mkdocs.yml
