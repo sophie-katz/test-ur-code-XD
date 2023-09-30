@@ -1,26 +1,26 @@
 // Copyright (c) 2023 Sophie Katz
 //
-// This file is part of test-ur-code-XD.
+// This file is part of test ur code XD.
 //
-// test-ur-code-XD is free software: you can redistribute it and/or modify it under the terms of the
+// test ur code XD is free software: you can redistribute it and/or modify it under the terms of the
 // GNU General Public License as published by the Free Software Foundation, either version 3 of the
 // License, or (at your option) any later version.
 //
-// test-ur-code-XD is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+// test ur code XD is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 // without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License along with test-ur-code-XD. If
+// You should have received a copy of the GNU General Public License along with test ur code XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
 //! This crate tries to improve testing in Rust with a more full-featured framework. It makes tests
 //! more readable with better assertions and with more readable errors:
 //!
-//! <div><img src="https://raw.githubusercontent.com/sophie-katz/test-ur-code-XD/main/doc/assertion-screenshot.png" alt="A screenshot of an assertion failure message"></img></div>
+//! <div><img src="https://raw.githubusercontent.com/sophie-katz/test-ur-code-XD/main/docs/for-users/assets/assertion-screenshot.png" alt="A screenshot of an assertion failure message"></img></div>
 //!
 //! # Assertions
 //!
-//! test-ur-code-XD has some basic assertions that are similar to the ones in the standard library:
+//! test ur code XD has some basic assertions that are similar to the ones in the standard library:
 //!
 //! * [`assert`] - Asserts that a boolean is true.
 //! * [`assert_not`] - Asserts that a boolean is false.
@@ -40,7 +40,7 @@
 //!
 //! ## Panic assertions
 //!
-//! Rust already has the built-in [`assert_panics`] macro, but test-ur-code-XD has a macro
+//! Rust already has the built-in [`assert_panics`] macro, but test ur code XD has a macro
 //! which can assert that only specific lines of code panic:
 //!
 //! ```

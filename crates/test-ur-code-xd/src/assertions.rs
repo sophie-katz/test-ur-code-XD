@@ -1,16 +1,16 @@
 // Copyright (c) 2023 Sophie Katz
 //
-// This file is part of test-ur-code-XD.
+// This file is part of test ur code XD.
 //
-// test-ur-code-XD is free software: you can redistribute it and/or modify it under the terms of the
+// test ur code XD is free software: you can redistribute it and/or modify it under the terms of the
 // GNU General Public License as published by the Free Software Foundation, either version 3 of the
 // License, or (at your option) any later version.
 //
-// test-ur-code-XD is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+// test ur code XD is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 // without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License along with test-ur-code-XD. If
+// You should have received a copy of the GNU General Public License along with test ur code XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
 //! The assertions included within the crate as well as extendability for user-defined assertions.
@@ -106,7 +106,7 @@
 //!
 //! Then we have the call to [`assert_custom`]. We pass in all of our custom logic in as the
 //! arguments to this macro. This is also the only place where the macro is different between
-//! assertions written internally to test-ur-code-XD and outside. Macros written inside this crate
+//! assertions written internally to test ur code XD and outside. Macros written inside this crate
 //! will call this macro like `$crate::assert_custom(...)` while macros outside will write this
 //! `::test_ur_code_xd::assert_custom(...)`.
 //!

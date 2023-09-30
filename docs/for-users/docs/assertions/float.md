@@ -1,17 +1,17 @@
 <!--
 Copyright (c) 2023 Sophie Katz
 
-This file is part of test-ur-code-XD.
+This file is part of test ur code XD.
 
-test-ur-code-XD is free software: you can redistribute it and/or modify it under the terms of the
+test ur code XD is free software: you can redistribute it and/or modify it under the terms of the
 GNU General Public License as published by the Free Software Foundation, either version 3 of the
 License, or (at your option) any later version.
 
-test-ur-code-XD is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+test ur code XD is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
 even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 General Public License for more details.
 
-You should have received a copy of the GNU General Public License along with test-ur-code-XD. If
+You should have received a copy of the GNU General Public License along with test ur code XD. If
 not, see <https://www.gnu.org/licenses/>.
 -->
 
@@ -32,9 +32,9 @@ To explain why, we need to understand a bit of background about floating-point c
 
     There's a lot of explanation before this document gets to the actual assertions. *This is intentional.*
     
-    test-ur-code-XD handles floating-point testing in a much more detailed manner than many other testing frameworks. It requires a bit of background to understand why.
+    test ur code XD handles floating-point testing in a much more detailed manner than many other testing frameworks. It requires a bit of background to understand why.
 
-The example above taken from the [`float_cmp` crate](https://docs.rs/float-cmp/latest/float_cmp/#the-problem). This crate is excellent. test-ur-code-XD builds a bit more functionality on top of it.
+The example above taken from the [`float_cmp` crate](https://docs.rs/float-cmp/latest/float_cmp/#the-problem). This crate is excellent. test ur code XD builds a bit more functionality on top of it.
 
 ## Floating-point comparison is complicated
 
@@ -102,7 +102,7 @@ These values can be compared using separate logic to the rest of the numbers:
 
 ## Assertions
 
-test-ur-code-XD provides assertions that follow the above guidelines. Let us take the assertion `assert_f32_eq!(...)` as an initial example for relative epsilon comparison:
+test ur code XD provides assertions that follow the above guidelines. Let us take the assertion `assert_f32_eq!(...)` as an initial example for relative epsilon comparison:
 
 ```rust
 assert_f32_eq!(
@@ -120,7 +120,7 @@ The assertion has these keyword arguments:
 
 !!! info
 
-    These arguments apply to every floating-point assertion in test-ur-code-XD.
+    These arguments apply to every floating-point assertion in test ur code XD.
 
 There is no default value for either argument because these values will have to change for different comparisons depending on the calculation and the needs of the testing.
 
@@ -139,7 +139,7 @@ The argument `ulps = 1` means that the calculation is guaranteed to be correct w
 
 ### Different types of comparisons
 
-test-ur-code-XD has these assertion macros for doing different comparisons with floats:
+test ur code XD has these assertion macros for doing different comparisons with floats:
 
 ```rust
 // Ensure that x and y are equal accounting for floating-point error
