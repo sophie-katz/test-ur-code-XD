@@ -23,6 +23,12 @@ This crate tries to improve testing in Rust with a more full-featured framework.
 
 ![A screenshot of an assertion](docs/for-users/docs/assets/assertion-screenshot.png)
 
+* [Usage](#usage)
+* [Features](#features)
+    * [More assertions](#more-assertions)
+    * [Parameterized tests](#parameterized-tests)
+* [Contributing](#contributing)
+
 ## Usage
 
 Add this to your `Cargo.toml` to use:
@@ -65,6 +71,10 @@ fn example(x: i32, y: i32) {
     //   x == 7, y == 2
 }
 ```
+
+## Contributing
+
+See [for developers](docs/for-developers.md) for guides on how to contribute to test ur code XD.
 
 <br />
 
