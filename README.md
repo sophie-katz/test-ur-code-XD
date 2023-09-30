@@ -68,4 +68,4 @@ fn example(x: i32, y: i32) {
 
 <br />
 
-<centered><i>This project uses <a href="https://github.com/sophie-katz/rust-vscode-template">rust-vscode-template</a>, which has instructions on how to use it.</i></centered>
+<div style="text-align: center"><i>This project uses <a href="https://github.com/sophie-katz/rust-vscode-template">rust-vscode-template</a>, which has instructions on how to use it.</i></div>
