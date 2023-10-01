@@ -36,6 +36,7 @@
 //! #[doc(hidden)]
 //! pub fn my_assertion_impl(input0: InputType0, input1: InputType1, /* ... */) -> bool {
 //!     /* ... */
+//! #   true
 //! }
 //! ```
 //!
@@ -53,6 +54,7 @@
 //! pub fn my_assertion_impl(input0: &InputType0, input1: &InputType1, /* ... */) -> bool {
 //!     //                           ^                    ^
 //!     /* ... */
+//! #   true
 //! }
 //! ```
 //!
@@ -113,7 +115,9 @@
 //! The first parameter is a description of the predicate:
 //!
 //! ```
+//! # let _ =
 //! "a description of my assertion's predicate"
+//! # ;
 //! ```
 //!
 //! This is used in the first line of the panic message. For example, the description for
@@ -123,14 +127,22 @@
 //! The second parameter is a call to our predicate function:
 //!
 //! ```
+//! # macro_rules! my_macro {
+//! #    ($input0:expr, $input1:expr) => {
 //! my_assertion_impl($input0, $input1)
+//! #    }
+//! # }
 //! ```
 //!
 //! When passing in the inputs, unless they are guaranteed to be copyable make sure they are passed
 //! in by reference, like this:
 //!
 //! ```
+//! # macro_rules! my_macro {
+//! #    ($input0:expr, $input1:expr) => {
 //! my_assertion_impl(&$input0, &$input1)
+//! #    }
+//! # }
 //! ```
 //!
 //! The third parameter is a closure which takes a [`PanicMessageBuilder`] and returns the same
@@ -138,11 +150,15 @@
 //! the inputs:
 //!
 //! ```
+//! # macro_rules! my_macro {
+//! #    ($input0:expr, $input1:expr) => {
 //! |panic_message_builder| {
 //!     panic_message_builder
 //!         .with_argument("input0", stringify!($input0), &$input0)
 //!         .with_argument("input1", stringify!($input1), &$input1)
 //! }
+//! #    }
+//! # }
 //! ```
 //!
 //! After the three arguments, we need to pass in any `<key> = <value>` arguments that we want to
@@ -155,7 +171,9 @@
 //! Make sure not to put a comma before this! It will cause hard to debug compile-time errors.
 //! Instead write it like this:
 //!
-//! ```ignore
+//! ```
+//! # macro_rules! my_macro {
+//! #    ($input0:expr, $input1:expr) => {
 //! // ...
 //!     |panic_message_builder| {
 //!         panic_message_builder
@@ -164,6 +182,8 @@
 //!     } // ← no comma here
 //!     $(, $keys = $values)*
 //! // ...
+//! #    }
+//! # }
 //! ```
 //!
 //! Now your assertion should be functional! Here's our simplified implementation of the
@@ -178,16 +198,16 @@
 //! #[macro_export]
 //! macro_rules! assert_str_contains {
 //!     ($value:expr, $substring:expr $(, $keys:ident = $values:expr)* $(,)?) => {
-//!         $crate::assert_custom!(
+//!         ::test_ur_code_xd::assert_custom!(
 //!             "value contains substring",
-//!             $crate::assertions::string_assertions::assert_str_contains_impl(
+//!             ::test_ur_code_xd::assertions::string_assertions::assert_str_contains_impl(
 //!                 $value,
 //!                 $substring
 //!             ),
 //!             |panic_message_builder| {
 //!                 panic_message_builder
-//!                     .with_argument("value", stringify!($value), $value)
-//!                     .with_argument("substring", stringify!($substring), $substring)
+//!                     .with_argument("value", stringify!($value), &$value)
+//!                     .with_argument("substring", stringify!($substring), &$substring)
 //!             }
 //!             $(, $keys = $values)*
 //!         )
@@ -205,18 +225,24 @@
 //! relies on closures to make assertions about the captured output:
 //!
 //! ```
+//! # use test_ur_code_xd::{assert_outputs, assert_eq};
+//! #
 //! assert_outputs!(
-//!     || a_function_that_prints_some_text(),
+//!     || {
+//!         println!("some text");
+//!     },
 //!     on_stdout = |stdout| {
-//!         assert_eq!(stdout, "some text");
+//!         assert_eq!(stdout, "some text\n");
 //!     }
-//! )
+//! );
 //! ```
 //!
 //! The first step towards writing a macro like this is to, again, write an implementation function.
 //! It will look something like this:
 //!
 //! ```
+//! # type ResultType0 = i32;
+//! #
 //! #[doc(hidden)]
 //! pub fn my_assertion_wrapper_impl<
 //!     ActionType: FnOnce(),
@@ -231,6 +257,7 @@
 //!
 //!     // ...
 //!
+//! #   let result = 0;
 //!     result_callback(result);
 //! }
 //! ```

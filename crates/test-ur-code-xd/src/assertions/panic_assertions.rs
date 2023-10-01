@@ -48,6 +48,8 @@ pub fn assert_panics_impl<
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::{assert_panics, assert_eq};
+/// #
 /// assert_panics!(
 ///     || {
 ///         panic!("hello, world");

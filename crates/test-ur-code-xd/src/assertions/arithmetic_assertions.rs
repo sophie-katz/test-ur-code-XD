@@ -31,6 +31,10 @@ pub fn assert_eq_impl<LhsType: PartialEq<RhsType>, RhsType>(lhs: &LhsType, rhs: 
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_eq;
+/// #
+/// # let x = 5;
+/// #
 /// assert_eq!(x, 5);
 /// ```
 #[macro_export]
@@ -65,6 +69,10 @@ pub fn assert_ne_impl<LhsType: PartialEq<RhsType>, RhsType>(lhs: &LhsType, rhs: 
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_ne;
+/// #
+/// # let x = 4;
+/// #
 /// assert_ne!(x, 5);
 /// ```
 #[macro_export]
@@ -99,6 +107,10 @@ pub fn assert_lt_impl<LhsType: PartialOrd<RhsType>, RhsType>(lhs: &LhsType, rhs:
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_lt;
+/// #
+/// # let x = 4;
+/// #
 /// assert_lt!(x, 5);
 /// ```
 #[macro_export]
@@ -133,6 +145,10 @@ pub fn assert_le_impl<LhsType: PartialOrd<RhsType>, RhsType>(lhs: &LhsType, rhs:
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_le;
+/// #
+/// # let x = 5;
+/// #
 /// assert_le!(x, 5);
 /// ```
 #[macro_export]
@@ -167,6 +183,10 @@ pub fn assert_gt_impl<LhsType: PartialOrd<RhsType>, RhsType>(lhs: &LhsType, rhs:
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_gt;
+/// #
+/// # let x = 6;
+/// #
 /// assert_gt!(x, 5);
 /// ```
 #[macro_export]
@@ -201,6 +221,10 @@ pub fn assert_ge_impl<LhsType: PartialOrd<RhsType>, RhsType>(lhs: &LhsType, rhs:
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_ge;
+/// #
+/// # let x = 5;
+/// #
 /// assert_ge!(x, 5);
 /// ```
 #[macro_export]

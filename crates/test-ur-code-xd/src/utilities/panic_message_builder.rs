@@ -166,13 +166,13 @@ impl PanicMessageBuilder {
     ///
     /// Panics if assertion description is already set.
     pub fn with_description(mut self, assertion_description: impl AsRef<str>) -> Self {
-        if self.has_assertion_description {
-            panic!("assertion description already set");
-        }
-
         let assertion_description_ref = assertion_description.as_ref();
 
         if !assertion_description_ref.is_empty() {
+            if self.has_assertion_description {
+                panic!("assertion description already set");
+            }
+
             self.buffer
                 .push_str(format!("\n  note: {}", assertion_description_ref).as_str());
 

@@ -310,6 +310,10 @@ pub fn assert_f32_eq_impl_relative(
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_f32_eq;
+/// #
+/// # let x = 3.0;
+/// #
 /// // Compare `x` to 3.0 within 2 ULPs
 /// assert_f32_eq!(x, 3.0, ulps = 2, epsilon_near_zero = 0.0);
 ///
@@ -357,8 +361,8 @@ macro_rules! assert_f32_eq {
     (
         $lhs:expr,
         $rhs:expr,
-        relative_epsilon = $ulps:expr,
-        epsilon_near_zero = $epsilon_near_zero:expr,
+        relative_epsilon = $relative_epsilon:expr,
+        epsilon_near_zero = $epsilon_near_zero:expr
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
@@ -374,7 +378,7 @@ macro_rules! assert_f32_eq {
                 $relative_epsilon
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message(
+                $crate::assertions::float_assertions::configure_float_panic_message_relative(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -416,6 +420,10 @@ pub fn assert_f32_ne_impl_relative(
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_f32_ne;
+/// #
+/// # let x = 4.0;
+/// #
 /// // Compare `x` to 3.0 within 2 ULPs
 /// assert_f32_ne!(x, 3.0, ulps = 2, epsilon_near_zero = 0.0);
 ///
@@ -431,7 +439,7 @@ macro_rules! assert_f32_ne {
         $lhs:expr,
         $rhs:expr,
         ulps = $ulps:expr,
-        epsilon_near_zero = $epsilon_near_zero:expr,
+        epsilon_near_zero = $epsilon_near_zero:expr
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
@@ -463,8 +471,8 @@ macro_rules! assert_f32_ne {
     (
         $lhs:expr,
         $rhs:expr,
-        relative_epsilon = $ulps:expr,
-        epsilon_near_zero = $epsilon_near_zero:expr,
+        relative_epsilon = $relative_epsilon:expr,
+        epsilon_near_zero = $epsilon_near_zero:expr
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
@@ -473,14 +481,14 @@ macro_rules! assert_f32_ne {
                 $relative_epsilon,
                 $epsilon_near_zero,
             ),
-            $crate::assertions::assert_f32_ne_impl_relative(
+            $crate::assertions::float_assertions::assert_f32_ne_impl_relative(
                 $lhs,
                 $rhs,
                 $epsilon_near_zero,
                 $relative_epsilon
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message(
+                $crate::assertions::float_assertions::configure_float_panic_message_relative(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -522,6 +530,10 @@ pub fn assert_f32_le_impl_relative(
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_f32_le;
+/// #
+/// # let x = 3.0;
+/// #
 /// // Compare `x` to 3.0 within 2 ULPs
 /// assert_f32_le!(x, 3.0, ulps = 2, epsilon_near_zero = 0.0);
 ///
@@ -537,7 +549,7 @@ macro_rules! assert_f32_le {
         $lhs:expr,
         $rhs:expr,
         ulps = $ulps:expr,
-        epsilon_near_zero = $epsilon_near_zero:expr,
+        epsilon_near_zero = $epsilon_near_zero:expr
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
@@ -569,8 +581,8 @@ macro_rules! assert_f32_le {
     (
         $lhs:expr,
         $rhs:expr,
-        relative_epsilon = $ulps:expr,
-        epsilon_near_zero = $epsilon_near_zero:expr,
+        relative_epsilon = $relative_epsilon:expr,
+        epsilon_near_zero = $epsilon_near_zero:expr
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
@@ -586,7 +598,7 @@ macro_rules! assert_f32_le {
                 $relative_epsilon
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message(
+                $crate::assertions::float_assertions::configure_float_panic_message_relative(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -628,6 +640,10 @@ pub fn assert_f32_ge_impl_relative(
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_f32_ge;
+/// #
+/// # let x = 3.0;
+/// #
 /// // Compare `x` to 3.0 within 2 ULPs
 /// assert_f32_ge!(x, 3.0, ulps = 2, epsilon_near_zero = 0.0);
 ///
@@ -643,7 +659,7 @@ macro_rules! assert_f32_ge {
         $lhs:expr,
         $rhs:expr,
         ulps = $ulps:expr,
-        epsilon_near_zero = $epsilon_near_zero:expr,
+        epsilon_near_zero = $epsilon_near_zero:expr
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
@@ -675,8 +691,8 @@ macro_rules! assert_f32_ge {
     (
         $lhs:expr,
         $rhs:expr,
-        relative_epsilon = $ulps:expr,
-        epsilon_near_zero = $epsilon_near_zero:expr,
+        relative_epsilon = $relative_epsilon:expr,
+        epsilon_near_zero = $epsilon_near_zero:expr
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
@@ -692,7 +708,7 @@ macro_rules! assert_f32_ge {
                 $relative_epsilon
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message(
+                $crate::assertions::float_assertions::configure_float_panic_message_relative(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -734,6 +750,10 @@ pub fn assert_f64_eq_impl_relative(
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_f64_eq;
+/// #
+/// # let x = 3.0;
+/// #
 /// // Compare `x` to 3.0 within 2 ULPs
 /// assert_f64_eq!(x, 3.0, ulps = 2, epsilon_near_zero = 0.0);
 ///
@@ -749,7 +769,7 @@ macro_rules! assert_f64_eq {
         $lhs:expr,
         $rhs:expr,
         ulps = $ulps:expr,
-        epsilon_near_zero = $epsilon_near_zero:expr,
+        epsilon_near_zero = $epsilon_near_zero:expr
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
@@ -781,8 +801,8 @@ macro_rules! assert_f64_eq {
     (
         $lhs:expr,
         $rhs:expr,
-        relative_epsilon = $ulps:expr,
-        epsilon_near_zero = $epsilon_near_zero:expr,
+        relative_epsilon = $relative_epsilon:expr,
+        epsilon_near_zero = $epsilon_near_zero:expr
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
@@ -798,7 +818,7 @@ macro_rules! assert_f64_eq {
                 $relative_epsilon
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message(
+                $crate::assertions::float_assertions::configure_float_panic_message_relative(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -840,6 +860,10 @@ pub fn assert_f64_ne_impl_relative(
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_f64_ne;
+/// #
+/// # let x = 4.0;
+/// #
 /// // Compare `x` to 3.0 within 2 ULPs
 /// assert_f64_ne!(x, 3.0, ulps = 2, epsilon_near_zero = 0.0);
 ///
@@ -855,7 +879,7 @@ macro_rules! assert_f64_ne {
         $lhs:expr,
         $rhs:expr,
         ulps = $ulps:expr,
-        epsilon_near_zero = $epsilon_near_zero:expr,
+        epsilon_near_zero = $epsilon_near_zero:expr
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
@@ -887,8 +911,8 @@ macro_rules! assert_f64_ne {
     (
         $lhs:expr,
         $rhs:expr,
-        relative_epsilon = $ulps:expr,
-        epsilon_near_zero = $epsilon_near_zero:expr,
+        relative_epsilon = $relative_epsilon:expr,
+        epsilon_near_zero = $epsilon_near_zero:expr
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
@@ -897,14 +921,14 @@ macro_rules! assert_f64_ne {
                 $relative_epsilon,
                 $epsilon_near_zero,
             ),
-            $crate::assertions::assert_f64_ne_impl_relative(
+            $crate::assertions::float_assertions::assert_f64_ne_impl_relative(
                 $lhs,
                 $rhs,
                 $epsilon_near_zero,
                 $relative_epsilon
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message(
+                $crate::assertions::float_assertions::configure_float_panic_message_relative(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -946,6 +970,10 @@ pub fn assert_f64_le_impl_relative(
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_f64_le;
+/// #
+/// # let x = 3.0;
+/// #
 /// // Compare `x` to 3.0 within 2 ULPs
 /// assert_f64_le!(x, 3.0, ulps = 2, epsilon_near_zero = 0.0);
 ///
@@ -961,7 +989,7 @@ macro_rules! assert_f64_le {
         $lhs:expr,
         $rhs:expr,
         ulps = $ulps:expr,
-        epsilon_near_zero = $epsilon_near_zero:expr,
+        epsilon_near_zero = $epsilon_near_zero:expr
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
@@ -993,8 +1021,8 @@ macro_rules! assert_f64_le {
     (
         $lhs:expr,
         $rhs:expr,
-        relative_epsilon = $ulps:expr,
-        epsilon_near_zero = $epsilon_near_zero:expr,
+        relative_epsilon = $relative_epsilon:expr,
+        epsilon_near_zero = $epsilon_near_zero:expr
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
@@ -1010,7 +1038,7 @@ macro_rules! assert_f64_le {
                 $relative_epsilon
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message(
+                $crate::assertions::float_assertions::configure_float_panic_message_relative(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -1052,6 +1080,10 @@ pub fn assert_f64_ge_impl_relative(
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_f64_ge;
+/// #
+/// # let x = 3.0;
+/// #
 /// // Compare `x` to 3.0 within 2 ULPs
 /// assert_f64_ge!(x, 3.0, ulps = 2, epsilon_near_zero = 0.0);
 ///
@@ -1067,7 +1099,7 @@ macro_rules! assert_f64_ge {
         $lhs:expr,
         $rhs:expr,
         ulps = $ulps:expr,
-        epsilon_near_zero = $epsilon_near_zero:expr,
+        epsilon_near_zero = $epsilon_near_zero:expr
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
@@ -1099,8 +1131,8 @@ macro_rules! assert_f64_ge {
     (
         $lhs:expr,
         $rhs:expr,
-        relative_epsilon = $ulps:expr,
-        epsilon_near_zero = $epsilon_near_zero:expr,
+        relative_epsilon = $relative_epsilon:expr,
+        epsilon_near_zero = $epsilon_near_zero:expr
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
@@ -1116,7 +1148,7 @@ macro_rules! assert_f64_ge {
                 $relative_epsilon
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message(
+                $crate::assertions::float_assertions::configure_float_panic_message_relative(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,

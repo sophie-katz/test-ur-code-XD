@@ -16,7 +16,10 @@
 //! This crate tries to improve testing in Rust with a more full-featured framework. It makes tests
 //! more readable with better assertions and with more readable errors:
 //!
-//! <div><img src="https://raw.githubusercontent.com/sophie-katz/test-ur-code-XD/main/docs/for-users/assets/assertion-screenshot.png" alt="A screenshot of an assertion failure message"></img></div>
+//! <div><img src="https://raw.githubusercontent.com/sophie-katz/test-ur-code-XD/main/docs/for-users/docs/assets/assertion-screenshot.png" alt="A screenshot of an assertion failure message"></img></div>
+//!
+//! See the [user guide](https://sophie-katz.github.io/test-ur-code-XD/) for more information about
+//! how to use this crate.
 //!
 //! # Assertions
 //!
@@ -102,7 +105,7 @@
 //! assert_f32_eq!(
 //!     0.15 + 0.15 + 0.15,
 //!     0.1 + 0.1 + 0.25,
-//!     ulps_tolerance = 1,
+//!     ulps = 1,
 //!     epsilon_near_zero = 0.0,
 //! );
 //! ```

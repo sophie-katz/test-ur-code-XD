@@ -30,6 +30,8 @@ pub fn assert_impl(value: bool) -> bool {
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert;
+/// #
 /// assert!(true);
 /// ```
 #[macro_export]
@@ -62,6 +64,8 @@ pub fn assert_not_impl(value: bool) -> bool {
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_not;
+/// #
 /// assert_not!(false);
 /// ```
 #[macro_export]

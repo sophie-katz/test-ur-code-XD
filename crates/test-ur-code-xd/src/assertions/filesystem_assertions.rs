@@ -34,7 +34,18 @@ pub fn assert_path_exists_impl(path: impl AsRef<Path>) -> bool {
 /// # Example
 ///
 /// ```
-/// assert_path_exists!("/dev/null");
+/// # use std::{env, fs};
+/// # use tempfile::tempdir;
+/// # use test_ur_code_xd::assert_path_exists;
+/// #
+/// # // Create a temporary directory and "cd" into it
+/// # let temp_dir = tempdir().unwrap();
+/// # env::set_current_dir(temp_dir.path()).unwrap();
+/// #
+/// # // Create a file within it
+/// # fs::File::create("some_file").unwrap();
+/// #
+/// assert_path_exists!("some_file");
 /// ```
 #[macro_export]
 macro_rules! assert_path_exists {
@@ -66,7 +77,18 @@ pub fn assert_path_is_file_impl(path: impl AsRef<Path>) -> bool {
 /// # Example
 ///
 /// ```
-/// assert_path_is_file!("/dev/null");
+/// # use std::{env, fs};
+/// # use tempfile::tempdir;
+/// # use test_ur_code_xd::assert_path_is_file;
+/// #
+/// # // Create a temporary directory and "cd" into it
+/// # let temp_dir = tempdir().unwrap();
+/// # env::set_current_dir(temp_dir.path()).unwrap();
+/// #
+/// # // Create a file within it
+/// # fs::File::create("some_file").unwrap();
+/// #
+/// assert_path_is_file!("some_file");
 /// ```
 #[macro_export]
 macro_rules! assert_path_is_file {
@@ -98,6 +120,25 @@ pub fn assert_path_is_symlink_impl(path: impl AsRef<Path>) -> bool {
 /// # Example
 ///
 /// ```
+/// # use std::{env, fs};
+/// # use tempfile::tempdir;
+/// # use test_ur_code_xd::assert_path_is_symlink;
+/// #
+/// # #[cfg(target_family = "unix")]
+/// # use std::os::unix::fs::symlink;
+/// #
+/// # #[cfg(target_family = "windows")]
+/// # use std::os::windows::fs::symlink_file as symlink;
+/// #
+/// # // Create a temporary directory and "cd" into it
+/// # let temp_dir = tempdir().unwrap();
+/// # env::set_current_dir(temp_dir.path()).unwrap();
+/// #
+/// # // Create a file and a symlink within it
+/// # fs::File::create("some_file").unwrap();
+/// #
+/// # symlink("some_file", "some_symlink").unwrap();
+/// #
 /// assert_path_is_symlink!("/etc/localtime");
 /// ```
 #[macro_export]
@@ -130,7 +171,18 @@ pub fn assert_path_is_dir_impl(path: impl AsRef<Path>) -> bool {
 /// # Example
 ///
 /// ```
-/// assert_path_is_dir!("/etc");
+/// # use std::{env, fs};
+/// # use tempfile::tempdir;
+/// # use test_ur_code_xd::assert_path_is_dir;
+/// #
+/// # // Create a temporary directory and "cd" into it
+/// # let temp_dir = tempdir().unwrap();
+/// # env::set_current_dir(temp_dir.path()).unwrap();
+/// #
+/// # // Create a directory within it
+/// # fs::create_dir("some_dir").unwrap();
+/// #
+/// assert_path_is_dir!("some_dir");
 /// ```
 #[macro_export]
 macro_rules! assert_path_is_dir {
@@ -154,6 +206,8 @@ pub fn assert_path_is_relative_impl(path: impl AsRef<Path>) -> bool {
 
 /// Asserts that the path is relative.
 ///
+/// Note that the path must also exist for this assertion to pass.
+///
 /// # Arguments
 ///
 /// * `path` - The path to check.
@@ -162,6 +216,8 @@ pub fn assert_path_is_relative_impl(path: impl AsRef<Path>) -> bool {
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_path_is_relative;
+/// #
 /// assert_path_is_relative!("../");
 /// ```
 #[macro_export]
@@ -186,6 +242,8 @@ pub fn assert_path_is_absolute_impl(path: impl AsRef<Path>) -> bool {
 
 /// Asserts that the path is absolute.
 ///
+/// Note that the path must also exist for this assertion to pass.
+///
 /// # Arguments
 ///
 /// * `path` - The path to check.
@@ -194,6 +252,9 @@ pub fn assert_path_is_absolute_impl(path: impl AsRef<Path>) -> bool {
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_path_is_absolute;
+/// #
+/// # #[cfg(target_family = "unix")]
 /// assert_path_is_absolute!("/etc");
 /// ```
 #[macro_export]
@@ -227,7 +288,20 @@ pub fn assert_path_starts_with_impl(path: impl AsRef<Path>, base: impl AsRef<Pat
 /// # Example
 ///
 /// ```
-/// assert_path_starts_with!("/etc/localtime", "/etc");
+/// # use std::{env, fs};
+/// # use tempfile::tempdir;
+/// # use test_ur_code_xd::assert_path_starts_with;
+/// #
+/// # // Create a temporary directory and "cd" into it
+/// # let temp_dir = tempdir().unwrap();
+/// # env::set_current_dir(temp_dir.path()).unwrap();
+/// #
+/// # // Create some nested directories with a file at the end
+/// # fs::create_dir("a").unwrap();
+/// # fs::create_dir("a/b").unwrap();
+/// # fs::File::create("a/b/c").unwrap();
+/// #
+/// assert_path_starts_with!("a/b/c", "a");
 /// ```
 #[macro_export]
 macro_rules! assert_path_starts_with {
@@ -261,14 +335,27 @@ pub fn assert_path_ends_with_impl(path: impl AsRef<Path>, child: impl AsRef<Path
 /// # Example
 ///
 /// ```
-/// assert_path_starts_with!("/etc/localtime", "localtime");
+/// # use std::{env, fs};
+/// # use tempfile::tempdir;
+/// # use test_ur_code_xd::assert_path_ends_with;
+/// #
+/// # // Create a temporary directory and "cd" into it
+/// # let temp_dir = tempdir().unwrap();
+/// # env::set_current_dir(temp_dir.path()).unwrap();
+/// #
+/// # // Create some nested directories with a file at the end
+/// # fs::create_dir("a").unwrap();
+/// # fs::create_dir("a/b").unwrap();
+/// # fs::File::create("a/b/c").unwrap();
+/// #
+/// assert_path_ends_with!("a/b/c", "b/c");
 /// ```
 #[macro_export]
 macro_rules! assert_path_ends_with {
     ($path:expr, $child:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "path is ends with child",
-            $crate::assertions::filesystem_assertions::assert_path_starts_with_impl(&$path, &$child),
+            $crate::assertions::filesystem_assertions::assert_path_ends_with_impl(&$path, &$child),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("path", stringify!($path), &$path)
@@ -314,6 +401,17 @@ pub fn assert_file_text_impl<OnTextType: FnOnce(String)>(
 /// # Example
 ///
 /// ```
+/// # use std::{env, fs};
+/// # use tempfile::tempdir;
+/// # use test_ur_code_xd::{assert_file_text, assert_eq};
+/// #
+/// # // Create a temporary directory and "cd" into it
+/// # let temp_dir = tempdir().unwrap();
+/// # env::set_current_dir(temp_dir.path()).unwrap();
+/// #
+/// # // Create a file within it
+/// # fs::write("hello_world_file.txt", "hello, world").unwrap();
+/// #
 /// assert_file_text!(
 ///     "hello_world_file.txt",
 ///     on_text = |text| {
@@ -364,10 +462,21 @@ pub fn assert_file_text_raw_impl<OnTextType: FnOnce(&[u8])>(
 /// # Example
 ///
 /// ```
+/// # use std::{env, fs};
+/// # use tempfile::tempdir;
+/// # use test_ur_code_xd::{assert_file_text_raw, assert_eq};
+/// #
+/// # // Create a temporary directory and "cd" into it
+/// # let temp_dir = tempdir().unwrap();
+/// # env::set_current_dir(temp_dir.path()).unwrap();
+/// #
+/// # // Create a file within it
+/// # fs::write("hello_world_file.txt", "hello, world").unwrap();
+/// #
 /// assert_file_text_raw!(
 ///     "hello_world_file.txt",
 ///     on_text = |text| {
-///         assert_eq!(text, "hello, world");
+///         assert_eq!(text, "hello, world".as_bytes());
 ///     }
 /// );
 /// ```

@@ -270,6 +270,7 @@ dependencies = [
  "num-traits",
  "panic-message",
  "regex",
+ "tempfile",
  "test-ur-code-xd-macro",
  "thiserror",
 ]

@@ -37,6 +37,8 @@ pub struct Config {
     /// # Example
     ///
     /// ```
+    /// # use test_ur_code_xd::assert;
+    /// #
     /// assert!(true);
     ///
     /// // The above assertion is equivalent to:
@@ -55,6 +57,12 @@ pub struct Config {
     /// # Example
     ///
     /// ```
+    /// # use test_ur_code_xd::assert;
+    /// #
+    /// # fn some_function() -> bool {
+    /// #     true
+    /// # }
+    /// #
     /// assert!(
     ///     some_function(),
     ///     description = "`some_function` is always expected to return true"
@@ -63,12 +71,19 @@ pub struct Config {
     ///
     /// Note that you cannot use both of these at the same time:
     ///
-    /// ```should_panic
+    /// ```
+    /// # use test_ur_code_xd::assert;
+    /// #
+    /// # fn some_function() -> bool {
+    /// #     true
+    /// # }
+    /// #
     /// assert!(
     ///     some_function(),
-    ///     description = "..."
-    ///     description_owned = "...".to_owned() // this will panic without running the
-    ///                                                    // assertion
+    ///     description = "...",
+    ///     description_owned = "...".to_owned() // This will panic without running the
+    ///                                          // assertion, but only if the assertion
+    ///                                          // fails
     /// );
     /// ```
     ///
@@ -83,6 +98,12 @@ pub struct Config {
     /// # Example
     ///
     /// ```
+    /// # use test_ur_code_xd::assert;
+    /// #
+    /// # fn some_function() -> bool {
+    /// #     true
+    /// # }
+    /// #
     /// assert!(
     ///     some_function(),
     ///     description_owned = format!(
@@ -94,12 +115,19 @@ pub struct Config {
     ///
     /// Note that you cannot use both of these at the same time:
     ///
-    /// ```should_panic
+    /// ```
+    /// # use test_ur_code_xd::assert;
+    /// #
+    /// # fn some_function() -> bool {
+    /// #     true
+    /// # }
+    /// #
     /// assert!(
     ///     some_function(),
-    ///     description = "..."
-    ///     description_owned = "...".to_owned() // this will panic without running the
-    ///                                                    // assertion
+    ///     description = "...",
+    ///     description_owned = "...".to_owned() // This will panic without running the
+    ///                                          // assertion, but only if the assertion
+    ///                                          // fails
     /// );
     /// ```
     pub description_owned: String,

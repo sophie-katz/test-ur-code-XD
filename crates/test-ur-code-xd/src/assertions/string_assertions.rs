@@ -32,6 +32,8 @@ pub fn assert_str_contains_impl(value: impl AsRef<str>, substring: impl AsRef<st
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_str_contains;
+/// #
 /// assert_str_contains!("hello, world", "hello");
 ///
 /// assert_str_contains!("hello, world", "asdf", negate = true);
@@ -67,6 +69,8 @@ pub fn assert_str_starts_with_impl(value: impl AsRef<str>, prefix: impl AsRef<st
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_str_starts_with;
+/// #
 /// assert_str_starts_with!("hello, world", "hello");
 ///
 /// assert_str_starts_with!("hello, world", "world", negate = true);
@@ -102,6 +106,8 @@ pub fn assert_str_ends_with_impl(value: impl AsRef<str>, suffix: impl AsRef<str>
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_str_ends_with;
+/// #
 /// assert_str_ends_with!("hello, world", "world");
 ///
 /// assert_str_ends_with!("hello, world", "hello", negate = true);
@@ -139,9 +145,11 @@ pub fn assert_str_matches_impl(value: impl AsRef<str>, pattern: impl AsRef<str>)
 /// # Example
 ///
 /// ```
+/// # use test_ur_code_xd::assert_str_matches;
+/// #
 /// assert_str_matches!("hello, world", "[a-z]+");
 ///
-/// assert_str_ends_with!("hello, world", "^[a-z]+$", negate = true);
+/// assert_str_matches!("hello, world", "^[a-z]+$", negate = true);
 /// ```
 #[macro_export]
 macro_rules! assert_str_matches {
@@ -152,7 +160,7 @@ macro_rules! assert_str_matches {
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("value", stringify!($value), &$value)
-                    .with_argument("suffix", stringify!($suffix), &$suffix)
+                    .with_argument("pattern", stringify!($pattern), &$pattern)
             }
             $(, $keys = $values)*
         )
