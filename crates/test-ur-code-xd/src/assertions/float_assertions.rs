@@ -22,7 +22,7 @@ use float_cmp::{approx_eq, Ulps};
 use num_traits::Float;
 use std::fmt::{Debug, Display};
 
-use crate::utilities::panic_message_builder::PanicMessageBuilder;
+use crate::{assert, utilities::panic_message_builder::PanicMessageBuilder};
 
 /// Checks if two numbers are non-finite and equal
 ///
@@ -1168,6 +1168,7 @@ macro_rules! assert_f64_ge {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::assert_eq;
 
     #[test]
     fn is_float_eq_non_finite_f32_infinity_infinity() {
@@ -1294,17 +1295,17 @@ mod tests {
 
     #[test]
     fn is_float_eq_non_finite_f32_five_five() {
-        assert_eq!(is_float_eq_non_finite(5.0, 5.0), None);
+        assert_eq!(is_float_eq_non_finite(5.0, 5.0), None::<bool>);
     }
 
     #[test]
     fn is_float_eq_non_finite_f32_five_zero() {
-        assert_eq!(is_float_eq_non_finite(5.0, 0.0), None);
+        assert_eq!(is_float_eq_non_finite(5.0, 0.0), None::<bool>);
     }
 
     #[test]
     fn is_float_eq_non_finite_f32_five_neg_zero() {
-        assert_eq!(is_float_eq_non_finite(5.0, -0.0), None);
+        assert_eq!(is_float_eq_non_finite(5.0, -0.0), None::<bool>);
     }
 
     #[test]
@@ -1324,17 +1325,17 @@ mod tests {
 
     #[test]
     fn is_float_eq_non_finite_f32_zero_five() {
-        assert_eq!(is_float_eq_non_finite(0.0, 5.0), None);
+        assert_eq!(is_float_eq_non_finite(0.0, 5.0), None::<bool>);
     }
 
     #[test]
     fn is_float_eq_non_finite_f32_zero_zero() {
-        assert_eq!(is_float_eq_non_finite(0.0, 0.0), None);
+        assert_eq!(is_float_eq_non_finite(0.0, 0.0), None::<bool>);
     }
 
     #[test]
     fn is_float_eq_non_finite_f32_zero_neg_zero() {
-        assert_eq!(is_float_eq_non_finite(0.0, -0.0), None);
+        assert_eq!(is_float_eq_non_finite(0.0, -0.0), None::<bool>);
     }
 
     #[test]
@@ -1354,17 +1355,17 @@ mod tests {
 
     #[test]
     fn is_float_eq_non_finite_f32_neg_zero_five() {
-        assert_eq!(is_float_eq_non_finite(-0.0, 5.0), None);
+        assert_eq!(is_float_eq_non_finite(-0.0, 5.0), None::<bool>);
     }
 
     #[test]
     fn is_float_eq_non_finite_f32_neg_zero_zero() {
-        assert_eq!(is_float_eq_non_finite(-0.0, 0.0), None);
+        assert_eq!(is_float_eq_non_finite(-0.0, 0.0), None::<bool>);
     }
 
     #[test]
     fn is_float_eq_non_finite_f32_neg_zero_neg_zero() {
-        assert_eq!(is_float_eq_non_finite(-0.0, -0.0), None);
+        assert_eq!(is_float_eq_non_finite(-0.0, -0.0), None::<bool>);
     }
 
     #[test]

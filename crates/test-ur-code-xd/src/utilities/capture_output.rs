@@ -196,6 +196,7 @@ pub fn capture_output_raw<ActionType: FnOnce()>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{assert, assert_eq};
 
     #[test]
     fn none() {

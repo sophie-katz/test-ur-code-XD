@@ -165,9 +165,8 @@ pub fn generate_permuted_test_function(
 
 #[cfg(test)]
 mod tests {
-    use quote::{quote, ToTokens};
-
     use super::*;
+    use quote::{quote, ToTokens};
 
     #[test]
     fn get_permuted_parameter_map_iter_empty() {

@@ -490,6 +490,7 @@ macro_rules! assert_file_text_raw {
 
 #[cfg(test)]
 mod tests {
+    use crate::assert_eq;
     use std::{env, fs, io::Write};
     use tempfile::tempdir;
 

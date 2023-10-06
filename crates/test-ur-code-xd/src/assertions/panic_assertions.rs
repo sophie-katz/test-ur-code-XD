@@ -78,6 +78,7 @@ macro_rules! assert_panics {
 
 #[cfg(test)]
 mod tests {
+    use crate::assert_eq;
     use std::panic;
 
     #[test]
@@ -215,10 +216,10 @@ mod tests {
     }
 
     #[test]
-    fn assert_panics_passing_with_core_assert_eq() {
+    fn assert_panics_passing_with_std_assert_eq() {
         assert_panics!(
             || {
-                core::assert_eq!(1, 2);
+                std::assert_eq!(1, 2);
             },
             on_message = |message| {
                 assert_eq!(
@@ -233,7 +234,7 @@ mod tests {
     fn assert_panics_passing_with_crate_assert_eq() {
         assert_panics!(
             || {
-                crate::assert_eq!(1, 2);
+                assert_eq!(1, 2);
             },
             on_message = |message| {
                 assert_eq!(message, "explicit panic");

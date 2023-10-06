@@ -231,6 +231,8 @@ impl Config {
 mod tests {
     use std::convert::identity;
 
+    use crate::assert_panics;
+
     use super::*;
 
     #[test]
@@ -269,30 +271,20 @@ mod tests {
         .execute_assertion("value is true", true, Location::caller(), identity);
     }
 
-    // TODO: Get this to work properly
-    // #[test]
-    // fn panic_message_no_description() {
-    //     assert_panics!(
-    //         || {
-    //             Config {
-    //                 ..Default::default()
-    //             }
-    //             .execute_assertion(
-    //                 "predicate description",
-    //                 false,
-    //                 Location::caller(),
-    //                 |panic_message_builder| {
-    //                     panic_message_builder.with_argument(
-    //                         "argument name",
-    //                         "argument expression",
-    //                         &5,
-    //                     )
-    //                 },
-    //             )
-    //         },
-    //         on_message = |message| {
-    //             assert_eq!(message, "asdf");
-    //         }
-    //     );
-    // }
+    #[test]
+    fn panic_message_no_description() {
+        assert_panics!(|| {
+            Config {
+                ..Default::default()
+            }
+            .execute_assertion(
+                "predicate description",
+                false,
+                Location::caller(),
+                |panic_message_builder| {
+                    panic_message_builder.with_argument("argument name", "argument expression", &5)
+                },
+            )
+        });
+    }
 }

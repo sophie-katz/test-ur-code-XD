@@ -166,6 +166,8 @@ macro_rules! assert_outputs_raw {
 
 #[cfg(test)]
 mod tests {
+    use crate::assert_eq;
+
     #[test]
     fn assert_outputs_passing_empty_stdout_only() {
         println!("this is NOT captured");

@@ -235,6 +235,7 @@ impl PanicMessageBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{assert, assert_eq};
 
     #[test]
     #[should_panic]
@@ -248,7 +249,7 @@ mod tests {
 
         let message = PanicMessageBuilder::new("lhs == rhs", Location::caller()).format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:249: lhs == rhs
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:250: lhs == rhs
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
     }
@@ -261,7 +262,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .with_argument("lhs", "5", &5)
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:260: 
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:261: 
   lhs: 5
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
@@ -275,7 +276,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .with_argument("lhs", "x", &5)
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:274: 
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:275: 
   lhs: x
        == 5
 
@@ -291,7 +292,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .with_argument("rhs", "y", &6)
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:289: 
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:290: 
   lhs: x
        == 5
   rhs: y
@@ -309,7 +310,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .unwrap()
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:307: 
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:308: 
   info: assertion description
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
@@ -325,7 +326,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .unwrap()
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:323: 
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:324: 
   info: assertion description
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
