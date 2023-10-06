@@ -128,6 +128,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "indent_write"
+version = "2.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0cfe9645a18782869361d9c8732246be7b410ad4e919d3609ebabdac00ba12c3"
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -266,6 +272,7 @@ dependencies = [
  "console",
  "float-cmp",
  "gag",
+ "indent_write",
  "lazy_static",
  "num-traits",
  "panic-message",

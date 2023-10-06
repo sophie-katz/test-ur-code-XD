@@ -14,6 +14,8 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 use console::{style, Color};
+use indent_write::fmt::IndentWriter;
+use std::fmt::Write;
 use std::{
     backtrace::{Backtrace, BacktraceStatus},
     fmt::{Debug, Display},
@@ -129,10 +131,12 @@ impl PanicMessageBuilder {
         let value_description_string = format!("{}", value_description);
         let value_string = format!("{:?}", value);
 
+        let argument_description_string = format!("{}:", argument_description);
+
         self.buffer.push_str(
             format!(
                 "\n  {} {}",
-                style(format!("{}:", argument_description)),
+                style(argument_description_string.as_str()),
                 style(value_description).fg(if value_description_string == value_string {
                     Color::Cyan
                 } else {
@@ -143,14 +147,19 @@ impl PanicMessageBuilder {
         );
 
         if value_description_string != value_string {
-            self.buffer.push_str(
-                format!(
-                    "\n       {} {:?}",
-                    style("==").dim(),
-                    style(value).fg(Color::Cyan)
-                )
-                .as_str(),
-            );
+            let indent = " ".repeat(3 + argument_description_string.len());
+
+            let mut indented = IndentWriter::new(indent.as_str(), String::new());
+
+            write!(
+                indented,
+                "\n{} {:#?}",
+                style("==").dim(),
+                style(value).fg(Color::Cyan)
+            )
+            .expect("unable to write to indented writer");
+
+            self.buffer.push_str(indented.get_ref());
         }
 
         self
@@ -237,6 +246,14 @@ mod tests {
     use super::*;
     use crate::{assert, assert_eq};
 
+    #[derive(Debug)]
+    #[allow(dead_code)]
+    struct SomeStruct {
+        a: i32,
+        b: i32,
+        c: String,
+    }
+
     #[test]
     #[should_panic]
     fn panics() {
@@ -249,7 +266,7 @@ mod tests {
 
         let message = PanicMessageBuilder::new("lhs == rhs", Location::caller()).format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:250: lhs == rhs
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:267: lhs == rhs
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
     }
@@ -262,7 +279,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .with_argument("lhs", "5", &5)
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:261: 
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:278: 
   lhs: 5
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
@@ -276,7 +293,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .with_argument("lhs", "x", &5)
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:275: 
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:292: 
   lhs: x
        == 5
 
@@ -292,7 +309,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .with_argument("rhs", "y", &6)
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:290: 
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:307: 
   lhs: x
        == 5
   rhs: y
@@ -310,7 +327,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .unwrap()
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:308: 
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:325: 
   info: assertion description
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
@@ -326,7 +343,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .unwrap()
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:324: 
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:341: 
   info: assertion description
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
@@ -339,5 +356,32 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .unwrap()
             .with_description("assertion description")
             .is_err());
+    }
+
+    #[test]
+    fn format_pretty_debug_argument() {
+        console::set_colors_enabled(false);
+
+        let message = PanicMessageBuilder::new("predicate description", Location::caller())
+            .with_argument(
+                "argument",
+                "value",
+                &SomeStruct {
+                    a: 1,
+                    b: 2,
+                    c: "3".to_owned(),
+                },
+            )
+            .format();
+
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:365: predicate description
+  argument: value
+            == SomeStruct {
+                a: 1,
+                b: 2,
+                c: \"3\",
+            }
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
     }
 }
