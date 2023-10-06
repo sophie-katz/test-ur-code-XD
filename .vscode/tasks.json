@@ -78,7 +78,9 @@
 			"type": "cargo",
 			"command": "llvm-cov",
 			"args": [
-				"--html"
+				"--html",
+				"--ignore-filename-regex",
+				"main\\.rs"
 			],
 			"problemMatcher": [
 				"$rustc"

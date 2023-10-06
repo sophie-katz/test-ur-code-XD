@@ -191,7 +191,7 @@ fn is_float_eq_ulps_f64(lhs: f64, rhs: f64, absolute_tolerance: f64, ulps_tolera
 #[doc(hidden)]
 pub fn format_float_predicate_description_ulps<
     UlpsType: Display + PartialEq<i32>,
-    FloatType: Display,
+    FloatType: Debug,
 >(
     operator: &str,
     ulps_tolerance: UlpsType,
@@ -199,7 +199,7 @@ pub fn format_float_predicate_description_ulps<
     epsilon_near_zero: FloatType,
 ) -> String {
     format!(
-        "lhs {} rhs (within {} {}-bit float ulp{} or {} near equal)",
+        "lhs {} rhs (within {} {}-bit float ulp{} or {:?} near zero)",
         operator,
         ulps_tolerance,
         bit_width,
@@ -216,13 +216,13 @@ pub fn format_float_predicate_description_ulps<
 /// * `relative_epsilon` - The relative epsilon tolerance
 /// * `epsilon_near_zero` - The epsilon to use when comparing values near zero
 #[doc(hidden)]
-pub fn format_float_predicate_description_relative<FloatType: Display>(
+pub fn format_float_predicate_description_relative<FloatType: Debug>(
     operator: &str,
     relative_epsilon: FloatType,
     epsilon_near_zero: FloatType,
 ) -> String {
     format!(
-        "lhs {} rhs (within {} relative to magnitude or {} near equal)",
+        "lhs {} rhs (within {:?} relative to magnitude or {:?} near zero)",
         operator, relative_epsilon, epsilon_near_zero
     )
 }
@@ -1167,6 +1167,310 @@ macro_rules! assert_f64_ge {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    #[test]
+    fn is_float_eq_non_finite_f32_infinity_infinity() {
+        assert_eq!(
+            is_float_eq_non_finite(f32::INFINITY, f32::INFINITY),
+            Some(true)
+        );
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_infinity_neg_infinity() {
+        assert_eq!(
+            is_float_eq_non_finite(f32::INFINITY, -f32::INFINITY),
+            Some(false)
+        );
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_infinity_nan() {
+        assert_eq!(is_float_eq_non_finite(f32::INFINITY, f32::NAN), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_infinity_five() {
+        assert_eq!(is_float_eq_non_finite(f32::INFINITY, 5.0), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_infinity_zero() {
+        assert_eq!(is_float_eq_non_finite(f32::INFINITY, 0.0), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_infinity_neg_zero() {
+        assert_eq!(is_float_eq_non_finite(f32::INFINITY, -0.0), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_neg_infinity_infinity() {
+        assert_eq!(
+            is_float_eq_non_finite(-f32::INFINITY, f32::INFINITY),
+            Some(false)
+        );
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_neg_infinity_neg_infinity() {
+        assert_eq!(
+            is_float_eq_non_finite(-f32::INFINITY, -f32::INFINITY),
+            Some(true)
+        );
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_neg_infinity_nan() {
+        assert_eq!(
+            is_float_eq_non_finite(-f32::INFINITY, f32::NAN),
+            Some(false)
+        );
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_neg_infinity_five() {
+        assert_eq!(is_float_eq_non_finite(-f32::INFINITY, 5.0), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_neg_infinity_zero() {
+        assert_eq!(is_float_eq_non_finite(-f32::INFINITY, 0.0), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_neg_infinity_neg_zero() {
+        assert_eq!(is_float_eq_non_finite(-f32::INFINITY, -0.0), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_nan_infinity() {
+        assert_eq!(is_float_eq_non_finite(f32::NAN, f32::INFINITY), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_nan_neg_infinity() {
+        assert_eq!(
+            is_float_eq_non_finite(f32::NAN, -f32::INFINITY),
+            Some(false)
+        );
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_nan_nan() {
+        assert_eq!(is_float_eq_non_finite(f32::NAN, f32::NAN), Some(true));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_nan_five() {
+        assert_eq!(is_float_eq_non_finite(f32::NAN, 5.0), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_nan_zero() {
+        assert_eq!(is_float_eq_non_finite(f32::NAN, 0.0), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_nan_neg_zero() {
+        assert_eq!(is_float_eq_non_finite(f32::NAN, -0.0), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_five_infinity() {
+        assert_eq!(is_float_eq_non_finite(5.0, f32::INFINITY), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_five_neg_infinity() {
+        assert_eq!(is_float_eq_non_finite(5.0, -f32::INFINITY), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_five_nan() {
+        assert_eq!(is_float_eq_non_finite(5.0, f32::NAN), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_five_five() {
+        assert_eq!(is_float_eq_non_finite(5.0, 5.0), None);
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_five_zero() {
+        assert_eq!(is_float_eq_non_finite(5.0, 0.0), None);
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_five_neg_zero() {
+        assert_eq!(is_float_eq_non_finite(5.0, -0.0), None);
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_zero_infinity() {
+        assert_eq!(is_float_eq_non_finite(0.0, f32::INFINITY), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_zero_neg_infinity() {
+        assert_eq!(is_float_eq_non_finite(0.0, -f32::INFINITY), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_zero_nan() {
+        assert_eq!(is_float_eq_non_finite(0.0, f32::NAN), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_zero_five() {
+        assert_eq!(is_float_eq_non_finite(0.0, 5.0), None);
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_zero_zero() {
+        assert_eq!(is_float_eq_non_finite(0.0, 0.0), None);
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_zero_neg_zero() {
+        assert_eq!(is_float_eq_non_finite(0.0, -0.0), None);
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_neg_zero_infinity() {
+        assert_eq!(is_float_eq_non_finite(-0.0, f32::INFINITY), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_neg_zero_neg_infinity() {
+        assert_eq!(is_float_eq_non_finite(-0.0, -f32::INFINITY), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_neg_zero_nan() {
+        assert_eq!(is_float_eq_non_finite(-0.0, f32::NAN), Some(false));
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_neg_zero_five() {
+        assert_eq!(is_float_eq_non_finite(-0.0, 5.0), None);
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_neg_zero_zero() {
+        assert_eq!(is_float_eq_non_finite(-0.0, 0.0), None);
+    }
+
+    #[test]
+    fn is_float_eq_non_finite_f32_neg_zero_neg_zero() {
+        assert_eq!(is_float_eq_non_finite(-0.0, -0.0), None);
+    }
+
+    #[test]
+    fn format_float_predicate_description_ulps_simple() {
+        assert_eq!(
+            format_float_predicate_description_ulps("==", 0, 32, 0.0),
+            "lhs == rhs (within 0 32-bit float ulps or 0.0 near zero)"
+        );
+    }
+
+    #[test]
+    fn format_float_predicate_description_ulps_operator() {
+        assert_eq!(
+            format_float_predicate_description_ulps("!=", 0, 32, 0.0),
+            "lhs != rhs (within 0 32-bit float ulps or 0.0 near zero)"
+        );
+    }
+
+    #[test]
+    fn format_float_predicate_description_ulps_ulps_tolerance_1() {
+        assert_eq!(
+            format_float_predicate_description_ulps("==", 1, 32, 0.0),
+            "lhs == rhs (within 1 32-bit float ulp or 0.0 near zero)"
+        );
+    }
+
+    #[test]
+    fn format_float_predicate_description_ulps_ulps_tolerance_2() {
+        assert_eq!(
+            format_float_predicate_description_ulps("==", 2, 32, 0.0),
+            "lhs == rhs (within 2 32-bit float ulps or 0.0 near zero)"
+        );
+    }
+
+    #[test]
+    fn format_float_predicate_description_ulps_bit_width() {
+        assert_eq!(
+            format_float_predicate_description_ulps("==", 0, 64, 0.0),
+            "lhs == rhs (within 0 64-bit float ulps or 0.0 near zero)"
+        );
+    }
+
+    #[test]
+    fn format_float_predicate_description_ulps_epsilon_near_zero_e_neg_30() {
+        assert_eq!(
+            format_float_predicate_description_ulps("==", 0, 32, 1e-30),
+            "lhs == rhs (within 0 32-bit float ulps or 1e-30 near zero)"
+        );
+    }
+
+    #[test]
+    fn format_float_predicate_description_ulps_epsilon_near_zero_1() {
+        assert_eq!(
+            format_float_predicate_description_ulps("==", 0, 32, 1.0),
+            "lhs == rhs (within 0 32-bit float ulps or 1.0 near zero)"
+        );
+    }
+
+    #[test]
+    fn format_float_predicate_description_relative_simple() {
+        assert_eq!(
+            format_float_predicate_description_relative("==", 0.0, 0.0),
+            "lhs == rhs (within 0.0 relative to magnitude or 0.0 near zero)"
+        );
+    }
+
+    #[test]
+    fn format_float_predicate_description_relative_operator() {
+        assert_eq!(
+            format_float_predicate_description_relative("!=", 0.0, 0.0),
+            "lhs != rhs (within 0.0 relative to magnitude or 0.0 near zero)"
+        );
+    }
+
+    #[test]
+    fn format_float_predicate_description_relative_relative_epsilon_e_neg_30() {
+        assert_eq!(
+            format_float_predicate_description_relative("==", 1e-30, 0.0),
+            "lhs == rhs (within 1e-30 relative to magnitude or 0.0 near zero)"
+        );
+    }
+
+    #[test]
+    fn format_float_predicate_description_relative_relative_epsilon_1() {
+        assert_eq!(
+            format_float_predicate_description_relative("==", 1.0, 0.0),
+            "lhs == rhs (within 1.0 relative to magnitude or 0.0 near zero)"
+        );
+    }
+
+    #[test]
+    fn format_float_predicate_description_relative_epsilon_near_zero_e_neg_30() {
+        assert_eq!(
+            format_float_predicate_description_relative("==", 0.0, 1e-30),
+            "lhs == rhs (within 0.0 relative to magnitude or 1e-30 near zero)"
+        );
+    }
+
+    #[test]
+    fn format_float_predicate_description_relative_epsilon_near_zero_1() {
+        assert_eq!(
+            format_float_predicate_description_relative("==", 0.0, 1.0),
+            "lhs == rhs (within 0.0 relative to magnitude or 1.0 near zero)"
+        );
+    }
+
     #[test]
     fn assert_f32_eq_passing_ulps_0_ulps() {
         assert_f32_eq!(1.0, 1.0, ulps = 0, epsilon_near_zero = 0.0);
@@ -2417,5 +2721,451 @@ mod tests {
     #[test]
     fn assert_f64_ge_passing_simple_negate() {
         assert_f64_ge!(0.0, 1.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
+    }
+
+    #[test]
+    fn assert_f32_eq_passing_ulps_infinity_infinity() {
+        assert_f32_eq!(
+            f32::INFINITY,
+            f32::INFINITY,
+            ulps = 0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    fn assert_f32_eq_passing_relative_infinity_infinity() {
+        assert_f32_eq!(
+            f32::INFINITY,
+            f32::INFINITY,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f32_eq_failing_ulps_infinity_neg_infinity() {
+        assert_f32_eq!(
+            f32::INFINITY,
+            -f32::INFINITY,
+            ulps = 0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f32_eq_failing_relative_infinity_neg_infinity() {
+        assert_f32_eq!(
+            f32::INFINITY,
+            -f32::INFINITY,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f32_eq_failing_ulps_infinity_nan() {
+        assert_f32_eq!(f32::INFINITY, f32::NAN, ulps = 0, epsilon_near_zero = 0.0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f32_eq_failing_relative_infinity_nan() {
+        assert_f32_eq!(
+            f32::INFINITY,
+            f32::NAN,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f32_eq_failing_ulps_infinity_five() {
+        assert_f32_eq!(f32::INFINITY, 5.0, ulps = 0, epsilon_near_zero = 0.0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f32_eq_failing_relative_infinity_five() {
+        assert_f32_eq!(
+            f32::INFINITY,
+            5.0,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f32_eq_failing_ulps_neg_infinity_infinity() {
+        assert_f32_eq!(
+            -f32::INFINITY,
+            f32::INFINITY,
+            ulps = 0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f32_eq_failing_relative_neg_infinity_infinity() {
+        assert_f32_eq!(
+            -f32::INFINITY,
+            f32::INFINITY,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    fn assert_f32_eq_passing_ulps_neg_infinity_neg_infinity() {
+        assert_f32_eq!(
+            -f32::INFINITY,
+            -f32::INFINITY,
+            ulps = 0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    fn assert_f32_eq_passing_relative_neg_infinity_neg_infinity() {
+        assert_f32_eq!(
+            -f32::INFINITY,
+            -f32::INFINITY,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f32_eq_failing_ulps_neg_infinity_nan() {
+        assert_f32_eq!(-f32::INFINITY, f32::NAN, ulps = 0, epsilon_near_zero = 0.0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f32_eq_failing_relative_neg_infinity_nan() {
+        assert_f32_eq!(
+            -f32::INFINITY,
+            f32::NAN,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f32_eq_failing_ulps_neg_infinity_five() {
+        assert_f32_eq!(-f32::INFINITY, 5.0, ulps = 0, epsilon_near_zero = 0.0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f32_eq_failing_relative_neg_infinity_five() {
+        assert_f32_eq!(
+            -f32::INFINITY,
+            5.0,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f32_eq_failing_ulps_nan_infinity() {
+        assert_f32_eq!(
+            -f32::INFINITY,
+            f32::INFINITY,
+            ulps = 0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f32_eq_failing_relative_nan_infinity() {
+        assert_f32_eq!(
+            f32::NAN,
+            f32::INFINITY,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f32_eq_failing_ulps_nan_neg_infinity() {
+        assert_f32_eq!(f32::NAN, -f32::INFINITY, ulps = 0, epsilon_near_zero = 0.0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f32_eq_failing_relative_nan_neg_infinity() {
+        assert_f32_eq!(
+            f32::NAN,
+            -f32::INFINITY,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    fn assert_f32_eq_passing_ulps_nan_nan() {
+        assert_f32_eq!(f32::NAN, f32::NAN, ulps = 0, epsilon_near_zero = 0.0);
+    }
+
+    #[test]
+    fn assert_f32_eq_passing_relative_nan_nan() {
+        assert_f32_eq!(
+            f32::NAN,
+            f32::NAN,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f32_eq_failing_ulps_nan_five() {
+        assert_f32_eq!(f32::NAN, 5.0, ulps = 0, epsilon_near_zero = 0.0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f32_eq_failing_relative_nan_five() {
+        assert_f32_eq!(
+            f32::NAN,
+            5.0,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    fn assert_f64_eq_passing_ulps_infinity_infinity() {
+        assert_f64_eq!(
+            f64::INFINITY,
+            f64::INFINITY,
+            ulps = 0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    fn assert_f64_eq_passing_relative_infinity_infinity() {
+        assert_f64_eq!(
+            f64::INFINITY,
+            f64::INFINITY,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f64_eq_failing_ulps_infinity_neg_infinity() {
+        assert_f64_eq!(
+            f64::INFINITY,
+            -f64::INFINITY,
+            ulps = 0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f64_eq_failing_relative_infinity_neg_infinity() {
+        assert_f64_eq!(
+            f64::INFINITY,
+            -f64::INFINITY,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f64_eq_failing_ulps_infinity_nan() {
+        assert_f64_eq!(f64::INFINITY, f64::NAN, ulps = 0, epsilon_near_zero = 0.0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f64_eq_failing_relative_infinity_nan() {
+        assert_f64_eq!(
+            f64::INFINITY,
+            f64::NAN,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f64_eq_failing_ulps_infinity_five() {
+        assert_f64_eq!(f64::INFINITY, 5.0, ulps = 0, epsilon_near_zero = 0.0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f64_eq_failing_relative_infinity_five() {
+        assert_f64_eq!(
+            f64::INFINITY,
+            5.0,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f64_eq_failing_ulps_neg_infinity_infinity() {
+        assert_f64_eq!(
+            -f64::INFINITY,
+            f64::INFINITY,
+            ulps = 0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f64_eq_failing_relative_neg_infinity_infinity() {
+        assert_f64_eq!(
+            -f64::INFINITY,
+            f64::INFINITY,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    fn assert_f64_eq_passing_ulps_neg_infinity_neg_infinity() {
+        assert_f64_eq!(
+            -f64::INFINITY,
+            -f64::INFINITY,
+            ulps = 0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    fn assert_f64_eq_passing_relative_neg_infinity_neg_infinity() {
+        assert_f64_eq!(
+            -f64::INFINITY,
+            -f64::INFINITY,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f64_eq_failing_ulps_neg_infinity_nan() {
+        assert_f64_eq!(-f64::INFINITY, f64::NAN, ulps = 0, epsilon_near_zero = 0.0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f64_eq_failing_relative_neg_infinity_nan() {
+        assert_f64_eq!(
+            -f64::INFINITY,
+            f64::NAN,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f64_eq_failing_ulps_neg_infinity_five() {
+        assert_f64_eq!(-f64::INFINITY, 5.0, ulps = 0, epsilon_near_zero = 0.0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f64_eq_failing_relative_neg_infinity_five() {
+        assert_f64_eq!(
+            -f64::INFINITY,
+            5.0,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f64_eq_failing_ulps_nan_infinity() {
+        assert_f64_eq!(
+            -f64::INFINITY,
+            f64::INFINITY,
+            ulps = 0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f64_eq_failing_relative_nan_infinity() {
+        assert_f64_eq!(
+            f64::NAN,
+            f64::INFINITY,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f64_eq_failing_ulps_nan_neg_infinity() {
+        assert_f64_eq!(f64::NAN, -f64::INFINITY, ulps = 0, epsilon_near_zero = 0.0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f64_eq_failing_relative_nan_neg_infinity() {
+        assert_f64_eq!(
+            f64::NAN,
+            -f64::INFINITY,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    fn assert_f64_eq_passing_ulps_nan_nan() {
+        assert_f64_eq!(f64::NAN, f64::NAN, ulps = 0, epsilon_near_zero = 0.0);
+    }
+
+    #[test]
+    fn assert_f64_eq_passing_relative_nan_nan() {
+        assert_f64_eq!(
+            f64::NAN,
+            f64::NAN,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f64_eq_failing_ulps_nan_five() {
+        assert_f64_eq!(f64::NAN, 5.0, ulps = 0, epsilon_near_zero = 0.0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_f64_eq_failing_relative_nan_five() {
+        assert_f64_eq!(
+            f64::NAN,
+            5.0,
+            relative_epsilon = 0.0,
+            epsilon_near_zero = 0.0
+        );
     }
 }
