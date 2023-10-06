@@ -20,11 +20,13 @@ use std::{
     panic::{self, Location},
 };
 
+use crate::error::Error;
+
 /// A builder for a formatted panic message.
 ///
 /// # Example
 ///
-/// ```no_run
+/// ```should_panic
 /// use std::panic::Location;
 /// # use test_ur_code_xd::utilities::panic_message_builder::PanicMessageBuilder;
 ///
@@ -40,6 +42,7 @@ use std::{
 ///     .with_argument("lhs", lhs_description, &lhs_value)
 ///     .with_argument("rhs", rhs_description, &rhs_value)
 ///     .with_description(assertion_description)
+///     .unwrap()
 ///     .panic();
 /// ```
 //
@@ -165,21 +168,24 @@ impl PanicMessageBuilder {
     /// # Panics
     ///
     /// Panics if assertion description is already set.
-    pub fn with_description(mut self, assertion_description: impl AsRef<str>) -> Self {
+    pub fn with_description(
+        mut self,
+        assertion_description: impl AsRef<str>,
+    ) -> Result<Self, Error> {
         let assertion_description_ref = assertion_description.as_ref();
 
         if !assertion_description_ref.is_empty() {
             if self.has_assertion_description {
-                panic!("assertion description already set");
+                return Err(Error::PanicMessageMultipleDescriptions);
             }
 
             self.buffer
-                .push_str(format!("\n  note: {}", assertion_description_ref).as_str());
+                .push_str(format!("\n  info: {}", assertion_description_ref).as_str());
 
             self.has_assertion_description = true;
         }
 
-        self
+        Ok(self)
     }
 
     /// Formats the panic message but does not panic.
@@ -238,78 +244,99 @@ mod tests {
 
     #[test]
     fn format_minimal() {
+        console::set_colors_enabled(false);
+
         let message = PanicMessageBuilder::new("lhs == rhs", Location::caller()).format();
 
-        assert!(message.contains("lhs == rhs"));
-        assert!(message.contains("assertion failed"));
-        assert!(message.contains("panic_message_builder.rs"));
-        assert!(message.contains("RUST_BACKTRACE=1"));
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:249: lhs == rhs
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
     }
 
     #[test]
     fn format_one_argument_description_matches() {
+        console::set_colors_enabled(false);
+
         let message = PanicMessageBuilder::new("", Location::caller())
             .with_argument("lhs", "5", &5)
             .format();
 
-        assert!(message.contains("lhs"));
-        assert!(message.contains('5'));
-        assert!(!message.contains("=="));
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:260: 
+  lhs: 5
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
     }
 
     #[test]
     fn format_one_argument_description_doesnt_match() {
+        console::set_colors_enabled(false);
+
         let message = PanicMessageBuilder::new("", Location::caller())
             .with_argument("lhs", "x", &5)
             .format();
 
-        assert!(message.contains("lhs"));
-        assert!(message.contains('5'));
-        assert!(message.contains('x'));
-        assert!(message.contains("=="));
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:274: 
+  lhs: x
+       == 5
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
     }
 
     #[test]
     fn format_two_arguments() {
+        console::set_colors_enabled(false);
+
         let message = PanicMessageBuilder::new("", Location::caller())
             .with_argument("lhs", "x", &5)
             .with_argument("rhs", "y", &6)
             .format();
 
-        assert!(message.contains("lhs"));
-        assert!(message.contains('5'));
-        assert!(message.contains('x'));
-        assert!(message.contains("rhs"));
-        assert!(message.contains('6'));
-        assert!(message.contains('y'));
-        assert!(message.contains("=="));
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:289: 
+  lhs: x
+       == 5
+  rhs: y
+       == 6
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
     }
 
     #[test]
     fn format_assertion_description_str() {
+        console::set_colors_enabled(false);
+
         let message = PanicMessageBuilder::new("", Location::caller())
             .with_description("assertion description")
+            .unwrap()
             .format();
 
-        assert!(message.contains("assertion description"));
-        assert!(message.contains("  note: "));
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:307: 
+  info: assertion description
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
     }
 
     #[test]
     fn format_assertion_description_string() {
+        console::set_colors_enabled(false);
+
+        #[allow(clippy::unnecessary_to_owned)]
         let message = PanicMessageBuilder::new("", Location::caller())
             .with_description("assertion description".to_owned())
+            .unwrap()
             .format();
 
-        assert!(message.contains("assertion description"));
-        assert!(message.contains("  note: "));
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:323: 
+  info: assertion description
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
     }
 
     #[test]
-    #[should_panic]
     fn two_assertion_descriptions() {
-        let _ = PanicMessageBuilder::new("", Location::caller())
+        assert!(PanicMessageBuilder::new("", Location::caller())
             .with_description("assertion description")
-            .with_description("assertion description");
+            .unwrap()
+            .with_description("assertion description")
+            .is_err());
     }
 }

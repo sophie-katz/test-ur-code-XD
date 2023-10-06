@@ -20,7 +20,7 @@
 
 use std::{fmt::Display, panic::Location};
 
-use crate::utilities::panic_message_builder::PanicMessageBuilder;
+use crate::{error::Error, utilities::panic_message_builder::PanicMessageBuilder};
 
 /// The configuration for an assertion.
 ///
@@ -175,13 +175,13 @@ impl Config {
     /// );
     /// ```
     pub fn execute_assertion<
-        ConfigurePanicMessage: FnOnce(PanicMessageBuilder) -> PanicMessageBuilder,
+        ConfigurePanicMessageType: FnOnce(PanicMessageBuilder) -> PanicMessageBuilder,
     >(
         self,
         predicate_description: impl Display,
         predicate_value: bool,
         location: &'static Location,
-        configure_panic_message: ConfigurePanicMessage,
+        configure_panic_message: ConfigurePanicMessageType,
     ) {
         // Here is the truth table of whether or not to panic:
         //
@@ -197,12 +197,21 @@ impl Config {
         // This truth table is the same as `negate == predicate`, which is used as the condition
         // below. It's hard to read, but efficient!
         if self.negate == predicate_value {
-            let panic_message_builder =
+            let panic_message_builder_result =
                 self.create_panic_message_builder(predicate_description, location);
 
-            let panic_message_builder = configure_panic_message(panic_message_builder);
+            match panic_message_builder_result {
+                Ok(panic_message_builder) => {
+                    let panic_message_builder = configure_panic_message(panic_message_builder);
 
-            panic_message_builder.panic();
+                    panic_message_builder.panic();
+                }
+                Err(error) => PanicMessageBuilder::new(
+                    format!("internal error while creating panic message: {}", error),
+                    Location::caller(),
+                )
+                .panic(),
+            }
         }
     }
 
@@ -211,15 +220,17 @@ impl Config {
         self,
         predicate_description: impl Display,
         location: &'static Location,
-    ) -> PanicMessageBuilder {
+    ) -> Result<PanicMessageBuilder, Error> {
         PanicMessageBuilder::new(predicate_description, location)
-            .with_description(self.description)
+            .with_description(self.description)?
             .with_description(self.description_owned)
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::convert::identity;
+
     use super::*;
 
     #[test]
@@ -227,12 +238,7 @@ mod tests {
         Config {
             ..Default::default()
         }
-        .execute_assertion(
-            "value is true",
-            true,
-            Location::caller(),
-            |panic_message_builder| panic_message_builder,
-        );
+        .execute_assertion("value is true", true, Location::caller(), identity);
     }
 
     #[test]
@@ -241,12 +247,7 @@ mod tests {
         Config {
             ..Default::default()
         }
-        .execute_assertion(
-            "value is true",
-            false,
-            Location::caller(),
-            |panic_message_builder| panic_message_builder,
-        );
+        .execute_assertion("value is true", false, Location::caller(), identity);
     }
 
     #[test]
@@ -255,12 +256,7 @@ mod tests {
             negate: true,
             ..Default::default()
         }
-        .execute_assertion(
-            "value is true",
-            false,
-            Location::caller(),
-            |panic_message_builder| panic_message_builder,
-        );
+        .execute_assertion("value is true", false, Location::caller(), identity);
     }
 
     #[test]
@@ -270,11 +266,33 @@ mod tests {
             negate: true,
             ..Default::default()
         }
-        .execute_assertion(
-            "value is true",
-            true,
-            Location::caller(),
-            |panic_message_builder| panic_message_builder,
-        );
+        .execute_assertion("value is true", true, Location::caller(), identity);
     }
+
+    // TODO: Get this to work properly
+    // #[test]
+    // fn panic_message_no_description() {
+    //     assert_panics!(
+    //         || {
+    //             Config {
+    //                 ..Default::default()
+    //             }
+    //             .execute_assertion(
+    //                 "predicate description",
+    //                 false,
+    //                 Location::caller(),
+    //                 |panic_message_builder| {
+    //                     panic_message_builder.with_argument(
+    //                         "argument name",
+    //                         "argument expression",
+    //                         &5,
+    //                     )
+    //                 },
+    //             )
+    //         },
+    //         on_message = |message| {
+    //             assert_eq!(message, "asdf");
+    //         }
+    //     );
+    // }
 }

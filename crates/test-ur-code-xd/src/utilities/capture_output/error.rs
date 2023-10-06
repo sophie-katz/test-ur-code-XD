@@ -32,7 +32,7 @@ pub enum OutputStream {
 
 /// An error that can occur when capturing output.
 #[derive(Error, Debug)]
-pub enum Error {
+pub enum OutputCapturingError {
     #[error("error while flushing {0:?}: {1}")]
     OutputStreamFlushError(OutputStream, io::Error),
 
@@ -45,4 +45,7 @@ pub enum Error {
     /// A wrapper for an error which occurrs when locking a mutex.
     #[error("guard poison error: {0}")]
     CapturerMutexError(PoisonError<MutexGuard<'static, OutputCapturer>>),
+
+    #[error("nested calls to capture_output or capture_output_raw")]
+    NestedCaptureError,
 }

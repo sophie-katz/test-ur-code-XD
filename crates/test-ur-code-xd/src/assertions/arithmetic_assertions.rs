@@ -245,417 +245,626 @@ macro_rules! assert_ge {
 
 #[cfg(test)]
 mod tests {
-    // use crate::utilities::capture_output::capture_output;
+    #[derive(Debug, PartialEq, PartialOrd)]
+    struct NoDefaultTraitsI32 {
+        value: i32,
+    }
 
     #[test]
-    fn assert_eq_passing() {
-        // let captured_outputs = capture_output(|| {
+    fn assert_eq_passing_bool() {
         assert_eq!(true, true);
-        assert_eq!(true, false, negate = true);
-        assert_eq!(1, 1);
-        assert_eq!(1, 2, negate = true);
-        assert_eq!(3.2, 3.2);
-        assert_eq!(3.2, 3.3, negate = true);
-        assert_eq!("hi", "hi");
-        assert_eq!("hi", "bye", negate = true);
-        assert_eq!("hi".to_owned(), "hi".to_owned());
-        assert_eq!("hi".to_owned(), "bye".to_owned(), negate = true);
-        // })
-        // .unwrap();
-
-        // std::assert!(
-        //     captured_outputs.stdout.is_empty(),
-        //     "STDOUT: <<<{}>>>",
-        //     captured_outputs.stdout
-        // );
-        // std::assert!(
-        //     captured_outputs.stderr.is_empty(),
-        //     "STDERR: <<<{}>>>",
-        //     captured_outputs.stdout
-        // );
     }
 
     #[test]
     #[should_panic]
-    fn assert_eq_fail_bool() {
+    fn assert_eq_failing_bool() {
         assert_eq!(true, false);
     }
 
     #[test]
-    #[should_panic]
-    fn assert_eq_fail_bool_negated() {
-        assert_eq!(true, true, negate = true);
+    fn assert_eq_passing_bool_negate() {
+        assert_eq!(false, true, negate = true);
     }
 
     #[test]
     #[should_panic]
-    fn assert_eq_fail_i32() {
-        assert_eq!(1, 2);
+    fn assert_eq_failing_bool_negate() {
+        assert_eq!(false, false, negate = true);
+    }
+
+    #[test]
+    fn assert_eq_passing_i32() {
+        assert_eq!(0, 0);
     }
 
     #[test]
     #[should_panic]
-    fn assert_eq_fail_i32_negated() {
-        assert_eq!(1, 1, negate = true);
+    fn assert_eq_failing_i32() {
+        assert_eq!(3, 4);
+    }
+
+    #[test]
+    fn assert_eq_passing_i32_negate() {
+        assert_eq!(6, -3, negate = true);
     }
 
     #[test]
     #[should_panic]
-    fn assert_eq_fail_f64() {
-        assert_eq!(3.2, 3.3);
+    fn assert_eq_failing_i32_negate() {
+        assert_eq!(3, 3, negate = true);
+    }
+
+    #[test]
+    fn assert_eq_passing_f64() {
+        assert_eq!(0.3, 0.3);
     }
 
     #[test]
     #[should_panic]
-    fn assert_eq_fail_f64_negate() {
-        assert_eq!(3.2, 3.2, negate = true);
+    fn assert_eq_failing_f64() {
+        assert_eq!(1.4, 1.5);
+    }
+
+    #[test]
+    fn assert_eq_passing_f64_negate() {
+        assert_eq!(6.0, -3.0, negate = true);
     }
 
     #[test]
     #[should_panic]
-    fn assert_eq_fail_str() {
-        assert_eq!("hi", "bye");
+    fn assert_eq_failing_f64_negate() {
+        assert_eq!(3.0, 3.0, negate = true);
+    }
+
+    #[test]
+    fn assert_eq_passing_string() {
+        assert_eq!("hi".to_owned(), "hi".to_owned());
     }
 
     #[test]
     #[should_panic]
-    fn assert_eq_fail_str_negate() {
-        assert_eq!("hi", "hi", negate = true);
-    }
-
-    #[test]
-    #[should_panic]
-    fn assert_eq_fail_string() {
+    fn assert_eq_failing_string() {
         assert_eq!("hi".to_owned(), "bye".to_owned());
     }
 
     #[test]
-    #[should_panic]
-    fn assert_eq_fail_string_negate() {
-        assert_eq!("hi".to_owned(), "hi".to_owned(), negate = true);
+    fn assert_eq_passing_string_negate() {
+        assert_eq!("hii".to_owned(), "hi".to_owned(), negate = true);
     }
 
     #[test]
-    fn assert_ne_passing() {
-        // let captured_outputs = capture_output(|| {
+    #[should_panic]
+    fn assert_eq_failing_string_negate() {
+        assert_eq!("".to_owned(), "".to_owned(), negate = true);
+    }
+
+    #[test]
+    fn assert_eq_passing_vec() {
+        assert_eq!(vec![1, 2], vec![1, 2]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_eq_failing_vec() {
+        assert_eq!(vec![1, 2], vec![3, 4]);
+    }
+
+    #[test]
+    fn assert_eq_passing_vec_negate() {
+        assert_eq!(vec![1, 2], vec![1, 2, 3], negate = true);
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_eq_failing_vec_negate() {
+        assert_eq!(Vec::<i32>::new(), Vec::<i32>::new(), negate = true);
+    }
+
+    #[test]
+    fn assert_ne_passing_bool() {
         assert_ne!(true, false);
-        assert_ne!(true, true, negate = true);
-        assert_ne!(1, 2);
-        assert_ne!(1, 1, negate = true);
-        assert_ne!(3.2, 3.3);
-        assert_ne!(3.2, 3.2, negate = true);
-        assert_ne!("hi", "bye");
-        assert_ne!("hi", "hi", negate = true);
-        assert_ne!("hi".to_owned(), "bye".to_owned());
-        assert_ne!("hi".to_owned(), "hi".to_owned(), negate = true);
-        // })
-        // .unwrap();
-
-        // std::assert!(
-        //     captured_outputs.stdout.is_empty(),
-        //     "STDOUT: <<<{}>>>",
-        //     captured_outputs.stdout
-        // );
-        // std::assert!(
-        //     captured_outputs.stderr.is_empty(),
-        //     "STDERR: <<<{}>>>",
-        //     captured_outputs.stdout
-        // );
     }
 
     #[test]
     #[should_panic]
-    fn assert_ne_fail_bool() {
+    fn assert_ne_failing_bool() {
         assert_ne!(true, true);
     }
 
     #[test]
-    #[should_panic]
-    fn assert_ne_fail_bool_negated() {
-        assert_ne!(true, false, negate = true);
+    fn assert_ne_passing_bool_negate() {
+        assert_ne!(false, false, negate = true);
     }
 
     #[test]
     #[should_panic]
-    fn assert_ne_fail_i32() {
-        assert_ne!(1, 1);
+    fn assert_ne_failing_bool_negate() {
+        assert_ne!(false, true, negate = true);
+    }
+
+    #[test]
+    fn assert_ne_passing_i32() {
+        assert_ne!(0, 1);
     }
 
     #[test]
     #[should_panic]
-    fn assert_ne_fail_i32_negated() {
-        assert_ne!(1, 2, negate = true);
+    fn assert_ne_failing_i32() {
+        assert_ne!(3, 3);
+    }
+
+    #[test]
+    fn assert_ne_passing_i32_negate() {
+        assert_ne!(6, 6, negate = true);
     }
 
     #[test]
     #[should_panic]
-    fn assert_ne_fail_f64() {
-        assert_ne!(3.2, 3.2);
+    fn assert_ne_failing_i32_negate() {
+        assert_ne!(3, -3, negate = true);
+    }
+
+    #[test]
+    fn assert_ne_passing_f64() {
+        assert_ne!(0.3, 0.4);
     }
 
     #[test]
     #[should_panic]
-    fn assert_ne_fail_f64_negate() {
-        assert_ne!(3.2, 3.3, negate = true);
+    fn assert_ne_failing_f64() {
+        assert_ne!(1.4, 1.4);
+    }
+
+    #[test]
+    fn assert_ne_passing_f64_negate() {
+        assert_ne!(6.0, 6.0, negate = true);
     }
 
     #[test]
     #[should_panic]
-    fn assert_ne_fail_str() {
-        assert_ne!("hi", "hi");
+    fn assert_ne_failing_f64_negate() {
+        assert_ne!(3.0, -3.0, negate = true);
+    }
+
+    #[test]
+    fn assert_ne_passing_string() {
+        assert_ne!("hi".to_owned(), "bye".to_owned());
     }
 
     #[test]
     #[should_panic]
-    fn assert_ne_fail_str_negate() {
-        assert_ne!("hi", "bye", negate = true);
-    }
-
-    #[test]
-    #[should_panic]
-    fn assert_ne_fail_string() {
+    fn assert_ne_failing_string() {
         assert_ne!("hi".to_owned(), "hi".to_owned());
     }
 
     #[test]
-    #[should_panic]
-    fn assert_ne_fail_string_negate() {
-        assert_ne!("hi".to_owned(), "bye".to_owned(), negate = true);
-    }
-
-    #[test]
-    fn assert_lt_passing() {
-        // let captured_outputs = capture_output(|| {
-        assert_lt!(1, 2);
-        assert_lt!(1, 1, negate = true);
-        assert_lt!(3.2, 3.3);
-        assert_lt!(3.2, 3.2, negate = true);
-        // })
-        // .unwrap();
-
-        // std::assert!(
-        //     captured_outputs.stdout.is_empty(),
-        //     "STDOUT: <<<{}>>>",
-        //     captured_outputs.stdout
-        // );
-        // std::assert!(
-        //     captured_outputs.stderr.is_empty(),
-        //     "STDERR: <<<{}>>>",
-        //     captured_outputs.stdout
-        // );
+    fn assert_ne_passing_string_negate() {
+        assert_ne!("hii".to_owned(), "hii".to_owned(), negate = true);
     }
 
     #[test]
     #[should_panic]
-    fn assert_lt_fail_i32_equal() {
-        assert_lt!(1, 1);
+    fn assert_ne_failing_string_negate() {
+        assert_ne!("".to_owned(), "a".to_owned(), negate = true);
+    }
+
+    #[test]
+    fn assert_ne_passing_vec() {
+        assert_ne!(vec![1, 2], vec![1, 3]);
     }
 
     #[test]
     #[should_panic]
-    fn assert_lt_fail_i32_greater_than() {
-        assert_lt!(1, 0);
+    fn assert_ne_failing_vec() {
+        assert_ne!(vec![1, 2], vec![1, 2]);
+    }
+
+    #[test]
+    fn assert_ne_passing_vec_negate() {
+        assert_ne!(vec![1, 2], vec![1, 2], negate = true);
     }
 
     #[test]
     #[should_panic]
-    fn assert_lt_fail_i32_negated() {
-        assert_lt!(1, 2, negate = true);
+    fn assert_ne_failing_vec_negate() {
+        assert_ne!(Vec::<i32>::new(), vec![1], negate = true);
+    }
+
+    #[test]
+    fn assert_lt_passing_i32() {
+        assert_lt!(0, 1);
     }
 
     #[test]
     #[should_panic]
-    fn assert_lt_fail_f64_equal() {
-        assert_lt!(3.2, 3.2);
+    fn assert_lt_failing_i32_eq() {
+        assert_lt!(3, 3);
     }
 
     #[test]
     #[should_panic]
-    fn assert_lt_fail_f64_greater_than() {
-        assert_lt!(3.3, 3.2);
+    fn assert_lt_failing_i32_gt() {
+        assert_lt!(-3, -4);
+    }
+
+    #[test]
+    fn assert_lt_passing_i32_negate() {
+        assert_lt!(6, 3, negate = true);
     }
 
     #[test]
     #[should_panic]
-    fn assert_lt_fail_f64_negated() {
-        assert_lt!(3.2, 3.3, negate = true);
+    fn assert_lt_failing_i32_negate() {
+        assert_lt!(3, 4, negate = true);
     }
 
     #[test]
-    fn assert_le_passing() {
-        // let captured_outputs = capture_output(|| {
-        assert_le!(1, 2);
+    fn assert_lt_passing_f64() {
+        assert_lt!(0.3, 0.31);
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_lt_failing_f64_eq() {
+        assert_lt!(1.4, 1.4);
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_lt_failing_f64_gt() {
+        assert_lt!(1.41, 1.4);
+    }
+
+    #[test]
+    fn assert_lt_passing_f64_negate() {
+        assert_lt!(6.0, -3.0, negate = true);
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_lt_failing_f64_negate() {
+        assert_lt!(3.0, 4.0, negate = true);
+    }
+
+    #[test]
+    fn assert_lt_passing_no_default_traits_i32() {
+        assert_lt!(
+            NoDefaultTraitsI32 { value: 0 },
+            NoDefaultTraitsI32 { value: 1 }
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_lt_failing_no_default_traits_i32_eq() {
+        assert_lt!(
+            NoDefaultTraitsI32 { value: 0 },
+            NoDefaultTraitsI32 { value: 0 }
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_lt_failing_no_default_traits_i32_gt() {
+        assert_lt!(
+            NoDefaultTraitsI32 { value: 100 },
+            NoDefaultTraitsI32 { value: 0 }
+        );
+    }
+
+    #[test]
+    fn assert_lt_passing_no_default_traits_i32_negate() {
+        assert_lt!(
+            NoDefaultTraitsI32 { value: 100 },
+            NoDefaultTraitsI32 { value: 0 },
+            negate = true
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_lt_failing_no_default_traits_i32_negate() {
+        assert_lt!(
+            NoDefaultTraitsI32 { value: 99 },
+            NoDefaultTraitsI32 { value: 100 },
+            negate = true
+        );
+    }
+
+    #[test]
+    fn assert_le_passing_i32_lt() {
+        assert_le!(0, 1);
+    }
+
+    #[test]
+    fn assert_le_passing_i32_eq() {
         assert_le!(1, 1);
-        assert_le!(1, 0, negate = true);
-        assert_le!(3.2, 3.3);
-        assert_le!(3.2, 3.2);
-        assert_le!(3.2, 3.1, negate = true);
-        // })
-        // .unwrap();
-
-        // std::assert!(
-        //     captured_outputs.stdout.is_empty(),
-        //     "STDOUT: <<<{}>>>",
-        //     captured_outputs.stdout
-        // );
-        // std::assert!(
-        //     captured_outputs.stderr.is_empty(),
-        //     "STDERR: <<<{}>>>",
-        //     captured_outputs.stdout
-        // );
     }
 
     #[test]
     #[should_panic]
-    fn assert_le_fail_i32_greater_than() {
-        assert_le!(1, 0);
+    fn assert_le_failing_i32() {
+        assert_le!(-3, -4);
+    }
+
+    #[test]
+    fn assert_le_passing_i32_negate() {
+        assert_le!(6, 3, negate = true);
     }
 
     #[test]
     #[should_panic]
-    fn assert_le_fail_i32_negated_less_than() {
-        assert_le!(1, 2, negate = true);
+    fn assert_le_failing_i32_negate() {
+        assert_le!(3, 4, negate = true);
+    }
+
+    #[test]
+    fn assert_le_passing_f64_lt() {
+        assert_le!(0.3, 0.31);
+    }
+
+    #[test]
+    fn assert_le_passing_f64_eq() {
+        assert_le!(0.3, 0.3);
     }
 
     #[test]
     #[should_panic]
-    fn assert_le_fail_i32_negated_equal_to() {
-        assert_le!(1, 1, negate = true);
+    fn assert_le_failing_f64() {
+        assert_le!(1.41, 1.4);
+    }
+
+    #[test]
+    fn assert_le_passing_f64_negate() {
+        assert_le!(6.0, -3.0, negate = true);
     }
 
     #[test]
     #[should_panic]
-    fn assert_le_fail_f64_greater_than() {
-        assert_le!(3.3, 3.2);
+    fn assert_le_failing_f64_negate() {
+        assert_le!(3.0, 4.0, negate = true);
+    }
+
+    #[test]
+    fn assert_le_passing_no_default_traits_i32_lt() {
+        assert_le!(
+            NoDefaultTraitsI32 { value: 0 },
+            NoDefaultTraitsI32 { value: 1 }
+        );
+    }
+
+    #[test]
+    fn assert_le_passing_no_default_traits_i32_eq() {
+        assert_le!(
+            NoDefaultTraitsI32 { value: 1 },
+            NoDefaultTraitsI32 { value: 1 }
+        );
     }
 
     #[test]
     #[should_panic]
-    fn assert_le_fail_f64_negated_less_than() {
-        assert_le!(3.2, 3.3, negate = true);
+    fn assert_le_failing_no_default_traits_i32() {
+        assert_le!(
+            NoDefaultTraitsI32 { value: 100 },
+            NoDefaultTraitsI32 { value: 0 }
+        );
+    }
+
+    #[test]
+    fn assert_le_passing_no_default_traits_i32_negate() {
+        assert_le!(
+            NoDefaultTraitsI32 { value: 100 },
+            NoDefaultTraitsI32 { value: 0 },
+            negate = true
+        );
     }
 
     #[test]
     #[should_panic]
-    fn assert_le_fail_f64_negated_equal_to() {
-        assert_le!(3.2, 3.2, negate = true);
+    fn assert_le_failing_no_default_traits_i32_negate() {
+        assert_le!(
+            NoDefaultTraitsI32 { value: 99 },
+            NoDefaultTraitsI32 { value: 100 },
+            negate = true
+        );
     }
 
     #[test]
-    fn assert_gt_passing() {
-        // let captured_outputs = capture_output(|| {
-        assert_gt!(2, 1);
-        assert_gt!(1, 1, negate = true);
-        assert_gt!(3.3, 3.2);
-        assert_gt!(3.2, 3.2, negate = true);
-        // })
-        // .unwrap();
-
-        // std::assert!(
-        //     captured_outputs.stdout.is_empty(),
-        //     "STDOUT: <<<{}>>>",
-        //     captured_outputs.stdout
-        // );
-        // std::assert!(
-        //     captured_outputs.stderr.is_empty(),
-        //     "STDERR: <<<{}>>>",
-        //     captured_outputs.stdout
-        // );
+    fn assert_gt_passing_i32() {
+        assert_gt!(1, 0);
     }
 
     #[test]
     #[should_panic]
-    fn assert_gt_fail_i32_equal() {
-        assert_gt!(1, 1);
+    fn assert_gt_failing_i32_eq() {
+        assert_gt!(3, 3);
     }
 
     #[test]
     #[should_panic]
-    fn assert_gt_fail_i32_less_than() {
-        assert_gt!(1, 2);
+    fn assert_gt_failing_i32_lt() {
+        assert_gt!(-4, -3);
+    }
+
+    #[test]
+    fn assert_gt_passing_i32_negate() {
+        assert_gt!(3, 6, negate = true);
     }
 
     #[test]
     #[should_panic]
-    fn assert_gt_fail_i32_negated() {
-        assert_gt!(1, 0, negate = true);
+    fn assert_gt_failing_i32_negate() {
+        assert_gt!(4, 3, negate = true);
+    }
+
+    #[test]
+    fn assert_gt_passing_f64() {
+        assert_gt!(0.31, 0.3);
     }
 
     #[test]
     #[should_panic]
-    fn assert_gt_fail_f64_equal() {
-        assert_gt!(3.2, 3.2);
+    fn assert_gt_failing_f64_eq() {
+        assert_gt!(1.4, 1.4);
     }
 
     #[test]
     #[should_panic]
-    fn assert_gt_fail_f64_less_than() {
-        assert_gt!(3.2, 3.3);
+    fn assert_gt_failing_f64_lt() {
+        assert_gt!(1.4, 1.41);
+    }
+
+    #[test]
+    fn assert_gt_passing_f64_negate() {
+        assert_gt!(-3.0, 6.0, negate = true);
     }
 
     #[test]
     #[should_panic]
-    fn assert_gt_fail_f64_negated() {
-        assert_gt!(3.3, 3.2, negate = true);
+    fn assert_gt_failing_f64_negate() {
+        assert_gt!(4.0, 3.0, negate = true);
     }
 
     #[test]
-    fn assert_ge_passing() {
-        // let captured_outputs = capture_output(|| {
+    fn assert_gt_passing_no_default_traits_i32() {
+        assert_gt!(
+            NoDefaultTraitsI32 { value: 1 },
+            NoDefaultTraitsI32 { value: 0 }
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_gt_failing_no_default_traits_i32_eq() {
+        assert_gt!(
+            NoDefaultTraitsI32 { value: 0 },
+            NoDefaultTraitsI32 { value: 0 }
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_gt_failing_no_default_traits_i32_lt() {
+        assert_gt!(
+            NoDefaultTraitsI32 { value: 0 },
+            NoDefaultTraitsI32 { value: 100 }
+        );
+    }
+
+    #[test]
+    fn assert_gt_passing_no_default_traits_i32_negate() {
+        assert_gt!(
+            NoDefaultTraitsI32 { value: 0 },
+            NoDefaultTraitsI32 { value: 100 },
+            negate = true
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_gt_failing_no_default_traits_i32_negate() {
+        assert_gt!(
+            NoDefaultTraitsI32 { value: 100 },
+            NoDefaultTraitsI32 { value: 99 },
+            negate = true
+        );
+    }
+
+    #[test]
+    fn assert_ge_passing_i32_gt() {
         assert_ge!(1, 0);
+    }
+
+    #[test]
+    fn assert_ge_passing_i32_eq() {
         assert_ge!(1, 1);
-        assert_ge!(1, 2, negate = true);
-        assert_ge!(3.3, 3.2);
-        assert_ge!(3.2, 3.2);
-        assert_ge!(3.2, 3.3, negate = true);
-        // })
-        // .unwrap();
-
-        // std::assert!(
-        //     captured_outputs.stdout.is_empty(),
-        //     "STDOUT: <<<{}>>>",
-        //     captured_outputs.stdout
-        // );
-        // std::assert!(
-        //     captured_outputs.stderr.is_empty(),
-        //     "STDERR: <<<{}>>>",
-        //     captured_outputs.stdout
-        // );
     }
 
     #[test]
     #[should_panic]
-    fn assert_ge_fail_i32_less_than() {
-        assert_ge!(1, 2);
+    fn assert_ge_failing_i32() {
+        assert_ge!(-4, -3);
+    }
+
+    #[test]
+    fn assert_ge_passing_i32_negate() {
+        assert_ge!(3, 6, negate = true);
     }
 
     #[test]
     #[should_panic]
-    fn assert_ge_fail_i32_negated_greater_than() {
-        assert_ge!(1, 0, negate = true);
+    fn assert_ge_failing_i32_negate() {
+        assert_ge!(4, 3, negate = true);
+    }
+
+    #[test]
+    fn assert_ge_passing_f64_gt() {
+        assert_ge!(0.31, 0.3);
+    }
+
+    #[test]
+    fn assert_ge_passing_f64_eq() {
+        assert_ge!(0.3, 0.3);
     }
 
     #[test]
     #[should_panic]
-    fn assert_ge_fail_i32_negated_equal_to() {
-        assert_ge!(1, 1, negate = true);
+    fn assert_ge_failing_f64() {
+        assert_ge!(1.4, 1.41);
+    }
+
+    #[test]
+    fn assert_ge_passing_f64_negate() {
+        assert_ge!(-3.0, 6.0, negate = true);
     }
 
     #[test]
     #[should_panic]
-    fn assert_ge_fail_f64_less_than() {
-        assert_ge!(3.2, 3.3);
+    fn assert_ge_failing_f64_negate() {
+        assert_ge!(4.0, 3.0, negate = true);
+    }
+
+    #[test]
+    fn assert_ge_passing_no_default_traits_i32_gt() {
+        assert_ge!(
+            NoDefaultTraitsI32 { value: 1 },
+            NoDefaultTraitsI32 { value: 0 }
+        );
+    }
+
+    #[test]
+    fn assert_ge_passing_no_default_traits_i32_eq() {
+        assert_ge!(
+            NoDefaultTraitsI32 { value: 1 },
+            NoDefaultTraitsI32 { value: 1 }
+        );
     }
 
     #[test]
     #[should_panic]
-    fn assert_ge_fail_f64_negated_less_than() {
-        assert_ge!(3.3, 3.2, negate = true);
+    fn assert_ge_failing_no_default_traits_i32() {
+        assert_ge!(
+            NoDefaultTraitsI32 { value: 0 },
+            NoDefaultTraitsI32 { value: 100 }
+        );
+    }
+
+    #[test]
+    fn assert_ge_passing_no_default_traits_i32_negate() {
+        assert_ge!(
+            NoDefaultTraitsI32 { value: 0 },
+            NoDefaultTraitsI32 { value: 100 },
+            negate = true
+        );
     }
 
     #[test]
     #[should_panic]
-    fn assert_ge_fail_f64_negated_equal_to() {
-        assert_ge!(3.2, 3.2, negate = true);
+    fn assert_ge_failing_no_default_traits_i32_negate() {
+        assert_ge!(
+            NoDefaultTraitsI32 { value: 100 },
+            NoDefaultTraitsI32 { value: 99 },
+            negate = true
+        );
     }
 }

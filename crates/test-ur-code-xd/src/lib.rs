@@ -141,4 +141,5 @@
 //! ```
 
 pub mod assertions;
+pub mod error;
 pub mod utilities;

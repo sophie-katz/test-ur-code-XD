@@ -15,48 +15,298 @@
 
 use std::{collections::HashMap, hash::Hash};
 
-fn take_first_key_and_values<KeyType: Clone + Eq + Hash, ValueType>(
-    unpermuted: &mut HashMap<KeyType, Vec<ValueType>>,
-) -> (KeyType, Vec<ValueType>) {
-    let first_key = unpermuted.keys().next().unwrap().clone();
-    let first_values = unpermuted.remove(&first_key).unwrap();
+/// Takes the first key and value from a [`HashMap`] and returns them as a tuple.
+///
+/// It also removes the key from the hash map.
+///
+/// # Example
+///
+/// ```ignore
+/// // Create a hash map with some values
+/// let hash_map = HashMap::new();
+///
+/// hash_map.insert("a", 1);
+/// hash_map.insert("b", 2);
+/// hash_map.insert("c", 3);
+///
+/// // Take the first key-value pair
+/// match take_first_key_and_value(&mut hash_map) {
+///     None => panic!("the hash map is empty"),
+///     Some((first_key, first_value)) => {
+///        // We're not sure which key we'll get, because hash maps are unordered
+///     }
+/// }
+///
+/// // There are now only two left
+/// assert_eq!(hash_map.len(), 2);
+/// ```
+///
+/// # Returns
+///
+/// * `Some((first_key, first_value))` if there is at least one key in the hash map
+/// * `None` if the hash map is empty
+fn take_first_key_and_value<KeyType: Clone + Eq + Hash, ValueType>(
+    hash_map: &mut HashMap<KeyType, ValueType>,
+) -> Option<(KeyType, ValueType)> {
+    let first_key = hash_map.keys().next()?.clone();
 
-    (first_key, first_values)
+    let first_value = hash_map.remove(&first_key)?;
+
+    Some((first_key, first_value))
 }
 
-pub fn permute_maps<KeyType: Clone + Eq + Hash, ValueType: Clone>(
-    mut unpermuted: HashMap<KeyType, Vec<ValueType>>,
+/// Helper method that actually does the recursion
+fn permute_map_of_vecs_helper<KeyType: 'static + Clone + Eq + Hash, ValueType: 'static + Clone>(
+    mut map_of_vecs: HashMap<KeyType, Vec<ValueType>>,
 ) -> Vec<HashMap<KeyType, ValueType>> {
-    let mut permuted: Vec<HashMap<KeyType, ValueType>> = Vec::new();
+    if let Some((first_key, first_vec)) = take_first_key_and_value(&mut map_of_vecs) {
+        if map_of_vecs.is_empty() {
+            first_vec
+                .iter()
+                .map(move |value| HashMap::from([(first_key.clone(), value.clone())]))
+                .collect()
+        } else {
+            permute_map_of_vecs_helper(map_of_vecs)
+                .into_iter()
+                .flat_map(|map| {
+                    let first_key = first_key.clone();
 
-    if unpermuted.is_empty() {
-        permuted
-    } else if unpermuted.len() == 1 {
-        let (first_key, first_values) = take_first_key_and_values(&mut unpermuted);
+                    first_vec.iter().map(move |value| {
+                        let mut map = map.clone();
 
-        for value in first_values {
-            let mut permutation = HashMap::new();
-            permutation.insert(first_key.clone(), value);
+                        map.insert(first_key.clone(), value.clone());
 
-            permuted.push(permutation);
+                        map
+                    })
+                })
+                .collect()
         }
-
-        permuted
     } else {
-        let (first_key, first_values) = take_first_key_and_values(&mut unpermuted);
+        Vec::new()
+    }
+}
 
-        let next_permutations = permute_maps(unpermuted);
+/// Permutes a hash map of vectors into a vector of hash maps.
+///
+/// If there is a hash map of vectors like this:
+///
+/// ```json
+/// {
+///     "a": [1, 2, 3],
+///     "b": [4, 5, 6],
+///     "c": [7, 8, 9],
+/// }
+/// ```
+///
+/// It will permute them into:
+///
+/// ```json
+/// [
+///     {"a": 1, "b": 4, "c": 7},
+///     {"a": 2, "b": 4, "c": 7},
+///     {"a": 3, "b": 4, "c": 7},
+///     // ...
+///     {"a": 1, "b": 6, "c": 9},
+///     {"a": 2, "b": 6, "c": 9},
+///     {"a": 3, "b": 6, "c": 9},
+/// ]
+/// ```
+///
+/// # Details
+///
+/// * If any of the vectors is empty, it will be ignored and the key will not be included in the
+///   resulting hash maps.
+/// * If there are no keys, it will return an empty vector.
+/// * Because the size of the resulting array is the product of the sizes of all non-empty vectors,
+///   the result can become quite large.
+pub fn permute_map_of_vecs<KeyType: 'static + Clone + Eq + Hash, ValueType: 'static + Clone>(
+    map_of_vecs: HashMap<KeyType, Vec<ValueType>>,
+) -> Vec<HashMap<KeyType, ValueType>> {
+    permute_map_of_vecs_helper(
+        map_of_vecs
+            .into_iter()
+            .filter(|(_, value)| !value.is_empty())
+            .collect(),
+    )
+}
 
-        for next_permutation in next_permutations.into_iter() {
-            for value in &first_values {
-                let mut permutation = next_permutation.clone();
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-                permutation.insert(first_key.clone(), value.clone());
+    #[test]
+    fn take_first_key_and_value_empty() {
+        let mut hash_map: HashMap<String, String> = HashMap::new();
 
-                permuted.push(permutation);
-            }
+        let first_key_and_value = take_first_key_and_value(&mut hash_map);
+
+        assert!(first_key_and_value.is_none());
+
+        assert!(hash_map.is_empty());
+    }
+
+    #[test]
+    fn take_first_key_and_value_one() {
+        let mut hash_map: HashMap<String, String> =
+            HashMap::from([("k0".to_owned(), "v0".to_owned())]);
+
+        let first_key_and_value = take_first_key_and_value(&mut hash_map);
+
+        assert_eq!(
+            first_key_and_value,
+            Some(("k0".to_owned(), "v0".to_owned()))
+        );
+
+        assert!(hash_map.is_empty());
+    }
+
+    #[test]
+    fn take_first_key_and_value_two() {
+        let mut hash_map: HashMap<String, String> = HashMap::from([
+            ("k0".to_owned(), "v0".to_owned()),
+            ("k1".to_owned(), "v1".to_owned()),
+        ]);
+
+        let first_key_and_value = take_first_key_and_value(&mut hash_map);
+
+        assert!(first_key_and_value.is_some());
+
+        assert!(hash_map.len() == 1);
+
+        if first_key_and_value.as_ref().unwrap().0 == "k0" {
+            assert!(first_key_and_value.as_ref().unwrap().1 == "v0");
+            assert!(hash_map.contains_key("k1"));
+            assert!(hash_map["k1"] == "v1");
+        } else if first_key_and_value.as_ref().unwrap().0 == "k1" {
+            assert!(first_key_and_value.as_ref().unwrap().1 == "v1");
+            assert!(hash_map.contains_key("k0"));
+            assert!(hash_map["k0"] == "v0");
+        } else {
+            panic!();
         }
+    }
 
-        permuted
+    #[test]
+    fn empty() {
+        let map_of_vecs: HashMap<String, Vec<String>> = HashMap::new();
+
+        let vec_of_maps = permute_map_of_vecs(map_of_vecs);
+
+        assert!(vec_of_maps.is_empty());
+    }
+
+    #[test]
+    fn one_empty_key() {
+        let map_of_vecs: HashMap<String, Vec<String>> =
+            HashMap::from([("k0".to_owned(), Vec::new())]);
+
+        let vec_of_maps = permute_map_of_vecs(map_of_vecs);
+
+        assert!(vec_of_maps.is_empty());
+    }
+
+    #[test]
+    fn one_key_one_value() {
+        let map_of_vecs: HashMap<String, Vec<String>> =
+            HashMap::from([("k0".to_owned(), vec!["v0".to_owned()])]);
+
+        let vec_of_maps = permute_map_of_vecs(map_of_vecs);
+
+        assert_eq!(vec_of_maps.len(), 1);
+        assert_eq!(vec_of_maps[0].len(), 1);
+        assert_eq!(vec_of_maps[0]["k0"], "v0");
+    }
+
+    #[test]
+    fn one_key_two_values() {
+        let map_of_vecs: HashMap<String, Vec<String>> =
+            HashMap::from([("k0".to_owned(), vec!["v0".to_owned(), "v1".to_owned()])]);
+
+        let vec_of_maps = permute_map_of_vecs(map_of_vecs);
+
+        assert_eq!(vec_of_maps.len(), 2);
+        assert_eq!(vec_of_maps[0].len(), 1);
+        assert_eq!(vec_of_maps[0]["k0"], "v0");
+        assert_eq!(vec_of_maps[1].len(), 1);
+        assert_eq!(vec_of_maps[1]["k0"], "v1");
+    }
+
+    #[test]
+    fn two_keys_one_value_and_one_empty() {
+        let map_of_vecs: HashMap<String, Vec<String>> = HashMap::from([
+            ("k0".to_owned(), vec!["v0".to_owned()]),
+            ("k1".to_owned(), Vec::new()),
+        ]);
+
+        let vec_of_maps = permute_map_of_vecs(map_of_vecs);
+
+        assert_eq!(vec_of_maps.len(), 1);
+        assert_eq!(vec_of_maps[0].len(), 1);
+        assert_eq!(vec_of_maps[0]["k0"], "v0");
+    }
+
+    #[test]
+    fn two_keys_one_with_two_values_and_one_empty() {
+        let map_of_vecs: HashMap<String, Vec<String>> = HashMap::from([
+            ("k0".to_owned(), vec!["v0".to_owned(), "v1".to_owned()]),
+            ("k1".to_owned(), Vec::new()),
+        ]);
+
+        let vec_of_maps = permute_map_of_vecs(map_of_vecs);
+
+        assert_eq!(vec_of_maps.len(), 2);
+        assert_eq!(vec_of_maps[0].len(), 1);
+        assert_eq!(vec_of_maps[0]["k0"], "v0");
+        assert_eq!(vec_of_maps[1].len(), 1);
+        assert_eq!(vec_of_maps[1]["k0"], "v1");
+    }
+
+    #[test]
+    fn two_keys_one_value_and_one_value() {
+        let map_of_vecs: HashMap<String, Vec<String>> = HashMap::from([
+            ("k0".to_owned(), vec!["v0".to_owned()]),
+            ("k1".to_owned(), vec!["v1".to_owned()]),
+        ]);
+
+        let vec_of_maps = permute_map_of_vecs(map_of_vecs);
+
+        assert_eq!(vec_of_maps.len(), 1);
+        assert_eq!(vec_of_maps[0].len(), 2);
+        assert_eq!(vec_of_maps[0]["k0"], "v0");
+        assert_eq!(vec_of_maps[0]["k1"], "v1");
+    }
+
+    #[test]
+    fn two_keys_one_with_two_values_and_one_value() {
+        let map_of_vecs: HashMap<String, Vec<String>> = HashMap::from([
+            ("k0".to_owned(), vec!["v0".to_owned(), "v1".to_owned()]),
+            ("k1".to_owned(), vec!["v2".to_owned()]),
+        ]);
+
+        let vec_of_maps = permute_map_of_vecs(map_of_vecs);
+
+        assert_eq!(vec_of_maps.len(), 2);
+        assert_eq!(vec_of_maps[0].len(), 2);
+        assert_eq!(vec_of_maps[0]["k0"], "v0");
+        assert_eq!(vec_of_maps[0]["k1"], "v2");
+        assert_eq!(vec_of_maps[1].len(), 2);
+        assert_eq!(vec_of_maps[1]["k0"], "v1");
+        assert_eq!(vec_of_maps[1]["k1"], "v2");
+    }
+
+    #[test]
+    fn two_keys_one_with_two_values_and_one_with_two_values() {
+        let map_of_vecs: HashMap<String, Vec<String>> = HashMap::from([
+            ("k0".to_owned(), vec!["v0".to_owned(), "v1".to_owned()]),
+            ("k1".to_owned(), vec!["v2".to_owned(), "v3".to_owned()]),
+        ]);
+
+        let vec_of_maps = permute_map_of_vecs(map_of_vecs);
+
+        assert_eq!(vec_of_maps.len(), 4);
+        assert_eq!(vec_of_maps[0].len(), 2);
+        assert_eq!(vec_of_maps[1].len(), 2);
+        assert_eq!(vec_of_maps[2].len(), 2);
+        assert_eq!(vec_of_maps[3].len(), 2);
     }
 }

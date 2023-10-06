@@ -65,7 +65,7 @@ pub fn assert_outputs_impl<ActionType: FnOnce()>(
 /// ```
 #[macro_export]
 macro_rules! assert_outputs {
-    ($action:expr, on_stdout = $on_stdout:expr) => {
+    ($action:expr, on_stdout = $on_stdout:expr $(,)?) => {
         $crate::assertions::output_assertions::assert_outputs_impl(
             $action,
             ::std::option::Option::Some(::std::boxed::Box::new($on_stdout)),
@@ -73,7 +73,7 @@ macro_rules! assert_outputs {
         )
     };
 
-    ($action:expr, on_stderr = $on_stderr:expr) => {
+    ($action:expr, on_stderr = $on_stderr:expr $(,)?) => {
         $crate::assertions::output_assertions::assert_outputs_impl(
             $action,
             ::std::option::Option::None,
@@ -81,7 +81,7 @@ macro_rules! assert_outputs {
         )
     };
 
-    ($action:expr, on_stdout = $on_stdout:expr, on_stderr = $on_stderr:expr) => {
+    ($action:expr, on_stdout = $on_stdout:expr, on_stderr = $on_stderr:expr $(,)?) => {
         $crate::assertions::output_assertions::assert_outputs_impl(
             $action,
             ::std::option::Option::Some(::std::boxed::Box::new($on_stdout)),
@@ -139,7 +139,7 @@ pub fn assert_outputs_raw_impl<ActionType: FnOnce()>(
 /// ```
 #[macro_export]
 macro_rules! assert_outputs_raw {
-    ($action:expr, on_stdout = $on_stdout:expr) => {
+    ($action:expr, on_stdout = $on_stdout:expr $(,)?) => {
         $crate::assertions::output_assertions::assert_outputs_raw_impl(
             $action,
             ::std::option::Option::Some(::std::boxed::Box::new($on_stdout)),
@@ -147,7 +147,7 @@ macro_rules! assert_outputs_raw {
         )
     };
 
-    ($action:expr, on_stderr = $on_stderr:expr) => {
+    ($action:expr, on_stderr = $on_stderr:expr $(,)?) => {
         $crate::assertions::output_assertions::assert_outputs_raw_impl(
             $action,
             ::std::option::Option::None,
@@ -155,11 +155,332 @@ macro_rules! assert_outputs_raw {
         )
     };
 
-    ($action:expr, on_stdout = $on_stdout:expr, on_stderr = $on_stderr:expr) => {
+    ($action:expr, on_stdout = $on_stdout:expr, on_stderr = $on_stderr:expr $(,)?) => {
         $crate::assertions::output_assertions::assert_outputs_raw_impl(
             $action,
             ::std::option::Option::Some(::std::boxed::Box::new($on_stdout)),
             ::std::option::Option::Some(::std::boxed::Box::new($on_stderr)),
         )
     };
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn assert_outputs_passing_empty_stdout_only() {
+        println!("this is NOT captured");
+        eprintln!("this is NOT captured");
+
+        assert_outputs!(
+            || {},
+            on_stdout = |stdout| {
+                assert_eq!(stdout, "");
+            },
+        );
+    }
+
+    #[test]
+    fn assert_outputs_passing_empty_stderr_only() {
+        println!("this is NOT captured");
+        eprintln!("this is NOT captured");
+
+        assert_outputs!(
+            || {},
+            on_stderr = |stderr| {
+                assert_eq!(stderr, "");
+            },
+        );
+    }
+
+    #[test]
+    fn assert_outputs_passing_empty_both() {
+        println!("this is NOT captured");
+        eprintln!("this is NOT captured");
+
+        assert_outputs!(
+            || {},
+            on_stdout = |stdout| {
+                assert_eq!(stdout, "");
+            },
+            on_stderr = |stderr| {
+                assert_eq!(stderr, "");
+            }
+        );
+    }
+
+    #[test]
+    fn assert_outputs_passing_stdout_only() {
+        println!("this is NOT captured");
+        eprintln!("this is NOT captured");
+
+        assert_outputs!(
+            || {
+                println!("hello, world");
+            },
+            on_stdout = |stdout| {
+                assert_eq!(stdout, "hello, world\n");
+            },
+            on_stderr = |stderr| {
+                assert_eq!(stderr, "");
+            }
+        );
+    }
+
+    #[test]
+    fn assert_outputs_passing_stderr_only() {
+        println!("this is NOT captured");
+        eprintln!("this is NOT captured");
+
+        assert_outputs!(
+            || {
+                eprintln!("hello, world");
+            },
+            on_stdout = |stdout| {
+                assert_eq!(stdout, "");
+            },
+            on_stderr = |stderr| {
+                assert_eq!(stderr, "hello, world\n");
+            }
+        );
+    }
+
+    #[test]
+    fn assert_outputs_passing_both() {
+        println!("this is NOT captured");
+        eprintln!("this is NOT captured");
+
+        assert_outputs!(
+            || {
+                println!("hello, world (stdout)");
+                eprintln!("hello, world (stderr)");
+            },
+            on_stdout = |stdout| {
+                assert_eq!(stdout, "hello, world (stdout)\n");
+            },
+            on_stderr = |stderr| {
+                assert_eq!(stderr, "hello, world (stderr)\n");
+            }
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_outputs_failing_stdout_assertion() {
+        println!("this is NOT captured");
+        eprintln!("this is NOT captured");
+
+        assert_outputs!(
+            || {
+                println!("hello, world (stdout)");
+                eprintln!("hello, world (stderr)");
+            },
+            on_stdout = |stdout| {
+                assert_eq!(stdout, "asdf");
+            },
+            on_stderr = |stderr| {
+                assert_eq!(stderr, "hello, world (stderr)\n");
+            }
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_outputs_failing_stderr_assertion() {
+        println!("this is NOT captured");
+        eprintln!("this is NOT captured");
+
+        assert_outputs!(
+            || {
+                println!("hello, world (stdout)");
+                eprintln!("hello, world (stderr)");
+            },
+            on_stdout = |stdout| {
+                assert_eq!(stdout, "hello, world (stdout)\n");
+            },
+            on_stderr = |stderr| {
+                assert_eq!(stderr, "asdf");
+            }
+        );
+    }
+
+    // TODO: Get this to work
+    // #[test]
+    // #[should_panic]
+    // fn assert_outputs_nested() {
+    //     assert_outputs!(
+    //         || {
+    //             assert_outputs!(
+    //                 || {
+    //                     println!("hello, world (stdout)");
+    //                     eprintln!("hello, world (stderr)");
+    //                 },
+    //                 on_stdout = |stdout| {
+    //                     assert_eq!(stdout, "hello, world (stdout)\n");
+    //                 }
+    //             );
+    //         },
+    //         on_stdout = |stdout| {
+    //             assert_eq!(stdout, "");
+    //         }
+    //     );
+    // }
+
+    #[test]
+    fn assert_outputs_raw_passing_empty_stdout_only() {
+        println!("this is NOT captured");
+        eprintln!("this is NOT captured");
+
+        assert_outputs_raw!(
+            || {},
+            on_stdout = |stdout| {
+                assert_eq!(stdout, b"");
+            },
+        );
+    }
+
+    #[test]
+    fn assert_outputs_raw_passing_empty_stderr_only() {
+        println!("this is NOT captured");
+        eprintln!("this is NOT captured");
+
+        assert_outputs_raw!(
+            || {},
+            on_stderr = |stderr| {
+                assert_eq!(stderr, b"");
+            },
+        );
+    }
+
+    #[test]
+    fn assert_outputs_raw_passing_empty_both() {
+        println!("this is NOT captured");
+        eprintln!("this is NOT captured");
+
+        assert_outputs_raw!(
+            || {},
+            on_stdout = |stdout| {
+                assert_eq!(stdout, b"");
+            },
+            on_stderr = |stderr| {
+                assert_eq!(stderr, b"");
+            }
+        );
+    }
+
+    #[test]
+    fn assert_outputs_raw_passing_stdout_only() {
+        println!("this is NOT captured");
+        eprintln!("this is NOT captured");
+
+        assert_outputs_raw!(
+            || {
+                println!("hello, world");
+            },
+            on_stdout = |stdout| {
+                assert_eq!(stdout, b"hello, world\n");
+            },
+            on_stderr = |stderr| {
+                assert_eq!(stderr, b"");
+            }
+        );
+    }
+
+    #[test]
+    fn assert_outputs_raw_passing_stderr_only() {
+        println!("this is NOT captured");
+        eprintln!("this is NOT captured");
+
+        assert_outputs_raw!(
+            || {
+                eprintln!("hello, world");
+            },
+            on_stdout = |stdout| {
+                assert_eq!(stdout, b"");
+            },
+            on_stderr = |stderr| {
+                assert_eq!(stderr, b"hello, world\n");
+            }
+        );
+    }
+
+    #[test]
+    fn assert_outputs_raw_passing_both() {
+        println!("this is NOT captured");
+        eprintln!("this is NOT captured");
+
+        assert_outputs_raw!(
+            || {
+                println!("hello, world (stdout)");
+                eprintln!("hello, world (stderr)");
+            },
+            on_stdout = |stdout| {
+                assert_eq!(stdout, b"hello, world (stdout)\n");
+            },
+            on_stderr = |stderr| {
+                assert_eq!(stderr, b"hello, world (stderr)\n");
+            }
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_outputs_raw_failing_stdout_assertion() {
+        println!("this is NOT captured");
+        eprintln!("this is NOT captured");
+
+        assert_outputs_raw!(
+            || {
+                println!("hello, world (stdout)");
+                eprintln!("hello, world (stderr)");
+            },
+            on_stdout = |stdout| {
+                assert_eq!(stdout, b"asdf");
+            },
+            on_stderr = |stderr| {
+                assert_eq!(stderr, b"hello, world (stderr)\n");
+            }
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_outputs_raw_failing_stderr_assertion() {
+        println!("this is NOT captured");
+        eprintln!("this is NOT captured");
+
+        assert_outputs_raw!(
+            || {
+                println!("hello, world (stdout)");
+                eprintln!("hello, world (stderr)");
+            },
+            on_stdout = |stdout| {
+                assert_eq!(stdout, b"hello, world (stdout)\n");
+            },
+            on_stderr = |stderr| {
+                assert_eq!(stderr, b"asdf");
+            }
+        );
+    }
+
+    // TODO: Get this to work
+    // #[test]
+    // #[should_panic]
+    // fn assert_outputs_raw_nested() {
+    //     assert_outputs_raw!(
+    //         || {
+    //             assert_outputs_raw!(
+    //                 || {
+    //                     println!("hello, world (stdout)");
+    //                     eprintln!("hello, world (stderr)");
+    //                 },
+    //                 on_stdout = |stdout| {
+    //                     assert_eq!(stdout, b"hello, world (stdout)\n");
+    //                 }
+    //             );
+    //         },
+    //         on_stdout = |stdout| {
+    //             assert_eq!(stdout, b"");
+    //         }
+    //     );
+    // }
 }

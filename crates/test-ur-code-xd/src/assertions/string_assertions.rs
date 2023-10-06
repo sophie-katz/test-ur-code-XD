@@ -169,16 +169,107 @@ macro_rules! assert_str_matches {
 
 #[cfg(test)]
 mod tests {
-    // use crate::utilities::capture_output::capture_output;
-
     #[test]
     fn assert_str_contains_passing() {
-        // let captured_outputs = capture_output(|| {
         assert_str_contains!("hello, world", "hello");
-        // })
-        // .unwrap();
+    }
 
-        // std::assert!(captured_outputs.stdout.is_empty());
-        // std::assert!(captured_outputs.stderr.is_empty());
+    #[test]
+    fn assert_str_contains_passing_empty() {
+        assert_str_contains!("hello, world", "");
+    }
+
+    #[test]
+    fn assert_str_contains_passing_empty_both_empty() {
+        assert_str_contains!("", "");
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_str_contains_failing() {
+        assert_str_contains!("hello, world", "asdf");
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_str_contains_failing_empty() {
+        assert_str_contains!("", "asdf");
+    }
+
+    #[test]
+    fn assert_str_starts_with_passing() {
+        assert_str_starts_with!("hello, world", "hello");
+    }
+
+    #[test]
+    fn assert_str_starts_with_passing_empty() {
+        assert_str_starts_with!("hello, world", "");
+    }
+
+    #[test]
+    fn assert_str_starts_with_passing_both_empty() {
+        assert_str_starts_with!("", "");
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_str_starts_with_failing() {
+        assert_str_starts_with!("hello, world", "world");
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_str_starts_with_failing_empty() {
+        assert_str_starts_with!("", "hello");
+    }
+
+    #[test]
+    fn assert_str_ends_with_passing() {
+        assert_str_ends_with!("hello, world", "world");
+    }
+
+    #[test]
+    fn assert_str_ends_with_passing_empty() {
+        assert_str_ends_with!("hello, world", "");
+    }
+
+    #[test]
+    fn assert_str_ends_with_passing_both_empty() {
+        assert_str_ends_with!("", "");
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_str_ends_with_failing() {
+        assert_str_ends_with!("hello, world", "hello");
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_str_ends_with_failing_empty() {
+        assert_str_ends_with!("", "hello");
+    }
+
+    #[test]
+    fn assert_str_matches_passing() {
+        assert_str_matches!("hello, world", "[a-z, ]+");
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_str_matches_failing_partial() {
+        assert_str_matches!("hello, world", "[A-Z]+");
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_str_matches_failing_whole() {
+        assert_str_matches!("hello, world", "^[a-z]+$");
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_str_matches_failing_bad_regex() {
+        assert_str_matches!("hello, world", "[a-z, ");
     }
 }

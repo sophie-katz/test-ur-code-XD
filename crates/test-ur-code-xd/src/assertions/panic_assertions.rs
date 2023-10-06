@@ -15,7 +15,7 @@
 
 //! Assertions that catch panics.
 
-use std::panic::{self, Location, UnwindSafe};
+use std::panic::{self, AssertUnwindSafe, Location, UnwindSafe};
 
 use crate::utilities::panic_message_builder::PanicMessageBuilder;
 
@@ -27,7 +27,7 @@ pub fn assert_panics_impl<
     action: ActionType,
     on_message: Option<MessageCallbackType>,
 ) {
-    if let Err(error) = panic::catch_unwind(action) {
+    if let Err(error) = panic::catch_unwind(AssertUnwindSafe(action)) {
         if let Some(on_message) = on_message {
             on_message(panic_message::panic_message(&error).to_owned());
         }
@@ -74,4 +74,187 @@ macro_rules! assert_panics {
             ::std::option::Option::<fn(String)>::None,
         )
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use std::panic;
+
+    #[test]
+    fn assert_panics_passing_no_message_text_no_message_assertions() {
+        assert_panics!(|| {
+            panic!();
+        });
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_panics_failing_no_panic() {
+        assert_panics!(|| {});
+    }
+
+    #[test]
+    fn assert_panics_passing_no_message_text_with_message_assertion() {
+        assert_panics!(
+            || {
+                panic!();
+            },
+            on_message = |message| {
+                assert_eq!(message, "explicit panic");
+            }
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_panics_failing_no_message_text_message_assertion() {
+        assert_panics!(
+            || {
+                panic!();
+            },
+            on_message = |message| {
+                assert_eq!(message, "asdf");
+            }
+        );
+    }
+
+    #[test]
+    fn assert_panics_passing_with_message_text_no_message_assertions() {
+        assert_panics!(|| {
+            panic!("hello, world");
+        });
+    }
+
+    #[test]
+    fn assert_panics_passing_with_message_text_with_message_assertion() {
+        assert_panics!(
+            || {
+                panic!("hello, world");
+            },
+            on_message = |message| {
+                assert_eq!(message, "hello, world");
+            }
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_panics_failing_with_message_text_message_assertion() {
+        assert_panics!(
+            || {
+                panic!("hello, world");
+            },
+            on_message = |message| {
+                assert_eq!(message, "asdf");
+            }
+        );
+    }
+
+    #[test]
+    fn assert_panics_passing_hook_stdout_no_message_text() {
+        assert_panics!(
+            || {
+                panic::set_hook(Box::new(move |_| {
+                    println!("hello, world");
+                }));
+
+                panic!();
+            },
+            on_message = |message| {
+                assert_eq!(message, "explicit panic");
+            }
+        );
+    }
+
+    #[test]
+    fn assert_panics_passing_hook_stderr_no_message_text() {
+        assert_panics!(
+            || {
+                panic::set_hook(Box::new(move |_| {
+                    eprintln!("hello, world");
+                }));
+
+                panic!();
+            },
+            on_message = |message| {
+                assert_eq!(message, "explicit panic");
+            }
+        );
+    }
+
+    #[test]
+    fn assert_panics_passing_hook_stdout_with_message_text() {
+        assert_panics!(
+            || {
+                panic::set_hook(Box::new(move |_| {
+                    println!("hello, world");
+                }));
+
+                panic!("some panic message");
+            },
+            on_message = |message| {
+                assert_eq!(message, "some panic message");
+            }
+        );
+    }
+
+    #[test]
+    fn assert_panics_passing_hook_stderr_with_message_text() {
+        assert_panics!(
+            || {
+                panic::set_hook(Box::new(move |_| {
+                    eprintln!("hello, world");
+                }));
+
+                panic!("some panic message");
+            },
+            on_message = |message| {
+                assert_eq!(message, "some panic message");
+            }
+        );
+    }
+
+    #[test]
+    fn assert_panics_passing_with_core_assert_eq() {
+        assert_panics!(
+            || {
+                core::assert_eq!(1, 2);
+            },
+            on_message = |message| {
+                assert_eq!(
+                    message,
+                    "assertion `left == right` failed\n  left: 1\n right: 2"
+                );
+            }
+        );
+    }
+
+    #[test]
+    fn assert_panics_passing_with_crate_assert_eq() {
+        assert_panics!(
+            || {
+                crate::assert_eq!(1, 2);
+            },
+            on_message = |message| {
+                assert_eq!(message, "explicit panic");
+            }
+        );
+    }
+
+    #[test]
+    fn assert_panics_passing_nested() {
+        assert_panics!(|| {
+            assert_panics!(|| {});
+        });
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_panics_failing_nested() {
+        assert_panics!(|| {
+            assert_panics!(|| {
+                panic!();
+            });
+        });
+    }
 }

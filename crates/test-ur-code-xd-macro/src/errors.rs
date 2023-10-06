@@ -12,3 +12,17 @@
 //
 // You should have received a copy of the GNU General Public License along with test ur code XD. If
 // not, see <https://www.gnu.org/licenses/>.
+
+//! Error types for test ur code XD macros.
+
+use thiserror::Error;
+
+/// A general error type for test ur code XD.
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error("unexpected `self` argument in test function")]
+    SelfArgumentInTest,
+
+    #[error("argument `{0}` has no parameter set")]
+    ArgumentHasNoParameter(String),
+}

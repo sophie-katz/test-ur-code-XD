@@ -26,5 +26,6 @@
     "rust-analyzer.imports.granularity.enforce": true,
     "editor.rulers": [
         100
-    ]
+    ],
+    "editor.renderWhitespace": "trailing"
 }

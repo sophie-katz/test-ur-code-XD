@@ -19,13 +19,76 @@ mod output_capturer;
 
 use lazy_static::lazy_static;
 use output_capturer::OutputCapturer;
-use std::{result::Result, sync::Mutex};
+use std::{
+    result::Result,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Mutex, MutexGuard,
+    },
+};
 
 pub use captured_output::CapturedOutputs;
-pub use error::Error;
+pub use error::OutputCapturingError;
 
 lazy_static! {
     static ref OUTPUT_CAPTURER: Mutex<OutputCapturer> = Mutex::new(OutputCapturer::default());
+    static ref IS_IN_CAPTURE_OUTPUT: AtomicBool = AtomicBool::new(false);
+}
+
+/// Helper function to prevent nesting of calls to [`capture_output`] and [`capture_output_raw`].
+///
+/// This prevents deadlocks from happening with the mutex, and instead just returns an error
+/// immediately.
+///
+/// This is thread-safe.
+///
+/// # Arguments
+///
+/// * `action` - The action to wrap.
+///
+/// # Returns
+///
+/// The result of the action wrapped in a [`Result`] instance.
+///
+/// # Errors
+///
+/// * If calls to [`capture_output`] or [`capture_output_raw`] are nested, this function will
+///   return an error.
+/// * Also returns any errors from the action.
+fn non_nesting_helper<
+    ActionType: FnOnce() -> Result<ResultType, OutputCapturingError>,
+    ResultType,
+>(
+    action: ActionType,
+) -> Result<ResultType, OutputCapturingError> {
+    if IS_IN_CAPTURE_OUTPUT.load(Ordering::SeqCst) {
+        return Err(OutputCapturingError::NestedCaptureError);
+    } else {
+        IS_IN_CAPTURE_OUTPUT.store(true, Ordering::SeqCst);
+    }
+
+    let result = action();
+
+    IS_IN_CAPTURE_OUTPUT.store(false, Ordering::SeqCst);
+
+    result
+}
+
+/// Gets the single instance of the output capturer for the process.
+///
+/// This is thread-safe.
+///
+/// # Returns
+///
+/// A reference to the [`OutputCapturer`] instance, wrapped in a [`MutexGuard`].
+///
+/// # Errors
+///
+/// * If there are any issues with locking mutexes, this function will return an error.
+fn get_output_capturer() -> Result<MutexGuard<'static, OutputCapturer>, OutputCapturingError> {
+    OUTPUT_CAPTURER
+        .lock()
+        .map_err(OutputCapturingError::CapturerMutexError)
 }
 
 /// Captures `stdout` and `stderr` output from a closure in a thread-safe manner.
@@ -57,22 +120,26 @@ lazy_static! {
 ///   error.
 /// * If there are any issues with reading the buffers, this function will return an error.
 /// * If there are any issues with locking mutexes, this function will return an error.
+/// * If calls to [`capture_output`] or [`capture_output_raw`] are nested, this function will
+///   return an error.
 pub fn capture_output<ActionType: FnOnce()>(
     action: ActionType,
-) -> Result<CapturedOutputs<String>, Error> {
-    // Lock the output capturer for the process to this thread.
-    let mut output_captuerer = OUTPUT_CAPTURER.lock().map_err(Error::CapturerMutexError)?;
+) -> Result<CapturedOutputs<String>, OutputCapturingError> {
+    non_nesting_helper(|| {
+        // Lock the output capturer for the process to this thread.
+        let mut output_captuerer = get_output_capturer()?;
 
-    // Start capturing
-    output_captuerer.start()?;
+        // Start capturing
+        output_captuerer.start()?;
 
-    // Run the closure
-    action();
+        // Run the closure
+        action();
 
-    // Stop the capture and return the captured output
-    let captured_outputs = output_captuerer.stop()?;
+        // Stop the capture and return the captured output
+        let captured_outputs = output_captuerer.stop()?;
 
-    Ok(captured_outputs)
+        Ok(captured_outputs)
+    })
 }
 
 /// Captures raw `stdout` and `stderr` output from a closure in a thread-safe manner.
@@ -104,22 +171,26 @@ pub fn capture_output<ActionType: FnOnce()>(
 ///   error.
 /// * If there are any issues with reading the buffers, this function will return an error.
 /// * If there are any issues with locking mutexes, this function will return an error.
+/// * If calls to [`capture_output`] or [`capture_output_raw`] are nested, this function will
+///   return an error.
 pub fn capture_output_raw<ActionType: FnOnce()>(
     action: ActionType,
-) -> Result<CapturedOutputs<Vec<u8>>, Error> {
-    // Lock the output capturer for the process to this thread.
-    let mut output_captuerer = OUTPUT_CAPTURER.lock().map_err(Error::CapturerMutexError)?;
+) -> Result<CapturedOutputs<Vec<u8>>, OutputCapturingError> {
+    non_nesting_helper(|| {
+        // Lock the output capturer for the process to this thread.
+        let mut output_captuerer = get_output_capturer()?;
 
-    // Start capturing
-    output_captuerer.start()?;
+        // Start capturing
+        output_captuerer.start()?;
 
-    // Run the closure
-    action();
+        // Run the closure
+        action();
 
-    // Stop the capture and return the captured output
-    let captured_outputs = output_captuerer.stop_raw()?;
+        // Stop the capture and return the captured output
+        let captured_outputs = output_captuerer.stop_raw()?;
 
-    Ok(captured_outputs)
+        Ok(captured_outputs)
+    })
 }
 
 #[cfg(test)]
@@ -127,7 +198,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn empty() {
+    fn none() {
+        println!("this is NOT captured (stdout)");
+        eprintln!("this is NOT captured (stderr)");
+
         assert_eq!(
             capture_output(|| ()).unwrap(),
             CapturedOutputs {
@@ -139,13 +213,16 @@ mod tests {
 
     #[test]
     fn stdout() {
+        println!("this is NOT captured (stdout)");
+        eprintln!("this is NOT captured (stderr)");
+
         assert_eq!(
             capture_output(|| {
-                println!("hello, world");
+                println!("this IS captured (stdout)");
             })
             .unwrap(),
             CapturedOutputs {
-                stdout: "hello, world\n".to_owned(),
+                stdout: "this IS captured (stdout)\n".to_owned(),
                 stderr: "".to_owned(),
             }
         );
@@ -153,59 +230,92 @@ mod tests {
 
     #[test]
     fn stderr() {
+        println!("this is NOT captured (stdout)");
+        eprintln!("this is NOT captured (stderr)");
+
         assert_eq!(
             capture_output(|| {
-                eprintln!("hello, world");
+                eprintln!("this IS captured (stderr)");
             })
             .unwrap(),
             CapturedOutputs {
                 stdout: "".to_owned(),
-                stderr: "hello, world\n".to_owned(),
+                stderr: "this IS captured (stderr)\n".to_owned(),
             }
         );
     }
 
     #[test]
     fn both() {
+        println!("this is NOT captured (stdout)");
+        eprintln!("this is NOT captured (stderr)");
+
         assert_eq!(
             capture_output(|| {
-                println!("hello, world");
-                eprintln!("hello, world");
+                println!("this IS captured (stdout)");
+                eprintln!("this IS captured (stderr)");
             })
             .unwrap(),
             CapturedOutputs {
-                stdout: "hello, world\n".to_owned(),
-                stderr: "hello, world\n".to_owned(),
+                stdout: "this IS captured (stdout)\n".to_owned(),
+                stderr: "this IS captured (stderr)\n".to_owned(),
             }
         );
     }
 
     #[test]
     fn both_twice() {
+        println!("this is NOT captured (stdout)");
+        eprintln!("this is NOT captured (stderr)");
+
         assert_eq!(
             capture_output(|| {
-                println!("hello, world");
-                eprintln!("hello, world");
+                println!("this IS captured (stdout)");
+                eprintln!("this IS captured (stderr)");
             })
             .unwrap(),
             CapturedOutputs {
-                stdout: "hello, world\n".to_owned(),
-                stderr: "hello, world\n".to_owned(),
+                stdout: "this IS captured (stdout)\n".to_owned(),
+                stderr: "this IS captured (stderr)\n".to_owned(),
             }
         );
 
-        println!("asdf");
-        eprintln!("asdf");
+        println!("this is NOT captured (stdout)");
+        eprintln!("this is NOT captured (stderr)");
 
         assert_eq!(
             capture_output(|| {
-                println!("hello, world");
-                eprintln!("hello, world");
+                println!("this IS captured (stdout)");
+                eprintln!("this IS captured (stderr)");
             })
             .unwrap(),
             CapturedOutputs {
-                stdout: "hello, world\n".to_owned(),
-                stderr: "hello, world\n".to_owned(),
+                stdout: "this IS captured (stdout)\n".to_owned(),
+                stderr: "this IS captured (stderr)\n".to_owned(),
+            }
+        );
+    }
+
+    #[test]
+    fn nested() {
+        println!("this is NOT captured (stdout)");
+        eprintln!("this is NOT captured (stderr)");
+
+        assert_eq!(
+            capture_output(|| {
+                println!("this IS captured (stdout)");
+                eprintln!("this IS captured (stderr)");
+
+                assert!(capture_output(|| {
+                    println!("this is invalid (stdout)");
+                    eprintln!("this is invalid (stderr)");
+                })
+                .is_err());
+            })
+            .unwrap(),
+            CapturedOutputs {
+                stdout: "this IS captured (stdout)\n".to_owned(),
+                stderr: "this IS captured (stderr)\n".to_owned(),
             }
         );
     }

@@ -13,139 +13,206 @@
 // You should have received a copy of the GNU General Public License along with test ur code XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
-use std::collections::HashMap;
+pub mod extracting;
+pub mod generating;
+pub mod parsing;
 
-use proc_macro::TokenStream;
-use quote::{format_ident, quote};
-use syn::{
-    parse::Parser, punctuated::Punctuated, Expr, ExprAssign, FnArg, ItemFn, Pat, Token, Type,
+use crate::{
+    errors::Error,
+    parameters::extracting::{filter_fn_attrs_without_this_macro, take_fn_attrs},
 };
 
-use super::permute::permute_maps;
+use self::{
+    extracting::iter_parameterized_fn_inputs,
+    generating::{generate_parameter_function, generate_permutation_function},
+};
 
-fn parse_attribute(attribute: TokenStream) -> Vec<ExprAssign> {
-    Parser::parse(
-        Punctuated::<ExprAssign, Token![,]>::parse_terminated,
-        attribute,
-    )
-    .unwrap()
-    .into_iter()
-    .collect::<Vec<ExprAssign>>()
+use super::permute::permute_map_of_vecs;
+use extracting::get_map_of_parameter_vecs_from_expr_assign_iter;
+use parsing::parse_expr_assign_iter;
+use quote::quote_spanned;
+use std::collections::HashMap;
+use syn::{Attribute, Expr, ItemFn};
+
+/// Gets an iterator over parameter maps from the token stream taken from a given attribute.
+///
+/// It takes a token stream from the attribute, loads the parameter values from it, and then
+/// permutes them to get an iterator over every permutation of the parameter values.
+///
+/// # Example
+///
+/// ```ignore
+/// get_permuted_parameter_map_iter(
+///     quote! {
+///         a = [1, 2],
+///         b = [3, 4]
+///     }
+/// );
+/// ```
+///
+/// This will result in an iterator over maps that look like this:
+///
+/// ```json
+/// [
+///     {
+///         "a": 1,
+///         "b": 3
+///     },
+///     {
+///         "a": 2,
+///         "b": 3
+///     },
+///     {
+///         "a": 1,
+///         "b": 4
+///     },
+///     {
+///         "a": 2,
+///         "b": 4
+///     }
+/// ]
+/// ```
+///
+/// # Arguments
+///
+/// * `tokens` - a token stream taken from the attribute
+///
+/// # Returns
+///
+/// An iterator over parameter maps.
+///
+/// # Errors
+///
+/// * Returns a [`syn::Error`] if the token stream cannot be parsed as expected.
+pub fn get_permuted_parameter_map_iter(
+    tokens: proc_macro2::TokenStream,
+) -> Result<impl Iterator<Item = HashMap<String, Expr>>, syn::Error> {
+    let map_of_parameter_vecs =
+        get_map_of_parameter_vecs_from_expr_assign_iter(parse_expr_assign_iter(tokens)?);
+    Ok(permute_map_of_vecs(map_of_parameter_vecs).into_iter())
 }
 
-fn get_identifier_name_from_expr(expr: &Expr) -> Option<String> {
-    match expr {
-        Expr::Path(path) => {
-            if path.path.segments.len() == 1 {
-                Some(path.path.segments[0].ident.to_string())
-            } else {
-                None
+/// Generates a permutation function for a given test function and parameterization. This is the
+/// top-level generation function that gets called by the macro.
+///
+/// It does not return any errors since the errors are embedded into the token stream using the
+/// [`compile_error`] macro.
+///
+/// # Arguments
+///
+/// * `item` - The test case's original function.
+/// * `vec_of_parameter_maps` - The vector of parameter maps parsed from the attribute.
+///
+/// # Returns
+///
+/// A token stream.
+pub fn generate_permuted_test_function(
+    mut item: ItemFn,
+    vec_of_parameter_maps: Vec<HashMap<String, Expr>>,
+) -> proc_macro2::TokenStream {
+    // Take attribute list
+    //
+    // TODO: Do something with attributes
+    let _attributes: Vec<Attribute> =
+        filter_fn_attrs_without_this_macro(take_fn_attrs(&mut item)).collect();
+
+    // Initialize token stream
+    let mut result = proc_macro2::TokenStream::new();
+
+    // For each permutation, generate a permutation function
+    for (counter, parameter_map) in vec_of_parameter_maps.into_iter().enumerate() {
+        // Initialize vector for parameterized function inputs
+        let mut paramterized_fn_inputs = Vec::new();
+
+        // Iterate over the parameterized function inputs and populate the vector, generating
+        // compiler errors as needed
+        for input in iter_parameterized_fn_inputs(&item, &parameter_map) {
+            match input {
+                Ok((name, ty, expr)) => {
+                    paramterized_fn_inputs.push((name, ty.clone(), expr.clone()))
+                }
+                Err(error) => match error {
+                    Error::ArgumentHasNoParameter(name) => {
+                        result.extend(quote_spanned!(item.sig.ident.span() => {
+                            compile_error!(concat!("argument `", #name, "` must also be defined in the attribute"));
+                        }));
+                        return result;
+                    }
+                    Error::SelfArgumentInTest => {
+                        result.extend(quote_spanned!(item.sig.ident.span() => {
+                            compile_error!(concat!("test functions cannot take `self` as an argument"));
+                        }));
+                        return result;
+                    }
+                },
             }
         }
-        _ => None,
-    }
-}
 
-fn get_expr_vec_from_array(expr: &Expr) -> Option<Vec<Expr>> {
-    match expr {
-        Expr::Array(array) => Some(array.elems.iter().cloned().collect()),
-        _ => None,
-    }
-}
-
-fn get_unpermuted_parameters_from_assign_vec(
-    assign_vec: Vec<ExprAssign>,
-) -> HashMap<String, Vec<Expr>> {
-    assign_vec
-        .into_iter()
-        .map(|assign| {
-            (
-                get_identifier_name_from_expr(&assign.left)
-                    .expect("expected left hand side of assignment to be identifier"),
-                get_expr_vec_from_array(&assign.right)
-                    .expect("expected right hand side of assignment to be array"),
-            )
-        })
-        .collect::<HashMap<String, Vec<Expr>>>()
-}
-
-pub fn get_paraneterizations(attribute: TokenStream) -> Vec<HashMap<String, Expr>> {
-    let assign_vec = parse_attribute(attribute);
-    let unpermuted_parameters = get_unpermuted_parameters_from_assign_vec(assign_vec);
-    permute_maps(unpermuted_parameters)
-}
-
-fn get_identifier_name_from_pat(pat: &Pat) -> Option<String> {
-    match pat {
-        Pat::Ident(ident) => Some(ident.ident.to_string()),
-        _ => None,
-    }
-}
-
-fn get_let_expressions_from_inputs(
-    item: &ItemFn,
-    parameterization: HashMap<String, Expr>,
-) -> Vec<(String, &Box<Type>, Expr)> {
-    item.sig
-        .inputs
-        .iter()
-        .map(|input| match input {
-            FnArg::Typed(pat_type) => {
-                let identifier_name = get_identifier_name_from_pat(&pat_type.pat)
-                    .expect("expected argument pattern to be simple identifier");
-
-                let expression = parameterization
-                    .get(&identifier_name)
-                    .expect("unexpected parameter name");
-
-                (identifier_name, &pat_type.ty, expression.clone())
-            }
-            _ => panic!("unexpected 'self' argument"),
-        })
-        .collect()
-}
-
-pub fn parameterize_test_function(
-    mut item: ItemFn,
-    parameterizations: Vec<HashMap<String, Expr>>,
-) -> proc_macro2::TokenStream {
-    let mut attrs = Vec::new();
-    std::mem::swap(&mut item.attrs, &mut attrs);
-
-    let original_ident = item.sig.ident.clone();
-    let with_parameters_ident = format_ident!("_{}_with_parameters", original_ident);
-
-    item.sig.ident = with_parameters_ident.clone();
-
-    let mut result = quote! {
-        #item
-    };
-
-    for (counter, parameterization) in parameterizations.into_iter().enumerate() {
-        let ident = format_ident!("{}_{}", original_ident, counter);
-
-        let let_expressions = get_let_expressions_from_inputs(&item, parameterization);
-
-        let let_expression_idents_0 = let_expressions
-            .iter()
-            .map(|(ident, _, _)| format_ident!("{}", ident));
-        let let_expression_idents_1 = let_expressions
-            .iter()
-            .map(|(ident, _, _)| format_ident!("{}", ident));
-        let let_expression_types = let_expressions.iter().map(|(_, r#type, _)| &**r#type);
-        let let_expression_values = let_expressions.iter().map(|(_, _, expr)| expr);
-
-        result.extend(quote! {
-            #[test]
-            fn #ident () {
-                #(let #let_expression_idents_0: #let_expression_types = #let_expression_values;)*
-
-                #with_parameters_ident ( #( #let_expression_idents_1 ),* );
-            }
-        });
+        // Generate the permutation function
+        result.extend(generate_permutation_function(
+            &item,
+            &paramterized_fn_inputs,
+            counter as u32,
+        ));
     }
 
-    println!("result: {}", result);
+    // Generate the parameter function
+    result.extend(generate_parameter_function(item));
 
+    // Return results
     result
+}
+
+#[cfg(test)]
+mod tests {
+    use quote::{quote, ToTokens};
+
+    use super::*;
+
+    #[test]
+    fn get_permuted_parameter_map_iter_empty() {
+        let vec_of_maps: Vec<HashMap<String, Expr>> = get_permuted_parameter_map_iter(quote! {})
+            .unwrap()
+            .collect();
+
+        assert!(vec_of_maps.is_empty());
+    }
+
+    #[test]
+    fn get_permuted_parameter_map_iter_one_empty() {
+        let vec_of_maps: Vec<HashMap<String, Expr>> =
+            get_permuted_parameter_map_iter(quote! {a = []})
+                .unwrap()
+                .collect();
+
+        assert!(vec_of_maps.is_empty());
+    }
+
+    #[test]
+    fn get_permuted_parameter_map_iter_one_full() {
+        let vec_of_maps: Vec<HashMap<String, Expr>> =
+            get_permuted_parameter_map_iter(quote! {a = [1, 2]})
+                .unwrap()
+                .collect();
+
+        assert_eq!(vec_of_maps.len(), 2);
+        assert_eq!(vec_of_maps[0].len(), 1);
+        assert_eq!(vec_of_maps[0]["a"].to_token_stream().to_string(), "1");
+        assert_eq!(vec_of_maps[1].len(), 1);
+        assert_eq!(vec_of_maps[1]["a"].to_token_stream().to_string(), "2");
+    }
+
+    #[test]
+    fn get_permuted_parameter_map_iter_two_full() {
+        let vec_of_maps: Vec<HashMap<String, Expr>> =
+            get_permuted_parameter_map_iter(quote! {a = [1, 2], b = [3, 4]})
+                .unwrap()
+                .collect();
+
+        assert_eq!(vec_of_maps.len(), 4);
+        assert_eq!(vec_of_maps[0].len(), 2);
+        assert_eq!(vec_of_maps[1].len(), 2);
+        assert_eq!(vec_of_maps[2].len(), 2);
+        assert_eq!(vec_of_maps[3].len(), 2);
+    }
 }

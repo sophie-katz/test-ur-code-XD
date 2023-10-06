@@ -13,17 +13,29 @@
 // You should have received a copy of the GNU General Public License along with test ur code XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
+mod errors;
 mod parameters;
 mod permute;
 
-use parameters::{get_paraneterizations, parameterize_test_function};
-use proc_macro::TokenStream;
-use syn::{parse_macro_input, ItemFn};
+use crate::parameters::get_permuted_parameter_map_iter;
+use parameters::generate_permuted_test_function;
+use std::collections::HashMap;
+use syn::{parse_macro_input, Expr, ItemFn};
 
 #[proc_macro_attribute]
-pub fn test_with_parameter_values(attribute: TokenStream, item: TokenStream) -> TokenStream {
-    let parameterizations = get_paraneterizations(attribute);
-    let item = parse_macro_input!(item as ItemFn);
+pub fn test_with_parameter_values(
+    attribute: proc_macro::TokenStream,
+    item: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    let tokens = proc_macro2::TokenStream::from(attribute);
 
-    TokenStream::from(parameterize_test_function(item, parameterizations))
+    let vec_of_parameter_maps: Vec<HashMap<String, Expr>> =
+        match get_permuted_parameter_map_iter(tokens) {
+            Ok(iter_of_parameter_maps) => iter_of_parameter_maps.collect(),
+            Err(error) => return error.into_compile_error().into(),
+        };
+
+    let item_fn = parse_macro_input!(item as ItemFn);
+
+    generate_permuted_test_function(item_fn, vec_of_parameter_maps).into()
 }

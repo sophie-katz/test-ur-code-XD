@@ -73,14 +73,23 @@ macro_rules! assert_custom {
 
 #[cfg(test)]
 mod tests {
-    use crate::assert_custom;
-
     #[test]
-    fn assert_passing() {
-        // let captured_outputs = capture_output(|| {
+    fn assert_custom_passing() {
         assert_custom!("value is true", true, |panic_message_builder| {
             panic_message_builder.with_argument("value", "value", &true)
         });
+    }
+
+    #[test]
+    #[should_panic]
+    fn assert_custom_failing() {
+        assert_custom!("value is true", false, |panic_message_builder| {
+            panic_message_builder.with_argument("value", "value", &true)
+        });
+    }
+
+    #[test]
+    fn assert_custom_passing_negate() {
         assert_custom!(
             "value is true",
             false,
@@ -89,24 +98,11 @@ mod tests {
             },
             negate = true
         );
-        // })
-        // .unwrap();
-
-        // std::assert!(captured_outputs.stdout.is_empty());
-        // std::assert!(captured_outputs.stderr.is_empty());
     }
 
     #[test]
     #[should_panic]
-    fn assert_custom_fail() {
-        assert_custom!("value is true", false, |panic_message_builder| {
-            panic_message_builder.with_argument("value", "value", &true)
-        });
-    }
-
-    #[test]
-    #[should_panic]
-    fn assert_fail_negated() {
+    fn assert_failing_negated() {
         assert_custom!(
             "value is true",
             true,

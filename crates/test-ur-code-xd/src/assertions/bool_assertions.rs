@@ -85,53 +85,47 @@ macro_rules! assert_not {
 
 #[cfg(test)]
 mod tests {
-    // use crate::utilities::capture_output::capture_output;
-
     #[test]
     fn assert_passing() {
-        // let captured_outputs = capture_output(|| {
         assert!(true);
-        assert!(false, negate = true);
-        // })
-        // .unwrap();
-
-        // std::assert!(captured_outputs.stdout.is_empty());
-        // std::assert!(captured_outputs.stderr.is_empty());
     }
 
     #[test]
     #[should_panic]
-    fn assert_fail() {
+    fn assert_failing() {
         assert!(false);
     }
 
     #[test]
+    fn assert_passing_negate() {
+        assert!(false, negate = true);
+    }
+
+    #[test]
     #[should_panic]
-    fn assert_fail_negated() {
+    fn assert_failing_negate() {
         assert!(true, negate = true);
     }
 
     #[test]
     fn assert_not_passing() {
-        // let captured_outputs = capture_output(|| {
         assert_not!(false);
-        assert_not!(true, negate = true);
-        // })
-        // .unwrap();
-
-        // std::assert!(captured_outputs.stdout.is_empty());
-        // std::assert!(captured_outputs.stderr.is_empty());
     }
 
     #[test]
     #[should_panic]
-    fn assert_not_fail() {
+    fn assert_not_failing() {
         assert_not!(true);
     }
 
     #[test]
+    fn assert_not_passing_negate() {
+        assert_not!(true, negate = true);
+    }
+
+    #[test]
     #[should_panic]
-    fn assert_not_fail_negated() {
+    fn assert_not_failing_negate() {
         assert_not!(false, negate = true);
     }
 }

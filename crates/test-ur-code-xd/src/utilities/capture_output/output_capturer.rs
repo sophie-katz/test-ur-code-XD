@@ -16,7 +16,7 @@
 use gag::BufferRedirect;
 use std::io::{self, Read, Write};
 
-use super::{captured_output::CapturedOutputs, error::OutputStream, Error};
+use super::{captured_output::CapturedOutputs, error::OutputStream, OutputCapturingError};
 
 /// A single output-capturing instance.
 ///
@@ -25,7 +25,7 @@ use super::{captured_output::CapturedOutputs, error::OutputStream, Error};
 /// # Example
 ///
 /// ```ignore
-/// println!("this is NOT captured");
+/// println!("this is NOT captured (stdout)");
 ///
 /// let mut output_capturer = OutputCapturer::default();
 /// output_capturer.start().unwrap();
@@ -56,20 +56,18 @@ impl OutputCapturer {
     ///   error.
     /// * If more than one [`OutputCapturer`] is started in the same process, it will return an
     ///   error.
-    pub fn start(&mut self) -> Result<(), Error> {
+    pub fn start(&mut self) -> Result<(), OutputCapturingError> {
         // Flush stdout/stderr before redirecting them so we don't get any extra output in the
         // buffers
         Self::flush_streams()?;
 
         // Start the redirects
-        self.buffer_stdout = Some(
-            BufferRedirect::stdout()
-                .map_err(|error| Error::OutputStreamRedirectError(OutputStream::Stdout, error))?,
-        );
-        self.buffer_stderr = Some(
-            BufferRedirect::stderr()
-                .map_err(|error| Error::OutputStreamRedirectError(OutputStream::Stderr, error))?,
-        );
+        self.buffer_stdout = Some(BufferRedirect::stdout().map_err(|error| {
+            OutputCapturingError::OutputStreamRedirectError(OutputStream::Stdout, error)
+        })?);
+        self.buffer_stderr = Some(BufferRedirect::stderr().map_err(|error| {
+            OutputCapturingError::OutputStreamRedirectError(OutputStream::Stderr, error)
+        })?);
 
         Ok(())
     }
@@ -89,7 +87,7 @@ impl OutputCapturer {
     /// * If there are issues with flushing `stdout` or `stderr`, this function will return an
     ///   error.
     /// * If there are any issues with reading the buffers, this function will return an error.
-    pub fn stop(&mut self) -> Result<CapturedOutputs<String>, Error> {
+    pub fn stop(&mut self) -> Result<CapturedOutputs<String>, OutputCapturingError> {
         // Flush stdout/stderr before stopping so we get all of the output in the buffers
         Self::flush_streams()?;
 
@@ -124,7 +122,7 @@ impl OutputCapturer {
     /// * If there are issues with flushing `stdout` or `stderr`, this function will return an
     ///   error.
     /// * If there are any issues with reading the buffers, this function will return an error.
-    pub fn stop_raw(&mut self) -> Result<CapturedOutputs<Vec<u8>>, Error> {
+    pub fn stop_raw(&mut self) -> Result<CapturedOutputs<Vec<u8>>, OutputCapturingError> {
         // Flush stdout/stderr before stopping so we get all of the output in the buffers
         Self::flush_streams()?;
 
@@ -149,27 +147,29 @@ impl OutputCapturer {
     /// # Errors
     ///
     /// * If there is an IO error while flushing either stream, this function will return an error.
-    fn flush_streams() -> Result<(), Error> {
-        std::io::stdout()
-            .flush()
-            .map_err(|error| Error::OutputStreamFlushError(OutputStream::Stdout, error))?;
-        std::io::stderr()
-            .flush()
-            .map_err(|error| Error::OutputStreamFlushError(OutputStream::Stderr, error))
+    fn flush_streams() -> Result<(), OutputCapturingError> {
+        std::io::stdout().flush().map_err(|error| {
+            OutputCapturingError::OutputStreamFlushError(OutputStream::Stdout, error)
+        })?;
+        std::io::stderr().flush().map_err(|error| {
+            OutputCapturingError::OutputStreamFlushError(OutputStream::Stderr, error)
+        })
     }
 
     /// Reads a [`gag`] [`BufferRedect`] as a string.
     fn read_buffer_as_string(
         buffer_redirect: &mut Option<BufferRedirect>,
         output_stream: OutputStream,
-    ) -> Result<String, Error> {
+    ) -> Result<String, OutputCapturingError> {
         let mut string = String::new();
 
         buffer_redirect
             .as_mut()
             .expect("OutputCapturer::stop() called before OutputCapturer::start()")
             .read_to_string(&mut string)
-            .map_err(|error| Error::OutputStreamBufferReadingError(output_stream, error))?;
+            .map_err(|error| {
+                OutputCapturingError::OutputStreamBufferReadingError(output_stream, error)
+            })?;
 
         Ok(string)
     }
@@ -178,18 +178,137 @@ impl OutputCapturer {
     fn read_buffer_as_bytes(
         buffer_redirect: &mut Option<BufferRedirect>,
         output_stream: OutputStream,
-    ) -> Result<Vec<u8>, Error> {
+    ) -> Result<Vec<u8>, OutputCapturingError> {
         buffer_redirect
             .as_mut()
             .expect("OutputCapturer::stop() called before OutputCapturer::start()")
             .bytes()
             .collect::<Result<Vec<u8>, io::Error>>()
-            .map_err(|error| Error::OutputStreamBufferReadingError(output_stream, error))
+            .map_err(|error| {
+                OutputCapturingError::OutputStreamBufferReadingError(output_stream, error)
+            })
     }
 
     /// Drop redirects to stop capturing output
     fn drop_redirects(&mut self) {
         self.buffer_stdout = None;
         self.buffer_stderr = None;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{assert, assert_eq};
+
+    #[test]
+    fn capture_none() {
+        let mut output_capturer = OutputCapturer::default();
+
+        println!("this is NOT captured (stdout)");
+        eprintln!("this is NOT captured (stderr)");
+
+        output_capturer.start().unwrap();
+
+        let captured_output = output_capturer.stop().unwrap();
+
+        println!("this is NOT captured (stdout)");
+        eprintln!("this is NOT captured (stderr)");
+
+        assert_eq!(captured_output.stdout, "");
+        assert_eq!(captured_output.stderr, "");
+    }
+
+    #[test]
+    #[should_panic]
+    fn capture_stop_without_start() {
+        let mut output_capturer = OutputCapturer::default();
+
+        let _ = output_capturer.stop();
+    }
+
+    #[test]
+    fn capture_some() {
+        let mut output_capturer = OutputCapturer::default();
+
+        println!("this is NOT captured (stdout)");
+        eprintln!("this is NOT captured (stderr)");
+
+        output_capturer.start().unwrap();
+
+        println!("this IS captured (stdout)");
+        eprintln!("this IS captured (stderr)");
+
+        let captured_output = output_capturer.stop().unwrap();
+
+        println!("this is NOT captured (stdout)");
+        eprintln!("this is NOT captured (stderr)");
+
+        assert_eq!(captured_output.stdout, "this IS captured (stdout)\n");
+        assert_eq!(captured_output.stderr, "this IS captured (stderr)\n");
+    }
+
+    #[test]
+    fn capture_none_raw() {
+        let mut output_capturer = OutputCapturer::default();
+
+        println!("this is NOT captured (stdout)");
+        eprintln!("this is NOT captured (stderr)");
+
+        output_capturer.start().unwrap();
+
+        let captured_output = output_capturer.stop_raw().unwrap();
+
+        println!("this is NOT captured (stdout)");
+        eprintln!("this is NOT captured (stderr)");
+
+        assert_eq!(captured_output.stdout, "".as_bytes());
+        assert_eq!(captured_output.stderr, "".as_bytes());
+    }
+
+    #[test]
+    #[should_panic]
+    fn capture_stop_without_start_raw() {
+        let mut output_capturer = OutputCapturer::default();
+
+        let _ = output_capturer.stop_raw();
+    }
+
+    #[test]
+    fn capture_some_raw() {
+        let mut output_capturer = OutputCapturer::default();
+
+        println!("this is NOT captured (stdout)");
+        eprintln!("this is NOT captured (stderr)");
+
+        output_capturer.start().unwrap();
+
+        println!("this IS captured (stdout)");
+        eprintln!("this IS captured (stderr)");
+
+        let captured_output = output_capturer.stop_raw().unwrap();
+
+        println!("this is NOT captured (stdout)");
+        eprintln!("this is NOT captured (stderr)");
+
+        assert_eq!(
+            captured_output.stdout,
+            "this IS captured (stdout)\n".as_bytes()
+        );
+        assert_eq!(
+            captured_output.stderr,
+            "this IS captured (stderr)\n".as_bytes()
+        );
+    }
+
+    #[test]
+    fn multiple_captures() {
+        let mut output_capturer_0 = OutputCapturer::default();
+
+        let mut output_capturer_1 = OutputCapturer::default();
+
+        output_capturer_0.start().unwrap();
+
+        assert!(output_capturer_1.start().is_err());
     }
 }
