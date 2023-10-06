@@ -42,7 +42,6 @@ pub fn parse_expr_assign_iter(
 #[cfg(test)]
 mod tests {
     use quote::{quote, ToTokens};
-    use syn::parse_quote;
 
     use super::*;
 

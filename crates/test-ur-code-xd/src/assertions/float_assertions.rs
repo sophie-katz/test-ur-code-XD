@@ -1965,44 +1965,24 @@ mod tests {
 
     #[test]
     fn assert_f64_eq_passing_ulps_1_ulps() {
-        assert_f64_eq!(
-            1.0,
-            1.0000000000000002220446049250313080847263336181640625,
-            ulps = 1,
-            epsilon_near_zero = 0.0
-        );
+        assert_f64_eq!(1.0, 1.0000000000000002, ulps = 1, epsilon_near_zero = 0.0);
     }
 
     #[test]
     #[should_panic]
     fn assert_f64_eq_failing_ulps_1_ulps() {
-        assert_f64_eq!(
-            1.0,
-            1.000000000000000444089209850062616169452667236328125,
-            ulps = 1,
-            epsilon_near_zero = 0.0
-        );
+        assert_f64_eq!(1.0, 1.0000000000000004, ulps = 1, epsilon_near_zero = 0.0);
     }
 
     #[test]
     fn assert_f64_eq_passing_ulps_2_ulps() {
-        assert_f64_eq!(
-            1.0,
-            1.000000000000000444089209850062616169452667236328125,
-            ulps = 2,
-            epsilon_near_zero = 0.0
-        );
+        assert_f64_eq!(1.0, 1.0000000000000004, ulps = 2, epsilon_near_zero = 0.0);
     }
 
     #[test]
     #[should_panic]
     fn assert_f64_eq_failing_ulps_2_ulps() {
-        assert_f64_eq!(
-            1.0,
-            1.0000000000000006661338147750939242541790008544921875,
-            ulps = 2,
-            epsilon_near_zero = 0.0
-        );
+        assert_f64_eq!(1.0, 1.0000000000000007, ulps = 2, epsilon_near_zero = 0.0);
     }
 
     #[test]
@@ -2015,7 +1995,7 @@ mod tests {
     fn assert_f64_eq_failing_relative_exact() {
         assert_f64_eq!(
             1.0,
-            1.0000000000000002220446049250313080847263336181640625,
+            1.0000000000000002,
             relative_epsilon = 0.0,
             epsilon_near_zero = 0.0
         );
@@ -2025,7 +2005,7 @@ mod tests {
     fn assert_f64_eq_passing_relative_1_ulp_below_epsilon() {
         assert_f64_eq!(
             0.5,
-            0.99999999999999988897769753748434595763683319091796875,
+            0.9999999999999999,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -2041,7 +2021,7 @@ mod tests {
     fn assert_f64_eq_failing_relative_1_ulp_above_epsilon() {
         assert_f64_eq!(
             0.5,
-            1.0000000000000002220446049250313080847263336181640625,
+            1.0000000000000002,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -2061,7 +2041,7 @@ mod tests {
     fn assert_f64_eq_passing_ulps_1_ulps_large() {
         assert_f64_eq!(
             1_000_000_000.0,
-            1000000000.00000011920928955078125,
+            1000000000.0000001,
             ulps = 1,
             epsilon_near_zero = 0.0
         );
@@ -2072,7 +2052,7 @@ mod tests {
     fn assert_f64_eq_failing_ulps_1_ulps_large() {
         assert_f64_eq!(
             1_000_000_000.0,
-            1000000000.0000002384185791015625,
+            1000000000.0000002,
             ulps = 1,
             epsilon_near_zero = 0.0
         );
@@ -2082,7 +2062,7 @@ mod tests {
     fn assert_f64_eq_passing_ulps_2_ulps_large() {
         assert_f64_eq!(
             1_000_000_000.0,
-            1000000000.0000002384185791015625,
+            1000000000.0000002,
             ulps = 2,
             epsilon_near_zero = 0.0
         );
@@ -2093,7 +2073,7 @@ mod tests {
     fn assert_f64_eq_failing_ulps_2_ulps_large() {
         assert_f64_eq!(
             1_000_000_000.0,
-            1000000000.00000035762786865234375,
+            1000000000.0000004,
             ulps = 2,
             epsilon_near_zero = 0.0
         );
@@ -2114,7 +2094,7 @@ mod tests {
     fn assert_f64_eq_failing_relative_exact_large() {
         assert_f64_eq!(
             1_000_000_000.0,
-            1000000000.00000011920928955078125,
+            1000000000.0000001,
             relative_epsilon = 0.0,
             epsilon_near_zero = 0.0
         );
@@ -2124,7 +2104,7 @@ mod tests {
     fn assert_f64_eq_passing_relative_1_ulp_below_epsilon_large() {
         assert_f64_eq!(
             500_000_000.0,
-            999999999.99999988079071044921875,
+            999999999.9999999,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -2145,7 +2125,7 @@ mod tests {
     fn assert_f64_eq_failing_relative_1_ulp_above_epsilon_large() {
         assert_f64_eq!(
             500_000_000.0,
-            1000000000.00000011920928955078125,
+            1000000000.0000001,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -2233,44 +2213,24 @@ mod tests {
 
     #[test]
     fn assert_f64_eq_passing_ulps_1_ulps_negative() {
-        assert_f64_eq!(
-            -1.0,
-            -1.0000000000000002220446049250313080847263336181640625,
-            ulps = 1,
-            epsilon_near_zero = 0.0
-        );
+        assert_f64_eq!(-1.0, -1.0000000000000002, ulps = 1, epsilon_near_zero = 0.0);
     }
 
     #[test]
     #[should_panic]
     fn assert_f64_eq_failing_ulps_1_ulps_negative() {
-        assert_f64_eq!(
-            -1.0,
-            -1.000000000000000444089209850062616169452667236328125,
-            ulps = 1,
-            epsilon_near_zero = 0.0
-        );
+        assert_f64_eq!(-1.0, -1.0000000000000004, ulps = 1, epsilon_near_zero = 0.0);
     }
 
     #[test]
     fn assert_f64_eq_passing_ulps_2_ulps_negative() {
-        assert_f64_eq!(
-            -1.0,
-            -1.000000000000000444089209850062616169452667236328125,
-            ulps = 2,
-            epsilon_near_zero = 0.0
-        );
+        assert_f64_eq!(-1.0, -1.0000000000000004, ulps = 2, epsilon_near_zero = 0.0);
     }
 
     #[test]
     #[should_panic]
     fn assert_f64_eq_failing_ulps_2_ulps_negative() {
-        assert_f64_eq!(
-            -1.0,
-            -1.0000000000000006661338147750939242541790008544921875,
-            ulps = 2,
-            epsilon_near_zero = 0.0
-        );
+        assert_f64_eq!(-1.0, -1.0000000000000007, ulps = 2, epsilon_near_zero = 0.0);
     }
 
     #[test]
@@ -2283,7 +2243,7 @@ mod tests {
     fn assert_f64_eq_failing_relative_exact_negative() {
         assert_f64_eq!(
             -1.0,
-            -1.0000000000000002220446049250313080847263336181640625,
+            -1.0000000000000002,
             relative_epsilon = 0.0,
             epsilon_near_zero = 0.0
         );
@@ -2293,7 +2253,7 @@ mod tests {
     fn assert_f64_eq_passing_relative_1_ulp_below_epsilon_negative() {
         assert_f64_eq!(
             -0.5,
-            -0.99999999999999988897769753748434595763683319091796875,
+            -0.9999999999999999,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -2309,7 +2269,7 @@ mod tests {
     fn assert_f64_eq_failing_relative_1_ulp_above_epsilon_negative() {
         assert_f64_eq!(
             -0.5,
-            -1.0000000000000002220446049250313080847263336181640625,
+            -1.0000000000000002,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -2329,7 +2289,7 @@ mod tests {
     fn assert_f64_eq_passing_ulps_1_ulps_large_negative() {
         assert_f64_eq!(
             -1_000_000_000.0,
-            -1000000000.00000011920928955078125,
+            -1000000000.0000001,
             ulps = 1,
             epsilon_near_zero = 0.0
         );
@@ -2340,7 +2300,7 @@ mod tests {
     fn assert_f64_eq_failing_ulps_1_ulps_large_negative() {
         assert_f64_eq!(
             -1_000_000_000.0,
-            -1000000000.0000002384185791015625,
+            -1000000000.0000002,
             ulps = 1,
             epsilon_near_zero = 0.0
         );
@@ -2350,7 +2310,7 @@ mod tests {
     fn assert_f64_eq_passing_ulps_2_ulps_large_negative() {
         assert_f64_eq!(
             -1_000_000_000.0,
-            -1000000000.0000002384185791015625,
+            -1000000000.0000002,
             ulps = 2,
             epsilon_near_zero = 0.0
         );
@@ -2361,7 +2321,7 @@ mod tests {
     fn assert_f64_eq_failing_ulps_2_ulps_large_negative() {
         assert_f64_eq!(
             -1_000_000_000.0,
-            -1000000000.00000035762786865234375,
+            -1000000000.0000004,
             ulps = 2,
             epsilon_near_zero = 0.0
         );
@@ -2382,7 +2342,7 @@ mod tests {
     fn assert_f64_eq_failing_relative_exact_large_negative() {
         assert_f64_eq!(
             -1_000_000_000.0,
-            -1000000000.00000011920928955078125,
+            -1000000000.0000001,
             relative_epsilon = 0.0,
             epsilon_near_zero = 0.0
         );
@@ -2392,7 +2352,7 @@ mod tests {
     fn assert_f64_eq_passing_relative_1_ulp_below_epsilon_large_negative() {
         assert_f64_eq!(
             -500_000_000.0,
-            -999999999.99999988079071044921875,
+            -999999999.9999999,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -2413,7 +2373,7 @@ mod tests {
     fn assert_f64_eq_failing_relative_1_ulp_above_epsilon_large_negative() {
         assert_f64_eq!(
             -500_000_000.0,
-            -1000000000.00000011920928955078125,
+            -1000000000.0000001,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );

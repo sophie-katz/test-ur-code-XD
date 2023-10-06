@@ -57,14 +57,14 @@ pub fn generate_parameter_function(mut item: ItemFn) -> proc_macro2::TokenStream
 /// * `index` - An integer index used to differentiate the permutations.
 pub fn generate_permutation_function(
     item: &ItemFn,
-    parameterized_fn_inputs: &Vec<(String, Type, Expr)>,
+    parameterized_fn_inputs: &[(String, Type, Expr)],
     index: u32,
 ) -> proc_macro2::TokenStream {
     // Generate test function identifier
     let test_function_ident = format_ident!("{}_{}", item.sig.ident, index);
 
     // Get test function with parameters identifier
-    let test_function_with_parrameters_ident = get_parameter_function_ident(&item);
+    let test_function_with_parrameters_ident = get_parameter_function_ident(item);
 
     // Generate let expression iterators
     let let_expression_idents: Vec<Ident> = parameterized_fn_inputs
