@@ -24,6 +24,9 @@ use std::{
 
 use crate::error::Error;
 
+/// The maximum value description length before truncating.
+const MAX_VALUE_DESCRIPTION_LENGTH: usize = 50;
+
 /// A builder for a formatted panic message.
 ///
 /// # Example
@@ -128,7 +131,20 @@ impl PanicMessageBuilder {
         value_description: impl Display,
         value: &impl Debug,
     ) -> Self {
-        let value_description_string = format!("{}", value_description);
+        let mut value_description_string = format!("{}", value_description);
+
+        if value_description_string.len() > MAX_VALUE_DESCRIPTION_LENGTH - 4 {
+            value_description_string = format!(
+                "{} ...",
+                &value_description_string[..MAX_VALUE_DESCRIPTION_LENGTH - 4]
+            );
+        }
+
+        if let Some(newline_index) = value_description_string.find('\n') {
+            value_description_string =
+                format!("{} ...", &value_description_string[..newline_index]);
+        }
+
         let value_string = format!("{:?}", value);
 
         let argument_description_string = format!("{}:", argument_description);
@@ -137,7 +153,7 @@ impl PanicMessageBuilder {
             format!(
                 "\n  {} {}",
                 style(argument_description_string.as_str()),
-                style(value_description).fg(if value_description_string == value_string {
+                style(&value_description_string).fg(if value_description_string == value_string {
                     Color::Cyan
                 } else {
                     Color::White
@@ -266,7 +282,7 @@ mod tests {
 
         let message = PanicMessageBuilder::new("lhs == rhs", Location::caller()).format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:267: lhs == rhs
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:283: lhs == rhs
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
     }
@@ -279,7 +295,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .with_argument("lhs", "5", &5)
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:278: 
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:294: 
   lhs: 5
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
@@ -293,7 +309,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .with_argument("lhs", "x", &5)
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:292: 
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:308: 
   lhs: x
        == 5
 
@@ -309,7 +325,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .with_argument("rhs", "y", &6)
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:307: 
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:323: 
   lhs: x
        == 5
   rhs: y
@@ -327,7 +343,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .unwrap()
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:325: 
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:341: 
   info: assertion description
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
@@ -343,7 +359,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .unwrap()
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:341: 
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:357: 
   info: assertion description
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
@@ -374,13 +390,47 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             )
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:365: predicate description
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:381: predicate description
   argument: value
             == SomeStruct {
                 a: 1,
                 b: 2,
                 c: \"3\",
             }
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
+    }
+
+    #[test]
+    fn format_no_multiline_argument_descriptions() {
+        console::set_colors_enabled(false);
+
+        let message = PanicMessageBuilder::new("predicate description", Location::caller())
+            .with_argument("argument", "a\nb", &1)
+            .format();
+
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:408: predicate description
+  argument: a ...
+            == 1
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
+    }
+
+    #[test]
+    fn format_truncate_argument_descriptions() {
+        console::set_colors_enabled(false);
+
+        let message = PanicMessageBuilder::new("predicate description", Location::caller())
+            .with_argument(
+                "argument",
+                "a".repeat(MAX_VALUE_DESCRIPTION_LENGTH + 100),
+                &1,
+            )
+            .format();
+
+        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:423: predicate description
+  argument: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...
+            == 1
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
     }
