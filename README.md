@@ -17,7 +17,7 @@ not, see <https://www.gnu.org/licenses/>.
 
 # test ur code XD :3
 
-<img src="https://img.shields.io/badge/License-MIT-green" /> <img src="https://img.shields.io/badge/Rust-1.74-blue" /> <img src="https://img.shields.io/badge/Platform-Linux%7CmacOS-lightgrey" /> [![documentation](https://github.com/sophie-katz/test-ur-code-XD/actions/workflows/github-pages.yml/badge.svg)](https://github.com/sophie-katz/test-ur-code-XD/actions/workflows/github-pages.yml)
+<img src="https://img.shields.io/badge/License-MIT-green" /> <img src="https://img.shields.io/badge/Rust-1.73%7C1.75-blue" /> <img src="https://img.shields.io/badge/Platform-Linux%7CmacOS-lightgrey" /> [![documentation](https://github.com/sophie-katz/test-ur-code-XD/actions/workflows/github-pages.yml/badge.svg)](https://github.com/sophie-katz/test-ur-code-XD/actions/workflows/github-pages.yml)
 
 This crate tries to improve testing in Rust with a more full-featured framework. It makes tests more readable with better assertions and with more readable errors:
 

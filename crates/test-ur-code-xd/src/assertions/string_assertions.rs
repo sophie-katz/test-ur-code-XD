@@ -155,9 +155,8 @@ fn merge_char_diffs(diffs: &[diff::Result<char>]) -> Vec<diff::Result<String>> {
 
 #[doc(hidden)]
 pub fn format_diff(lhs: &str, rhs: &str) -> String {
-    let mut lhs_string = format!("{:?}", lhs);
-
-    let mut rhs_string = format!("{:?}", rhs);
+    let lhs_string = format!("{:?}", lhs);
+    let rhs_string = format!("{:?}", rhs);
 
     let char_diffs = diff::chars(lhs_string.as_str(), rhs_string.as_str());
     let string_diffs = merge_char_diffs(&char_diffs);
