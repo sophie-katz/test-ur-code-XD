@@ -47,10 +47,12 @@
 //! which can assert that only specific lines of code panic:
 //!
 //! ```
+//! # #[cfg(feature = "panic")]
 //! # use test_ur_code_xd::assert_panics;
 //! #
 //! // This code runs normally.
 //!
+//! # #[cfg(feature = "panic")]
 //! assert_panics!(|| {
 //!     // This code panics.
 //!     panic!();
@@ -64,8 +66,10 @@
 //! This assertion allows you to write custom assertions for `stdout` and `stderr`:
 //!
 //! ```
+//! # #[cfg(feature = "output")]
 //! # use test_ur_code_xd::assert_outputs;
 //! #
+//! # #[cfg(feature = "output")]
 //! assert_outputs!(|| {
 //!     println!("print something to stdout");
 //!     eprintln!("print something else to stderr");
@@ -98,8 +102,10 @@
 //! ## Floating-point assertions
 //!
 //! ```
+//! # #[cfg(feature = "float")]
 //! # use test_ur_code_xd::assert_f32_eq;
 //! #
+//! # #[cfg(feature = "float")]
 //! // assert_eq! would fail here because of floating-point rounding errors, but assert_f32_eq!
 //! // takes this into account.
 //! assert_f32_eq!(
@@ -123,8 +129,10 @@
 //! # Parameterized tests
 //!
 //! ```
+//! # #[cfg(feature = "macros")]
 //! # use test_ur_code_xd_macro::test_with_parameter_values;
 //! #
+//! # #[cfg(feature = "macros")]
 //! #[test_with_parameter_values(
 //!   x = [5, 6, 7],
 //!   y = [1, 2])

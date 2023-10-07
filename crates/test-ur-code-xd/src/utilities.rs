@@ -15,5 +15,7 @@
 
 //! Utilities for the crate.
 
-pub mod capture_output;
 pub mod panic_message_builder;
+
+#[cfg(feature = "output")]
+pub mod capture_output;

@@ -229,11 +229,8 @@ impl Config {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::identity;
-
-    use crate::assert_panics;
-
     use super::*;
+    use std::convert::identity;
 
     #[test]
     fn using_struct_no_panic() {
@@ -272,19 +269,18 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
     fn panic_message_no_description() {
-        assert_panics!(|| {
-            Config {
-                ..Default::default()
-            }
-            .execute_assertion(
-                "predicate description",
-                false,
-                Location::caller(),
-                |panic_message_builder| {
-                    panic_message_builder.with_argument("argument name", "argument expression", &5)
-                },
-            )
-        });
+        Config {
+            ..Default::default()
+        }
+        .execute_assertion(
+            "predicate description",
+            false,
+            Location::caller(),
+            |panic_message_builder| {
+                panic_message_builder.with_argument("argument name", "argument expression", &5)
+            },
+        );
     }
 }

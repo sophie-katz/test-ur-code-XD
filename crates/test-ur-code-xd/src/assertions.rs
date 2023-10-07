@@ -225,8 +225,10 @@
 //! relies on closures to make assertions about the captured output:
 //!
 //! ```
+//! # #[cfg(feature = "output")]
 //! # use test_ur_code_xd::{assert_outputs, assert_eq};
 //! #
+//! # #[cfg(feature = "output")]
 //! assert_outputs!(
 //!     || {
 //!         println!("some text");
@@ -286,12 +288,22 @@ pub mod arithmetic_assertions;
 pub mod bool_assertions;
 pub mod config;
 pub mod custom_assertions;
-pub mod filesystem_assertions;
-pub mod float_assertions;
-pub mod output_assertions;
-pub mod panic_assertions;
 pub mod string_assertions;
+
+#[cfg(feature = "filesystem")]
+pub mod filesystem_assertions;
+
+#[cfg(feature = "float")]
+pub mod float_assertions;
+
+#[cfg(feature = "output")]
+pub mod output_assertions;
+
+#[cfg(feature = "panic")]
+pub mod panic_assertions;
 
 // These are used for the doc comment above.
 #[allow(unused_imports)]
+#[cfg(feature = "output")]
+#[cfg(feature = "panic")]
 use crate::{assert_custom, assert_outputs, assert_panics, assert_str_contains};

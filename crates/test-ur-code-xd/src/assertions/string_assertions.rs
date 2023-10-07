@@ -15,9 +15,13 @@
 
 //! Assertions that operate on strings.
 
+#[cfg(feature = "string-diff")]
 use console::{style, Color};
+
+#[cfg(feature = "regex")]
 use regex::Regex;
 
+#[cfg(feature = "string-diff")]
 const DIFF_CONTEXT_SIZE: usize = 5;
 
 #[doc(hidden)]
@@ -25,6 +29,7 @@ pub fn assert_str_eq_impl(lhs: impl AsRef<str>, rhs: impl AsRef<str>) -> bool {
     lhs.as_ref() == rhs.as_ref()
 }
 
+#[cfg(feature = "string-diff")]
 fn truncate(text: &str) -> String {
     if text.len() > 5 + 2 * DIFF_CONTEXT_SIZE {
         format!(
@@ -37,6 +42,7 @@ fn truncate(text: &str) -> String {
     }
 }
 
+#[cfg(feature = "string-diff")]
 fn format_diff_text_line(diffs: &[diff::Result<String>]) -> String {
     let mut result = String::new();
 
@@ -56,6 +62,7 @@ fn format_diff_text_line(diffs: &[diff::Result<String>]) -> String {
     result
 }
 
+#[cfg(feature = "string-diff")]
 fn format_diff_diff_line(diffs: &[diff::Result<String>]) -> String {
     let mut result = String::new();
 
@@ -89,6 +96,7 @@ fn format_diff_diff_line(diffs: &[diff::Result<String>]) -> String {
     result
 }
 
+#[cfg(feature = "string-diff")]
 fn convert_char_diff_to_string_diff(diff: &diff::Result<char>) -> diff::Result<String> {
     match diff {
         diff::Result::Left(left) => diff::Result::Left(left.to_string()),
@@ -97,6 +105,7 @@ fn convert_char_diff_to_string_diff(diff: &diff::Result<char>) -> diff::Result<S
     }
 }
 
+#[cfg(feature = "string-diff")]
 fn are_diffs_same_variant<T, U>(lhs: &diff::Result<T>, rhs: &diff::Result<U>) -> bool {
     match (lhs, rhs) {
         (diff::Result::Left(_), diff::Result::Left(_)) => true,
@@ -106,6 +115,7 @@ fn are_diffs_same_variant<T, U>(lhs: &diff::Result<T>, rhs: &diff::Result<U>) ->
     }
 }
 
+#[cfg(feature = "string-diff")]
 fn append_char_diff_to_string_diff(
     string_diff: &mut diff::Result<String>,
     char_diff: &diff::Result<char>,
@@ -128,6 +138,7 @@ fn append_char_diff_to_string_diff(
     }
 }
 
+#[cfg(feature = "string-diff")]
 fn merge_char_diffs(diffs: &[diff::Result<char>]) -> Vec<diff::Result<String>> {
     let mut result: Vec<diff::Result<String>> = Vec::new();
 
@@ -154,6 +165,7 @@ fn merge_char_diffs(diffs: &[diff::Result<char>]) -> Vec<diff::Result<String>> {
 }
 
 #[doc(hidden)]
+#[cfg(feature = "string-diff")]
 pub fn format_diff(lhs: &str, rhs: &str) -> String {
     let lhs_string = format!("{:?}", lhs);
     let rhs_string = format!("{:?}", rhs);
@@ -184,6 +196,7 @@ pub fn format_diff(lhs: &str, rhs: &str) -> String {
 ///
 /// assert_str_eq!("hello, world", "hello! world", negate = true);
 /// ```
+#[cfg(feature = "string-diff")]
 #[macro_export]
 macro_rules! assert_str_eq {
     ($lhs:expr, $rhs:expr $(, $keys:ident = $values:expr)* $(,)?) => {
@@ -315,6 +328,7 @@ macro_rules! assert_str_ends_with {
 }
 
 #[doc(hidden)]
+#[cfg(feature = "regex")]
 pub fn assert_str_matches_impl(value: impl AsRef<str>, pattern: impl AsRef<str>) -> bool {
     let pattern = Regex::new(pattern.as_ref()).unwrap();
 
@@ -337,6 +351,7 @@ pub fn assert_str_matches_impl(value: impl AsRef<str>, pattern: impl AsRef<str>)
 ///
 /// assert_str_matches!("hello, world", "^[a-z]+$", negate = true);
 /// ```
+#[cfg(feature = "regex")]
 #[macro_export]
 macro_rules! assert_str_matches {
     ($value:expr, $pattern:expr $(, $keys:ident = $values:expr)* $(,)?) => {
@@ -355,9 +370,13 @@ macro_rules! assert_str_matches {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "string-diff")]
     use super::*;
+
+    #[cfg(feature = "string-diff")]
     use crate::assert_eq;
 
+    #[cfg(feature = "string-diff")]
     #[test]
     fn format_diff_text_line_all_both() {
         console::set_colors_enabled(false);
@@ -368,6 +387,7 @@ mod tests {
         assert_eq!(formatted, "hello");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     fn format_diff_text_line_all_left() {
         console::set_colors_enabled(false);
@@ -377,6 +397,7 @@ mod tests {
         assert_eq!(formatted, "hello");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     fn format_diff_text_line_all_right() {
         console::set_colors_enabled(false);
@@ -386,6 +407,7 @@ mod tests {
         assert_eq!(formatted, "hello");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     fn format_diff_text_line_long_both() {
         console::set_colors_enabled(false);
@@ -398,6 +420,7 @@ mod tests {
         assert_eq!(formatted, "aaaaa ... aaaaa");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     fn format_diff_text_line_long_left() {
         console::set_colors_enabled(false);
@@ -408,6 +431,7 @@ mod tests {
         assert_eq!(formatted, "aaaaa ... aaaaa");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     fn format_diff_text_line_long_right() {
         console::set_colors_enabled(false);
@@ -418,6 +442,7 @@ mod tests {
         assert_eq!(formatted, "aaaaa ... aaaaa");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     fn format_diff_text_line_mixed() {
         console::set_colors_enabled(false);
@@ -431,6 +456,7 @@ mod tests {
         assert_eq!(formatted, "hello, world");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     fn format_diff_diff_line_all_both() {
         console::set_colors_enabled(false);
@@ -441,6 +467,7 @@ mod tests {
         assert_eq!(formatted, "     ");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     fn format_diff_diff_line_all_left() {
         console::set_colors_enabled(false);
@@ -450,6 +477,7 @@ mod tests {
         assert_eq!(formatted, "<<<<<");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     fn format_diff_diff_line_all_right() {
         console::set_colors_enabled(false);
@@ -459,6 +487,7 @@ mod tests {
         assert_eq!(formatted, ">>>>>");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     fn format_diff_diff_line_long_both() {
         console::set_colors_enabled(false);
@@ -471,6 +500,7 @@ mod tests {
         assert_eq!(formatted, "               ");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     fn format_diff_diff_line_long_left() {
         console::set_colors_enabled(false);
@@ -481,6 +511,7 @@ mod tests {
         assert_eq!(formatted, "<<<<<<<<<<<<<<<");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     fn format_diff_diff_line_long_right() {
         console::set_colors_enabled(false);
@@ -491,6 +522,7 @@ mod tests {
         assert_eq!(formatted, ">>>>>>>>>>>>>>>");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     fn format_diff_diff_line_mixed() {
         console::set_colors_enabled(false);
@@ -504,6 +536,7 @@ mod tests {
         assert_eq!(formatted, "     <<>>>>>");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     fn format_diff_simple() {
         console::set_colors_enabled(false);
@@ -513,46 +546,54 @@ mod tests {
         assert_eq!(formatted, "\"hello, world\"\n         <<>>>>> ");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     fn assert_str_eq_passing() {
         assert_str_eq!("hello, world", "hello, world");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     fn assert_str_eq_passing_empty() {
         assert_str_eq!("", "");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     #[should_panic]
     fn assert_str_eq_failing_empty_some() {
         assert_str_eq!("", "asdf");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     #[should_panic]
     fn assert_str_eq_failing_some_empty() {
         assert_str_eq!("asdf", "");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     #[should_panic]
     fn assert_str_eq_failing_totally_different() {
         assert_str_eq!("hello, world", "asdf");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     #[should_panic]
     fn assert_str_eq_failing_slightly_different() {
         assert_str_eq!("hello, world", "hello! world");
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     #[should_panic]
     fn assert_str_eq_failing_long() {
         assert_str_eq!("a".repeat(100), "b".repeat(100));
     }
 
+    #[cfg(feature = "string-diff")]
     #[test]
     #[should_panic]
     fn assert_str_eq_failing_multiline() {
@@ -640,23 +681,27 @@ mod tests {
         assert_str_ends_with!("", "hello");
     }
 
+    #[cfg(feature = "regex")]
     #[test]
     fn assert_str_matches_passing() {
         assert_str_matches!("hello, world", "[a-z, ]+");
     }
 
+    #[cfg(feature = "regex")]
     #[test]
     #[should_panic]
     fn assert_str_matches_failing_partial() {
         assert_str_matches!("hello, world", "[A-Z]+");
     }
 
+    #[cfg(feature = "regex")]
     #[test]
     #[should_panic]
     fn assert_str_matches_failing_whole() {
         assert_str_matches!("hello, world", "^[a-z]+$");
     }
 
+    #[cfg(feature = "regex")]
     #[test]
     #[should_panic]
     fn assert_str_matches_failing_bad_regex() {

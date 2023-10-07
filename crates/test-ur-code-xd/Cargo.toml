@@ -5,14 +5,34 @@ version = "0.1.0"
 
 [dependencies]
 console               = "0.15.7"
-diff                  = "0.1.13"
-float-cmp             = "0.9.0"
-gag                   = "1.0.0"
+diff                  = { version = "0.1.13", optional = true }
+float-cmp             = { version = "0.9.0", optional = true }
+gag                   = { version = "1.0.0", optional = true }
 indent_write          = "2.2.0"
-lazy_static           = "1.4.0"
-num-traits            = "0.2.16"
-panic-message         = "0.3.0"
-regex                 = "1.9.5"
-tempfile              = "3.8.0"
-test-ur-code-xd-macro = { path = "../test-ur-code-xd-macro" }
+lazy_static           = { version = "1.4.0", optional = true }
+num-traits            = { version = "0.2.16", optional = true }
+panic-message         = { version = "0.3.0", optional = true }
+regex                 = { version = "1.9.5", optional = true }
+test-ur-code-xd-macro = { path = "../test-ur-code-xd-macro", optional = true }
 thiserror             = "1.0.48"
+
+[dev-dependencies]
+tempfile = "3.8.0"
+
+[features]
+default = [
+    "filesystem",
+    "float",
+    "macros",
+    "output",
+    "panic",
+    "regex",
+    "string-diff",
+]
+filesystem = []
+float = ["dep:float-cmp", "dep:num-traits"]
+macros = ["dep:test-ur-code-xd-macro"]
+output = ["dep:gag", "dep:lazy_static"]
+panic = ["dep:panic-message"]
+regex = ["dep:regex"]
+string-diff = ["dep:diff"]

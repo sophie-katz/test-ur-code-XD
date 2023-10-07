@@ -340,7 +340,10 @@ impl PanicMessageBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{assert, assert_eq, assert_str_matches};
+    use crate::assert;
+
+    #[cfg(feature = "regex")]
+    use crate::{assert_eq, assert_str_matches};
 
     #[derive(Debug)]
     #[allow(dead_code)]
@@ -356,6 +359,7 @@ mod tests {
         PanicMessageBuilder::new("lhs == rhs", Location::caller()).panic();
     }
 
+    #[cfg(feature = "regex")]
     #[test]
     fn format_minimal() {
         console::set_colors_enabled(false);
@@ -370,6 +374,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
         );
     }
 
+    #[cfg(feature = "regex")]
     #[test]
     fn format_one_argument_description_matches() {
         console::set_colors_enabled(false);
@@ -387,6 +392,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
         );
     }
 
+    #[cfg(feature = "regex")]
     #[test]
     fn format_one_argument_description_doesnt_match() {
         console::set_colors_enabled(false);
@@ -405,6 +411,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
         );
     }
 
+    #[cfg(feature = "regex")]
     #[test]
     fn format_two_arguments() {
         console::set_colors_enabled(false);
@@ -426,6 +433,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
         );
     }
 
+    #[cfg(feature = "regex")]
     #[test]
     fn format_assertion_description_str() {
         console::set_colors_enabled(false);
@@ -444,6 +452,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
         );
     }
 
+    #[cfg(feature = "regex")]
     #[test]
     fn format_assertion_description_string() {
         console::set_colors_enabled(false);
@@ -472,6 +481,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
             .is_err());
     }
 
+    #[cfg(feature = "regex")]
     #[test]
     fn format_pretty_debug_argument() {
         console::set_colors_enabled(false);
@@ -499,6 +509,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
     }
 
+    #[cfg(feature = "regex")]
     #[test]
     fn format_no_multiline_argument_descriptions() {
         console::set_colors_enabled(false);
@@ -517,6 +528,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
         );
     }
 
+    #[cfg(feature = "regex")]
     #[test]
     fn format_truncate_argument_descriptions() {
         console::set_colors_enabled(false);
