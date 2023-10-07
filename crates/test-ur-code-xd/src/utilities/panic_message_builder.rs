@@ -181,6 +181,85 @@ impl PanicMessageBuilder {
         self
     }
 
+    /// Adds a pre-formatted argument to the panic message.
+    ///
+    /// This will print the argument's expression and the formatted string for its value.
+    ///
+    /// # Arguments
+    ///
+    /// * `argument_description` - The name of the argument. For example, if the predicate
+    ///                            description is `"lhs == rhs"`, then the argument description
+    ///                            might be `"lhs"` so that the user can understand which part of
+    ///                            the predicate is causing issue.
+    /// * `value_description` - The stringified expression of the argument. For example, if the
+    ///                         argument is `x + y` the argument description would be `"x + y"`.
+    /// * `value` - The pre-formatted string value of the argument.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use std::panic::Location;
+    /// # use test_ur_code_xd::utilities::panic_message_builder::PanicMessageBuilder;
+    /// #
+    /// # let lhs_description = "x";
+    /// # let lhs_value = 5;
+    /// #
+    /// # let rhs_description = "y";
+    /// # let rhs_value = 6;
+    /// #
+    /// # let failure_description = "these two things should always be equal";
+    /// #
+    /// # PanicMessageBuilder::new("lhs == rhs", Location::caller())
+    /// .with_argument_formatted("lhs", lhs_description, "5");
+    /// ```
+    pub fn with_argument_formatted(
+        mut self,
+        argument_description: impl Display,
+        value_description: impl Display,
+        value: impl AsRef<str>,
+    ) -> Self {
+        let mut value_description_string = format!("{}", value_description);
+
+        if value_description_string.len() > MAX_VALUE_DESCRIPTION_LENGTH - 4 {
+            value_description_string = format!(
+                "{} ...",
+                &value_description_string[..MAX_VALUE_DESCRIPTION_LENGTH - 4]
+            );
+        }
+
+        if let Some(newline_index) = value_description_string.find('\n') {
+            value_description_string =
+                format!("{} ...", &value_description_string[..newline_index]);
+        }
+
+        let argument_description_string = format!("{}:", argument_description);
+
+        self.buffer.push_str(
+            format!(
+                "\n  {} {}",
+                style(argument_description_string.as_str()),
+                style(&value_description_string).fg(Color::White),
+            )
+            .as_str(),
+        );
+
+        let indent = " ".repeat(3 + argument_description_string.len());
+
+        let mut indented = IndentWriter::new(indent.as_str(), String::new());
+
+        write!(
+            indented,
+            "\n{} {}",
+            style("==").dim(),
+            style(value.as_ref()).fg(Color::Cyan)
+        )
+        .expect("unable to write to indented writer");
+
+        self.buffer.push_str(indented.get_ref());
+
+        self
+    }
+
     /// Adds an assertion description to the panic message.
     ///
     /// This is a user-defined description of what the purpose of the assertion is.
@@ -224,7 +303,8 @@ impl PanicMessageBuilder {
         let backtrace = Backtrace::capture();
 
         if backtrace.status() == BacktraceStatus::Captured {
-            self.buffer.push_str(format!("\n{}", backtrace).as_str());
+            self.buffer
+                .push_str(format!("\n\n{}", style(backtrace).dim()).as_str());
         } else {
             self.buffer.push_str(
                 style(
@@ -260,7 +340,7 @@ impl PanicMessageBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{assert, assert_eq};
+    use crate::{assert, assert_eq, assert_str_matches};
 
     #[derive(Debug)]
     #[allow(dead_code)]
@@ -282,9 +362,12 @@ mod tests {
 
         let message = PanicMessageBuilder::new("lhs == rhs", Location::caller()).format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:283: lhs == rhs
+        assert_str_matches!(
+            message,
+            r"⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: lhs == rhs
 
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+        );
     }
 
     #[test]
@@ -295,10 +378,13 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .with_argument("lhs", "5", &5)
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:294: 
+        assert_str_matches!(
+            message,
+            r"⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: 
   lhs: 5
 
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+        );
     }
 
     #[test]
@@ -309,11 +395,14 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .with_argument("lhs", "x", &5)
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:308: 
+        assert_str_matches!(
+            message,
+            r"⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: 
   lhs: x
        == 5
 
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+        );
     }
 
     #[test]
@@ -325,13 +414,16 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .with_argument("rhs", "y", &6)
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:323: 
+        assert_str_matches!(
+            message,
+            r"⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: 
   lhs: x
        == 5
   rhs: y
        == 6
 
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+        );
     }
 
     #[test]
@@ -343,10 +435,13 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .unwrap()
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:341: 
+        assert_str_matches!(
+            message,
+            r"⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: 
   info: assertion description
 
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+        );
     }
 
     #[test]
@@ -359,10 +454,13 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .unwrap()
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:357: 
+        assert_str_matches!(
+            message,
+            r"⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: 
   info: assertion description
 
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+        );
     }
 
     #[test]
@@ -390,13 +488,13 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             )
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:381: predicate description
+        assert_str_matches!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\\.rs:[0-9]+: predicate description
   argument: value
-            == SomeStruct {
+            == SomeStruct \\{
                 a: 1,
                 b: 2,
                 c: \"3\",
-            }
+            \\}
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
     }
@@ -409,11 +507,14 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             .with_argument("argument", "a\nb", &1)
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:408: predicate description
+        assert_str_matches!(
+            message,
+            r"⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: predicate description
   argument: a ...
             == 1
 
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+        );
     }
 
     #[test]
@@ -428,10 +529,13 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
             )
             .format();
 
-        assert_eq!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder.rs:423: predicate description
+        assert_str_matches!(
+            message,
+            r"⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: predicate description
   argument: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...
             == 1
 
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+        );
     }
 }
