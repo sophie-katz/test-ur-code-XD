@@ -14,9 +14,16 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 //! A macro to allow you to write your own custom assertions, either inline or as macros.
+//!
+//! See
+//! [sophie-katz.github.io/test-ur-code-XD/assertions/custom](https://sophie-katz.github.io/test-ur-code-XD/assertions/custom/)
+//! for a usage guide.
 
 /// Helper macro to execute an assertion.
 ///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/custom](https://sophie-katz.github.io/test-ur-code-XD/assertions/custom/)
+/// for a usage guide.
 ///
 /// # Arguments
 ///

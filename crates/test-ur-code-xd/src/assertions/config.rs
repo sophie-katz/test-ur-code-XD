@@ -16,7 +16,11 @@
 //! All assertion macros accept a variable list of `<key> = <value>` arguments. The keys in these
 //! arguments are identifiers that correspond to the fields of the [`Config`] struct. The [`Config`]
 //! instance is then used to modify the behavior of the assertion in various ways. See the fields
-//! of teh structure for details on how to use these arguments.
+//! of the structure for details on how to use these arguments.
+//!
+//! See
+//! [sophie-katz.github.io/test-ur-code-XD/assertions/configuring-assertions](https://sophie-katz.github.io/test-ur-code-XD/assertions/configuring-assertions/)
+//! for a usage guide.
 
 use std::{fmt::Display, panic::Location};
 
@@ -25,6 +29,10 @@ use crate::{error::Error, utilities::panic_message_builder::PanicMessageBuilder}
 /// The configuration for an assertion.
 ///
 /// Contains modifiers that can be applied to the assertion to change its behavior.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/configuring-assertions](https://sophie-katz.github.io/test-ur-code-XD/assertions/configuring-assertions/)
+/// for a usage guide.
 //
 // Non-documentation note for developers:
 //

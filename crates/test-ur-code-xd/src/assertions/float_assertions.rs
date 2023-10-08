@@ -15,6 +15,10 @@
 
 //! Assertions that operate on floats.
 //!
+//! See
+//! [sophie-katz.github.io/test-ur-code-XD/assertions/float](https://sophie-katz.github.io/test-ur-code-XD/assertions/float/)
+//! for a usage guide.
+//!
 //! The assertions in this module are based off of
 //! <a href="https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/">this excellent article</a>.
 
@@ -302,6 +306,10 @@ pub fn assert_f32_eq_impl_relative(
 
 /// Asserts that two `f32` values are equal.
 ///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/float](https://sophie-katz.github.io/test-ur-code-XD/assertions/float/)
+/// for a usage guide.
+///
 /// # Arguents
 ///
 /// * `lhs` - The left-hand side
@@ -411,6 +419,10 @@ pub fn assert_f32_ne_impl_relative(
 }
 
 /// Asserts that two `f32` values are inequal.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/float](https://sophie-katz.github.io/test-ur-code-XD/assertions/float/)
+/// for a usage guide.
 ///
 /// # Arguents
 ///
@@ -522,6 +534,10 @@ pub fn assert_f32_le_impl_relative(
 
 /// Asserts that one `f32` value is less than or equal to the other.
 ///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/float](https://sophie-katz.github.io/test-ur-code-XD/assertions/float/)
+/// for a usage guide.
+///
 /// # Arguents
 ///
 /// * `lhs` - The left-hand side
@@ -631,6 +647,10 @@ pub fn assert_f32_ge_impl_relative(
 }
 
 /// Asserts that one `f32` value is greater than or equal to the other.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/float](https://sophie-katz.github.io/test-ur-code-XD/assertions/float/)
+/// for a usage guide.
 ///
 /// # Arguents
 ///
@@ -742,6 +762,10 @@ pub fn assert_f64_eq_impl_relative(
 
 /// Asserts that two `f64` values are equal.
 ///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/float](https://sophie-katz.github.io/test-ur-code-XD/assertions/float/)
+/// for a usage guide.
+///
 /// # Arguents
 ///
 /// * `lhs` - The left-hand side
@@ -851,6 +875,10 @@ pub fn assert_f64_ne_impl_relative(
 }
 
 /// Asserts that two `f64` values are inequal.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/float](https://sophie-katz.github.io/test-ur-code-XD/assertions/float/)
+/// for a usage guide.
 ///
 /// # Arguents
 ///
@@ -962,6 +990,10 @@ pub fn assert_f64_le_impl_relative(
 
 /// Asserts that one `f64` value is less than or equal to the other.
 ///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/float](https://sophie-katz.github.io/test-ur-code-XD/assertions/float/)
+/// for a usage guide.
+///
 /// # Arguents
 ///
 /// * `lhs` - The left-hand side
@@ -1071,6 +1103,10 @@ pub fn assert_f64_ge_impl_relative(
 }
 
 /// Asserts that one `f64` value is greater than or equal to the other.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/float](https://sophie-katz.github.io/test-ur-code-XD/assertions/float/)
+/// for a usage guide.
 ///
 /// # Arguents
 ///

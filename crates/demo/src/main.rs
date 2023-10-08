@@ -13,10 +13,13 @@
 // You should have received a copy of the GNU General Public License along with test ur code XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
-// The screenshot at docs/for-users/docs/assets/assertion-screenshot.png was taken by running this command:
+// The screenshots in docs/for-users/docs/assets was taken by running this command:
 //
 // $ cargo run demo; echo; echo
+//
+// Just uncomment the assertion you want to demo.
 
+#[allow(unused_imports)]
 use test_ur_code_xd::{assert_gt, assert_str_eq};
 
 fn main() {

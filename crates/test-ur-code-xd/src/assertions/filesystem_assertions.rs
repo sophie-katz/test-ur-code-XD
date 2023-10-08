@@ -14,6 +14,10 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 //! Assertions for the filesystem.
+//!
+//! See
+//! [sophie-katz.github.io/test-ur-code-XD/assertions/filesystem](https://sophie-katz.github.io/test-ur-code-XD/assertions/filesystem/)
+//! for a usage guide.
 
 use std::{fs, panic::Location, path::Path};
 
@@ -25,6 +29,10 @@ pub fn assert_path_exists_impl(path: impl AsRef<Path>) -> bool {
 }
 
 /// Asserts that the path exists on the filesystem.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/filesystem](https://sophie-katz.github.io/test-ur-code-XD/assertions/filesystem/)
+/// for a usage guide.
 ///
 /// # Arguments
 ///
@@ -69,6 +77,10 @@ pub fn assert_path_is_file_impl(path: impl AsRef<Path>) -> bool {
 
 /// Asserts that the path exists on the filesystem and is a regular file.
 ///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/filesystem](https://sophie-katz.github.io/test-ur-code-XD/assertions/filesystem/)
+/// for a usage guide.
+///
 /// # Arguments
 ///
 /// * `path` - The path to check.
@@ -111,6 +123,10 @@ pub fn assert_path_is_symlink_impl(path: impl AsRef<Path>) -> bool {
 }
 
 /// Asserts that the path exists on the filesystem and is a symbolic link.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/filesystem](https://sophie-katz.github.io/test-ur-code-XD/assertions/filesystem/)
+/// for a usage guide.
 ///
 /// # Arguments
 ///
@@ -163,6 +179,10 @@ pub fn assert_path_is_dir_impl(path: impl AsRef<Path>) -> bool {
 
 /// Asserts that the path exists on the filesystem and is a directory.
 ///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/filesystem](https://sophie-katz.github.io/test-ur-code-XD/assertions/filesystem/)
+/// for a usage guide.
+///
 /// # Arguments
 ///
 /// * `path` - The path to check.
@@ -208,6 +228,10 @@ pub fn assert_path_is_relative_impl(path: impl AsRef<Path>) -> bool {
 ///
 /// Note that the path must also exist for this assertion to pass.
 ///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/filesystem](https://sophie-katz.github.io/test-ur-code-XD/assertions/filesystem/)
+/// for a usage guide.
+///
 /// # Arguments
 ///
 /// * `path` - The path to check.
@@ -244,6 +268,10 @@ pub fn assert_path_is_absolute_impl(path: impl AsRef<Path>) -> bool {
 ///
 /// Note that the path must also exist for this assertion to pass.
 ///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/filesystem](https://sophie-katz.github.io/test-ur-code-XD/assertions/filesystem/)
+/// for a usage guide.
+///
 /// # Arguments
 ///
 /// * `path` - The path to check.
@@ -278,6 +306,10 @@ pub fn assert_path_starts_with_impl(path: impl AsRef<Path>, base: impl AsRef<Pat
 }
 
 /// Asserts that the path starts with a base path.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/filesystem](https://sophie-katz.github.io/test-ur-code-XD/assertions/filesystem/)
+/// for a usage guide.
 ///
 /// # Arguments
 ///
@@ -325,6 +357,10 @@ pub fn assert_path_ends_with_impl(path: impl AsRef<Path>, child: impl AsRef<Path
 }
 
 /// Asserts that the path ends with a child path.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/filesystem](https://sophie-katz.github.io/test-ur-code-XD/assertions/filesystem/)
+/// for a usage guide.
 ///
 /// # Arguments
 ///
@@ -392,6 +428,10 @@ pub fn assert_file_text_impl<OnTextType: FnOnce(String)>(
 /// **Warning:** this will read the whole file into memory as a string! Do not use on very large
 /// files.
 ///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/filesystem](https://sophie-katz.github.io/test-ur-code-XD/assertions/filesystem/)
+/// for a usage guide.
+///
 /// # Arguments
 ///
 /// * `path` - The path of the file to read.
@@ -452,6 +492,10 @@ pub fn assert_file_text_raw_impl<OnTextType: FnOnce(&[u8])>(
 ///
 /// **Warning:** this will read the whole file into memory as a string! Do not use on very large
 /// files.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/filesystem](https://sophie-katz.github.io/test-ur-code-XD/assertions/filesystem/)
+/// for a usage guide.
 ///
 /// # Arguments
 ///

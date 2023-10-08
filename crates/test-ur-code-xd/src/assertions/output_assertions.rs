@@ -14,6 +14,10 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 //! Assertions that capture output to `stdout` and `stderr`.
+//!
+//! See
+//! [sophie-katz.github.io/test-ur-code-XD/assertions/output](https://sophie-katz.github.io/test-ur-code-XD/assertions/output/)
+//! for a usage guide.
 
 use crate::utilities::capture_output::{capture_output, capture_output_raw};
 
@@ -35,6 +39,10 @@ pub fn assert_outputs_impl<ActionType: FnOnce()>(
 }
 
 /// Assertion wrapper for capturing `stdout` and `stderr` output.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/output](https://sophie-katz.github.io/test-ur-code-XD/assertions/output/)
+/// for a usage guide.
 ///
 /// # Arguments
 ///
@@ -109,6 +117,10 @@ pub fn assert_outputs_raw_impl<ActionType: FnOnce()>(
 }
 
 /// Assertion wrapper for capturing raw `stdout` and `stderr` output.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/output](https://sophie-katz.github.io/test-ur-code-XD/assertions/output/)
+/// for a usage guide.
 ///
 /// # Arguments
 ///

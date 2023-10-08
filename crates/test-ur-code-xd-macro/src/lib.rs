@@ -22,6 +22,11 @@ use parameters::generate_permuted_test_function;
 use std::collections::HashMap;
 use syn::{parse_macro_input, Expr, ItemFn};
 
+/// Permutes a test case.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/tests/parameterized-tests](https://sophie-katz.github.io/test-ur-code-XD/tests/parameterized-tests/)
+/// for a usage guide.
 #[proc_macro_attribute]
 pub fn test_with_parameter_values(
     attribute: proc_macro::TokenStream,

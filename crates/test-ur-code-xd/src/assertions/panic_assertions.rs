@@ -14,6 +14,10 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 //! Assertions that catch panics.
+//!
+//! See
+//! [sophie-katz.github.io/test-ur-code-XD/assertions/panic](https://sophie-katz.github.io/test-ur-code-XD/assertions/panic/)
+//! for a usage guide.
 
 use std::panic::{self, AssertUnwindSafe, Location, UnwindSafe};
 
@@ -37,6 +41,10 @@ pub fn assert_panics_impl<
 }
 
 /// Assertion wrapper for panics.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/panic](https://sophie-katz.github.io/test-ur-code-XD/assertions/panic/)
+/// for a usage guide.
 ///
 /// # Arguments
 ///

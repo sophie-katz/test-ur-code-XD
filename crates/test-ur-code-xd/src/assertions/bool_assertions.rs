@@ -14,6 +14,10 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 //! Assertions that operate on booleans.
+//!
+//! See
+//! [sophie-katz.github.io/test-ur-code-XD/assertions/boolean](https://sophie-katz.github.io/test-ur-code-XD/assertions/boolean/)
+//! for a usage guide.
 
 #[doc(hidden)]
 pub fn assert_impl(value: bool) -> bool {
@@ -21,6 +25,10 @@ pub fn assert_impl(value: bool) -> bool {
 }
 
 /// Asserts that the boolean value is `true`.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/boolean](https://sophie-katz.github.io/test-ur-code-XD/assertions/boolean/)
+/// for a usage guide.
 ///
 /// # Arguments
 ///
@@ -55,6 +63,10 @@ pub fn assert_not_impl(value: bool) -> bool {
 }
 
 /// Asserts that the boolean value is `false`.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/boolean](https://sophie-katz.github.io/test-ur-code-XD/assertions/boolean/)
+/// for a usage guide.
 ///
 /// # Arguments
 ///

@@ -14,6 +14,10 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 //! Assertions that operate on strings.
+//!
+//! See
+//! [sophie-katz.github.io/test-ur-code-XD/assertions/string](https://sophie-katz.github.io/test-ur-code-XD/assertions/string/)
+//! for a usage guide.
 
 #[cfg(feature = "string-diff")]
 use console::{style, Color};
@@ -182,6 +186,10 @@ pub fn format_diff(lhs: &str, rhs: &str) -> String {
 
 /// Asserts that one string is equal to another and prints a diff if they are not.
 ///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/string](https://sophie-katz.github.io/test-ur-code-XD/assertions/string/)
+/// for a usage guide.
+///
 /// # Arguments
 ///
 /// * `lhs` - The left-hand side string.
@@ -223,6 +231,10 @@ pub fn assert_str_contains_impl(value: impl AsRef<str>, substring: impl AsRef<st
 
 /// Asserts that a string contains a substring.
 ///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/string](https://sophie-katz.github.io/test-ur-code-XD/assertions/string/)
+/// for a usage guide.
+///
 /// # Arguments
 ///
 /// * `value` - The string to check.
@@ -260,6 +272,10 @@ pub fn assert_str_starts_with_impl(value: impl AsRef<str>, prefix: impl AsRef<st
 
 /// Asserts that a string starts with a prefix.
 ///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/string](https://sophie-katz.github.io/test-ur-code-XD/assertions/string/)
+/// for a usage guide.
+///
 /// # Arguments
 ///
 /// * `value` - The string to check.
@@ -296,6 +312,10 @@ pub fn assert_str_ends_with_impl(value: impl AsRef<str>, suffix: impl AsRef<str>
 }
 
 /// Asserts that a string ends with a suffix.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/string](https://sophie-katz.github.io/test-ur-code-XD/assertions/string/)
+/// for a usage guide.
 ///
 /// # Arguments
 ///
@@ -336,6 +356,10 @@ pub fn assert_str_matches_impl(value: impl AsRef<str>, pattern: impl AsRef<str>)
 }
 
 /// Asserts that a string matches a regular expression.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/string](https://sophie-katz.github.io/test-ur-code-XD/assertions/string/)
+/// for a usage guide.
 ///
 /// # Arguments
 ///

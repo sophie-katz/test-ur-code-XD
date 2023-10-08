@@ -14,6 +14,10 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 //! Assertions that use arithmetic comparisons.
+//!
+//! See
+//! [sophie-katz.github.io/test-ur-code-XD/assertions/arithmetic](https://sophie-katz.github.io/test-ur-code-XD/assertions/arithmetic/)
+//! for a usage guide.
 
 #[doc(hidden)]
 pub fn assert_eq_impl<LhsType: PartialEq<RhsType>, RhsType>(lhs: &LhsType, rhs: &RhsType) -> bool {
@@ -21,6 +25,10 @@ pub fn assert_eq_impl<LhsType: PartialEq<RhsType>, RhsType>(lhs: &LhsType, rhs: 
 }
 
 /// Asserts that two values are equal to each other using the [`PartialEq`] trait.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/arithmetic](https://sophie-katz.github.io/test-ur-code-XD/assertions/arithmetic/)
+/// for a usage guide.
 ///
 /// # Arguments
 ///
@@ -60,6 +68,10 @@ pub fn assert_ne_impl<LhsType: PartialEq<RhsType>, RhsType>(lhs: &LhsType, rhs: 
 
 /// Asserts that two values are inequal to each other using the [`PartialEq`] trait.
 ///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/arithmetic](https://sophie-katz.github.io/test-ur-code-XD/assertions/arithmetic/)
+/// for a usage guide.
+///
 /// # Arguments
 ///
 /// * `lhs` - The value on the left-hand side.
@@ -97,6 +109,10 @@ pub fn assert_lt_impl<LhsType: PartialOrd<RhsType>, RhsType>(lhs: &LhsType, rhs:
 }
 
 /// Asserts that one value is less than the other using the [`PartialOrd`] trait.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/arithmetic](https://sophie-katz.github.io/test-ur-code-XD/assertions/arithmetic/)
+/// for a usage guide.
 ///
 /// # Arguments
 ///
@@ -136,6 +152,10 @@ pub fn assert_le_impl<LhsType: PartialOrd<RhsType>, RhsType>(lhs: &LhsType, rhs:
 
 /// Asserts that one value is less than or equal to the other using the [`PartialOrd`] trait.
 ///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/arithmetic](https://sophie-katz.github.io/test-ur-code-XD/assertions/arithmetic/)
+/// for a usage guide.
+///
 /// # Arguments
 ///
 /// * `lhs` - The value on the left-hand side.
@@ -174,6 +194,10 @@ pub fn assert_gt_impl<LhsType: PartialOrd<RhsType>, RhsType>(lhs: &LhsType, rhs:
 
 /// Asserts that one value is greater than the other using the [`PartialOrd`] trait.
 ///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/arithmetic](https://sophie-katz.github.io/test-ur-code-XD/assertions/arithmetic/)
+/// for a usage guide.
+///
 /// # Arguments
 ///
 /// * `lhs` - The value on the left-hand side.
@@ -211,6 +235,10 @@ pub fn assert_ge_impl<LhsType: PartialOrd<RhsType>, RhsType>(lhs: &LhsType, rhs:
 }
 
 /// Asserts that one value is greater than or equal to the other using the [`PartialOrd`] trait.
+///
+/// See
+/// [sophie-katz.github.io/test-ur-code-XD/assertions/arithmetic](https://sophie-katz.github.io/test-ur-code-XD/assertions/arithmetic/)
+/// for a usage guide.
 ///
 /// # Arguments
 ///
