@@ -16,3 +16,34 @@ not, see <https://www.gnu.org/licenses/>.
 -->
 
 # Getting Started
+
+## Installation
+
+Add this to your `Cargo.toml`:
+
+```toml
+[dev-dependencies]
+test-ur-code-xd = "0.1.0"
+```
+
+## Usage
+
+Then, add `use test_ur_code_xd::*;` to your tests:
+
+```rust hl_lines="3"
+#[cfg(test)]
+mod tests {
+    use test_ur_code_xd::*;
+
+    #[test]
+    fn example() {
+        // ...
+
+        assert_str_eq!(hello_world, "hello, world");
+
+        // ...
+    }
+}
+```
+
+This will give you access to [the assertions](assertions/boolean.md) and to [the test annotations](tests.md).

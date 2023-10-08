@@ -21,7 +21,7 @@ Arithmetic assertions are those that compare two values together.
 
 ## Equality
 
-These assertions compare values that implement the `PartialEq` trait. There are two:
+These assertions compare values that implement the `PartialEq` trait:
 
 ```rust
 // Ensure that the values are equal
@@ -31,9 +31,9 @@ assert_eq!(x, y);
 assert_ne!(x, y);
 ```
 
-## Order
+## Ordering
 
-These assertions compare values that implement the `PartialOrd` trait. They are:
+These assertions compare values that implement the `PartialOrd` trait:
 
 ```rust
 // Ensure that x is less than y

@@ -15,4 +15,31 @@ You should have received a copy of the GNU General Public License along with tes
 not, see <https://www.gnu.org/licenses/>.
 -->
 
-asdf
+# Parameterized tests
+
+test ur code XD provides an attribute to parameterize tests:
+
+```rust
+#[test_with_parameter_values(
+    x = [5, 6, 7],
+    y = [1, 2])
+]
+fn example(x: i32, y: i32) {
+    assert!(x + y > 0);
+}
+```
+
+This will permute the values of `x` and `y` and run the test for each permutation. In this case, the test will run 6 times:
+
+| `x` | `y` |
+| --- | --- |
+| 5   | 1   |
+| 5   | 2   |
+| 6   | 1   |
+| 6   | 2   |
+| 7   | 1   |
+| 7   | 2   |
+
+!!! warning
+
+    The values must be array literals. Vectors or other dynamically generated values are not supported.

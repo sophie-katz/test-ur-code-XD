@@ -17,7 +17,7 @@ not, see <https://www.gnu.org/licenses/>.
 
 # Float assertions
 
-Testing with floats is complicated! The [arithmetic assertions](assertions/arithmetic.md) can work with floats just fine, but they do not account for floating-point error in calculations. For example, this assertion will *fail*:
+Testing with floats is deceptively complicated. [Arithmetic assertions](assertions/arithmetic.md) can work with floats just fine, but they do not account for floating-point error in calculations. For example, this assertion will *fail*:
 
 ```rust
 assert_eq!(
@@ -34,7 +34,7 @@ To explain why, we need to understand a bit of background about floating-point c
     
     test ur code XD handles floating-point testing in a much more detailed manner than many other testing frameworks. It requires a bit of background to understand why.
 
-The example above taken from the [`float_cmp` crate](https://docs.rs/float-cmp/latest/float_cmp/#the-problem). This crate is excellent. test ur code XD builds a bit more functionality on top of it.
+The example above taken from the excellent [`float_cmp` crate](https://docs.rs/float-cmp/latest/float_cmp/#the-problem). test ur code XD builds a bit more functionality on top of it.
 
 ## Floating-point comparison is complicated
 

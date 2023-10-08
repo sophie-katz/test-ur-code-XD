@@ -17,15 +17,17 @@ not, see <https://www.gnu.org/licenses/>.
 
 # Panic assertion
 
-The panic assertion checks if a specific piece of code panics.
+The panic assertion checks if a specific piece of code panics:
 
 ```rust
+// Ensure that the code panics
 assert_panics!(
     || {
         panic!();
     }
 );
 
+// Ensure that the code panics with a specific message
 assert_panics!(
     || {
         panic!("hello, world");
@@ -39,7 +41,7 @@ assert_panics!(
 The second call to `assert_panics!` takes an `on_message` argument. This argument is a closure
 that takes a single argument of type `String` representing the panic message.
 
-## Why not `#[should_panic]`
+## Why not `#[should_panic]`?
 
 Rust has a built-in attribute called `#[should_panic]` that can be used to check if a unit test will panic:
 
@@ -53,9 +55,9 @@ fn unit_test() {
 }
 ```
 
-There's no reason not to use this. `assert_panics!(...)` provides a bit more granularity and can allow code to continue after the panic:
+There's no reason not to use this, but `assert_panics!(...)` provides a bit more granularity and can allow code to continue after the panic:
 
-```rust
+```rust hl_lines="9"
 #[test]
 fn unit_test() {
     assert_panics!(

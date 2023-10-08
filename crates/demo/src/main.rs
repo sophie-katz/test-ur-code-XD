@@ -17,13 +17,14 @@
 //
 // $ cargo run demo; echo; echo
 
-use test_ur_code_xd::assert_gt;
+use test_ur_code_xd::{assert_gt, assert_str_eq};
 
 fn main() {
     let x = 5;
     println!();
     println!();
-    assert_gt!(x, 10);
+    // assert_gt!(x, 10);
+    assert_str_eq!("red fish", "two fish");
     println!();
     println!();
 }

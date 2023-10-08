@@ -27,7 +27,7 @@ Add in the `negate = true` argument to make the assertion have the opposite of i
 assert_str_contains!("hello, world", "asdf", negate = true);
 ```
 
-This says that `"hello, world"` does *not* contain `"asdf"`.
+This ensures that `"hello, world"` does *not* contain `"asdf"`.
 
 ## Descriptions
 

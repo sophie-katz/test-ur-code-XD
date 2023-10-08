@@ -27,4 +27,17 @@ assert!(value);
 assert_not!(value);
 ```
 
-They both take a single argument of type `bool`.
+They both take a single true/false argument.
+
+## Details (advanced)
+
+=== "Type"
+
+    The values must be of type `bool`.
+
+=== "Panic conditions"
+
+    | Assertion    | Panic condition |
+    | ------------ | --------------- |
+    | `assert`     | `!value`        |
+    | `assert_not` | `value`         |

@@ -74,8 +74,6 @@ Instead of directly making an assertion on the file contents, it accept a closur
 
     All path arguments for these asserts do not have to be a particular path type, but must implement the `AsRef<Path>` trait.
 
-    They must additionally implement the `Debug` trait.
-
 === "Panic conditions"
 
     | Assertion                    | Panic condition                               |

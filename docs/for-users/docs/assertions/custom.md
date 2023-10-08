@@ -44,3 +44,17 @@ Let's break it apart. There are three arguments to `assert_custom!(...)`:
 * `|panic_message_builder| { ... }` - A closure that configures the assertion's panic message to display detailed information about the assertion's arguments.
 
 This allows you to make an assertion with any predicate and print any variables that are relevant.
+
+## Details (advanced)
+
+=== "Traits"
+
+    The predicate expression must be of type `bool`.
+
+    Any arguments must implement the `Debug` trait.
+
+=== "Panic conditions"
+
+    | Assertion       | Panic condition |
+    | --------------- | --------------- |
+    | `assert_custom` | `!predicate`    |

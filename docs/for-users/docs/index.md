@@ -15,13 +15,33 @@ You should have received a copy of the GNU General Public License along with tes
 not, see <https://www.gnu.org/licenses/>.
 -->
 
+# test ur code XD :3
+
+[GitHub repository](https://github.com/sophie-katz/test-ur-code-XD) | [crates.io](http://www.example.com) | [docs.rs](http://www.example.com)
+
 test ur code XD is a Rust crate that tries to improve testing with a more full-featured framework. It makes tests more readable with better assertions and with more readable errors.
 
-![A screenshot of an assertion](assets/assertion-screenshot.png)
+<figure markdown>
+  ![A screenshot of an assertion](assets/assertion-screenshot.png)
+  <figcaption>Example assertion</figcaption>
+</figure>
 
-# Features
+<figure markdown>
+  ![A screenshot of a string diff assertion](assets/string-diff-screenshot.png)
+  <figcaption>A string diff assertion</figcaption>
+</figure>
 
-## Parameterized tests
+## Features
+
+### More assertions
+
+* Floating-point assertions
+* String assertions
+* Panic assertions
+* Output assertions for `stdout` and `stderr`
+* Filesystem assertions
+
+### Parameterized tests
 
 ```rust
 #[test_with_parameter_values(
@@ -39,10 +59,16 @@ fn example(x: i32, y: i32) {
 }
 ```
 
-## More assertions
+## Comparison to other crates
 
-* Floating-point assertions
-* String assertions
-* Panic assertions
-* Output assertions for `stdout` and `stderr`
-* Filesystem assertions
+| Category                  | test ur code XD | Built-in | [pretty_assertions](https://crates.io/crates/pretty-assertions) | [similar-asserts](https://crates.io/crates/similar-asserts) | [test-case](https://crates.io/crates/test-case) | [rstest](https://crates.io/crates/rstest) | [NTest](https://crates.io/crates/ntest) |
+| ------------------------- | :-------------: | :------: | :-------------------------------------------------------------: | :---------------------------------------------------------: | :---------------------------------------------: | :---------------------------------------: | :-------------------------------------: |
+| Pretty assertions         | ✔               |          | ✔                                                               | ✔                                                           |                                                 |                                           |                                         |
+| Floating-point assertions | ✔               |          |                                                                 |                                                             |                                                 |                                           | ✔                                       |
+| Diffing assertions        | ✔               |          | ✔                                                               | ✔                                                           |                                                 |                                           |                                         |
+| Panic assertions          | ✔               |          |                                                                 |                                                             |                                                 |                                           | ✔                                       |
+| Output assertions         | ✔               |          |                                                                 |                                                             |                                                 |                                           |                                         |
+| Filesystem testing        | ✔               |          |                                                                 |                                                             |                                                 |                                           |                                         |
+| Parameterized tests       | ✔               |          |                                                                 |                                                             | ✔                                               | ✔                                         |                                         |
+| Test permutation          | ✔               |          |                                                                 |                                                             | ✔                                               | ✔                                         |                                         |
+| Fixtures                  |                 |          |                                                                 |                                                             |                                                 | ✔                                         |                                         |

@@ -17,7 +17,7 @@ not, see <https://www.gnu.org/licenses/>.
 
 # Output assertion
 
-The output assertion checks for `stdout` and `stderr` output from specific pieces of code.
+The output assertion checks for `stdout` and `stderr` output from specific pieces of code:
 
 ```rust
 assert_outputs!(
@@ -30,7 +30,7 @@ assert_outputs!(
 );
 ```
 
-You can use `on_stdout = <closure>`, `on_stderr = <closure>`, or both to check both output streams.
+You can use `on_stdout = <closure>`, `on_stderr = <closure>`, or both to check the output streams.
 
 !!! warning
 
@@ -38,16 +38,16 @@ You can use `on_stdout = <closure>`, `on_stderr = <closure>`, or both to check b
 
 ## Avoiding Cargo issues
 
-By default, `cargo test` will capture output and also run tests in parallel. These both cause issues for `assert_outputs!(...)`.
-
-* Capturing output means that `stdout` and `stderr` will be empty when the code under test runs. This means that `assert_outputs!(...)` becomes useless.
-
-* Although the assertion is thread safe, it cannot stop other threads from using `stdout` and `stderr`.
-
-You must add or modify the `.cargo/config.toml` file to the root of your Rust crate or workspace to have these lines:
+To use this assertion, you must create or modify [the `.cargo/config.toml` file](https://doc.rust-lang.org/cargo/reference/config.html). Add this to it:
 
 ```toml
 [env]
 RUST_TEST_NOCAPTURE = "1"
 RUST_TEST_THREADS   = "1"
 ```
+
+By default, `cargo test` will capture output and also run tests in parallel. These both cause issues for `assert_outputs!(...)`.
+
+* Cargo's output capturing means that `stdout` and `stderr` will be empty when the code actually runs. This means that `assert_outputs!(...)` becomes useless.
+
+* Although the assertion is thread safe, it cannot stop other threads from using `stdout` and `stderr`. This means that `assert_outputs!(...)` becomes unreliable.

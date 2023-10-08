@@ -17,20 +17,23 @@ not, see <https://www.gnu.org/licenses/>.
 
 # String assertions
 
-Strings assertions operate on string types.
+String assertions operate on string types:
 
 ```rust
+// Compare two strings and diff the results
+assert_str_eq!("hello, world", "hello");
+
 // Ensure that the second string is contained within the first
-assert_str_contains("hello, world", "hello");
+assert_str_contains!("hello, world", "hello");
 
 // Ensure that the first string starts with the second 
-assert_str_starts_with("hello, world", "hello");
+assert_str_starts_with!("hello, world", "hello");
 
 // Ensure that the first string ends with the second
-assert_str_ends_with("hello, world", "world");
+assert_str_ends_with!("hello, world", "world");
 
 // Ensure that the first string matches the second regex
-assert_str_matches("hello, world", "[a-z, ]+");
+assert_str_matches!("hello, world", "[a-z, ]+");
 ```
 
 Regular expressions for `assert_str_matches` follow the rules for the [`regex` crate](https://docs.rs/regex/latest/regex/).
@@ -40,8 +43,6 @@ Regular expressions for `assert_str_matches` follow the rules for the [`regex` c
 === "Traits"
 
     Both arguments for all these asserts do not have to be a particular string type, but must implement the `AsRef<str>` trait.
-
-    They must additionally implement the `Debug` trait.
 
 === "Panic conditions"
 
