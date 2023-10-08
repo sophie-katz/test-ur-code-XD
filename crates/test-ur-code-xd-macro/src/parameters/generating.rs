@@ -24,7 +24,7 @@
 //!                               the parameter function does not.
 
 use quote::{format_ident, quote};
-use syn::{Expr, Ident, ItemFn, Type};
+use syn::{Attribute, Expr, Ident, ItemFn, Type};
 
 /// Creates an identifier for the parameter function.
 ///
@@ -56,6 +56,7 @@ pub fn generate_parameter_function(mut item: ItemFn) -> proc_macro2::TokenStream
 /// * `parameterization` - The parameterization to use for the permutation function.
 /// * `index` - An integer index used to differentiate the permutations.
 pub fn generate_permutation_function(
+    attributes: &[Attribute],
     item: &ItemFn,
     parameterized_fn_inputs: &[(String, Type, Expr)],
     index: u32,
@@ -79,6 +80,7 @@ pub fn generate_permutation_function(
     // Generate token stream
     quote! {
         #[test]
+        #( #attributes )*
         fn #test_function_ident () {
             #(let #let_expression_idents: #let_expression_types = #let_expression_values;)*
 
@@ -90,7 +92,7 @@ pub fn generate_permutation_function(
 #[cfg(test)]
 mod tests {
     use quote::ToTokens;
-    use syn::parse_quote;
+    use syn::{parse, parse_quote};
 
     use super::*;
 
@@ -127,11 +129,14 @@ mod tests {
 
     #[test]
     fn generate_permutation_function_empty() {
+        let attributes = Vec::new();
+
         let item = parse_quote! {
             fn asdf() {}
         };
 
-        let permutation_function = generate_permutation_function(&item, &Vec::new(), 0);
+        let permutation_function =
+            generate_permutation_function(&attributes, &item, &Vec::new(), 0);
 
         assert_eq!(
             permutation_function.to_token_stream().to_string(),
@@ -141,6 +146,8 @@ mod tests {
 
     #[test]
     fn generate_permutation_function_two() {
+        let attributes = Vec::new();
+
         let item = parse_quote! {
             fn asdf(a: u32, b: u32) {
                 assert_eq!(a, b);
@@ -148,6 +155,7 @@ mod tests {
         };
 
         let permutation_function = generate_permutation_function(
+            &attributes,
             &item,
             &vec![
                 ("a".to_owned(), parse_quote! { u32 }, parse_quote! { 1 }),
@@ -157,5 +165,28 @@ mod tests {
         );
 
         assert_eq!(permutation_function.to_token_stream().to_string(), "# [test] fn asdf_0 () { let a : u32 = 1 ; let b : u32 = 2 ; _test_ur_code_xd_asdf_parameter_function (a , b) ; }");
+    }
+
+    #[test]
+    fn generate_permutation_function_attributes() {
+        let attributes = vec![parse_quote! { #[doc(hidden)] }, parse_quote! { #[ignore] }];
+
+        let item = parse_quote! {
+            fn asdf(a: u32, b: u32) {
+                assert_eq!(a, b);
+            }
+        };
+
+        let permutation_function = generate_permutation_function(
+            &attributes,
+            &item,
+            &vec![
+                ("a".to_owned(), parse_quote! { u32 }, parse_quote! { 1 }),
+                ("b".to_owned(), parse_quote! { u32 }, parse_quote! { 2 }),
+            ],
+            0,
+        );
+
+        assert_eq!(permutation_function.to_token_stream().to_string(), "# [test] # [doc (hidden)] # [ignore] fn asdf_0 () { let a : u32 = 1 ; let b : u32 = 2 ; _test_ur_code_xd_asdf_parameter_function (a , b) ; }");
     }
 }

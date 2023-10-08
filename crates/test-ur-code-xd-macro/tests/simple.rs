@@ -22,3 +22,12 @@ use test_ur_code_xd_macro::test_with_parameter_values;
 fn example(x: i32, y: i32) {
     assert!(x + y > 0);
 }
+
+#[test_with_parameter_values(
+    x = [5, 6, 7],
+    y = [1, 2]
+)]
+#[should_panic]
+fn failure(x: i32, y: i32) {
+    assert!(x + y < 0);
+}

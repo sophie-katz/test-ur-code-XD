@@ -111,9 +111,7 @@ pub fn generate_permuted_test_function(
     vec_of_parameter_maps: Vec<HashMap<String, Expr>>,
 ) -> proc_macro2::TokenStream {
     // Take attribute list
-    //
-    // TODO: Do something with attributes
-    let _attributes: Vec<Attribute> =
+    let attributes: Vec<Attribute> =
         filter_fn_attrs_without_this_macro(take_fn_attrs(&mut item)).collect();
 
     // Initialize token stream
@@ -150,6 +148,7 @@ pub fn generate_permuted_test_function(
 
         // Generate the permutation function
         result.extend(generate_permutation_function(
+            &attributes,
             &item,
             &paramterized_fn_inputs,
             counter as u32,
