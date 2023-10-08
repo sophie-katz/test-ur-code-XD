@@ -359,9 +359,9 @@ mod tests {
             x = [5, 6, 7],
             y = [1, 2])
         ]
-        #[doc(hidden)]
+        #[should_panic]
         fn example_attributes(x: i32, y: i32) {
-            assert!(x + y > 0);
+            assert!(x + y < 0);
         }
     }
 }

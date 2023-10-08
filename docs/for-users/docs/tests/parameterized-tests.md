@@ -46,16 +46,16 @@ This will permute the values of `x` and `y` and run the test for each permutatio
 
 ## Other attributes
 
-Any other attributes on the test function will be applied to each permutation. For example, this test using the [`#[serial]`](https://docs.rs/serial_test/latest/serial_test/attr.serial.html) attribute:
+Any other attributes on the test function will be applied to each permutation. For example, this test using the `#[should_panic]` attribute:
 
 ```rust hl_lines="5"
 #[test_with_parameter_values(
     x = [5, 6, 7],
     y = [1, 2])
 ]
-#[serial]
+#[should_panic]
 fn example(x: i32, y: i32) {
-    assert!(x + y > 0);
+    assert!(x + y < 0);
 }
 ```
 
@@ -63,11 +63,11 @@ Will be converted to these functions:
 
 ```rust hl_lines="6"
 fn _test_ur_code_xd_example_parameter_function(x: i32, y: i32) {
-    assert!(x + y > 0);
+    assert!(x + y < 0);
 }
 
 #[test]
-#[serial]
+#[should_panic]
 fn example_0() {
     let x = 5;
     let y = 1;
