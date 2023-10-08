@@ -53,3 +53,19 @@ mod tests {
 ```
 
 This will give you access to [the assertions](assertions/boolean.md) and to [the test annotations](tests.md).
+
+## Crate features
+
+There are a number of crate features you can enable or disable. All of them are enabled by default.
+
+| Feature       | Description                                                            |
+| ------------- | ---------------------------------------------------------------------- |
+| `filesystem`  | Enables filesystem assertions                                          |
+| `float`       | Enables floating-point assertions                                      |
+| `macros`      | Enables the procedural macro used for test parameterization            |
+| `output`      | Enables output assertions                                              |
+| `panic`       | Enables panic assertions                                               |
+| `regex`       | Enables the use of the [`regex`](https://crates.io/crates/regex) crate |
+| `string-diff` | Enables the use of string diffing assertions (`assert_str_eq!(...)`)   |
+
+See test ur code XD's [`Cargo.toml`](https://github.com/sophie-katz/test-ur-code-XD/blob/main/crates/test-ur-code-xd/Cargo.toml) to see what dependencies are used for each feature.
