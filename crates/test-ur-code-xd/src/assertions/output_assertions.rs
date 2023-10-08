@@ -54,7 +54,7 @@ pub fn assert_outputs_impl<ActionType: FnOnce()>(
 ///                                     nothing. The `String` is the content of `stderr` that was
 ///                                     outputted by `action`.
 ///
-/// **NOTE:** At least one of `on_stdout` and `on_stderr` must be passed. `on_stdout` must always
+/// **Note:** At least one of `on_stdout` and `on_stderr` must be passed. `on_stdout` must always
 /// come before `on_stderr`.
 ///
 /// # Example
@@ -132,7 +132,7 @@ pub fn assert_outputs_raw_impl<ActionType: FnOnce()>(
 ///                                     returns nothing. The `u8` array is the content of `stderr`
 ///                                     that was outputted by `action`.
 ///
-/// **NOTE:** At least one of `on_stdout` and `on_stderr` must be passed. `on_stdout` must always
+/// **Note:** At least one of `on_stdout` and `on_stderr` must be passed. `on_stdout` must always
 /// come before `on_stderr`.
 ///
 /// # Example

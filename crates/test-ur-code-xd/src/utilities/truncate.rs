@@ -18,7 +18,7 @@ const TRUNCATION_SEPARATOR: &str = " ... ";
 
 /// Gets the length of a string after truncating in the middle.
 ///
-/// **NOTE:** This does not properly support newlines in the truncated string.
+/// **Note:** This does not properly support newlines in the truncated string.
 ///
 /// # Arguments
 ///
@@ -38,7 +38,7 @@ pub fn middle_truncated_len(text: impl AsRef<str>, context_len: usize) -> usize 
 
 /// Truncates a string in the middle.
 ///
-/// **NOTE:** This does not properly support newlines in the truncated string.
+/// **Note:** This does not properly support newlines in the truncated string.
 ///
 /// # Example
 ///

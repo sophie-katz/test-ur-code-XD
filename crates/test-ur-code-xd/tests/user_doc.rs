@@ -203,6 +203,7 @@ mod assertions {
 
             assert_file_text!(
                 "hello_world.txt",
+                max_len = 1024,
                 on_text = |text| {
                     assert_eq!(text, "hello, world");
                 }
@@ -218,6 +219,7 @@ mod assertions {
 
             assert_file_text_raw!(
                 "hello_world.txt",
+                max_len = 1024,
                 on_text = |text| {
                     assert_eq!(text, b"hello, world");
                     //               ↑

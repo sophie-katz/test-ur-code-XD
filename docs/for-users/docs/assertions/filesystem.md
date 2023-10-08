@@ -58,6 +58,7 @@ There is an assertion to check the contents of a file:
     ```rust
     assert_file_text!(
         "hello_world.txt",
+        max_len = 1024,
         on_text = |text| {
             assert_eq!(text, "hello, world");
         }
@@ -68,9 +69,10 @@ There is an assertion to check the contents of a file:
 
 === "Raw"
 
-    ```rust hl_lines="4 5"
+    ```rust hl_lines="5 6"
     assert_file_text_raw!(
         "hello_world.txt",
+        max_len = 1024,
         on_text = |text| {
             assert_eq!(text, b"hello, world");
             //               ↑
@@ -82,9 +84,9 @@ There is an assertion to check the contents of a file:
 
 Instead of directly making an assertion on the file contents, it accept a closure. The closure's single argument is the file's contents as a `String`.
 
-!!! warning
+### Maximum length
 
-    This will read the whole file into memory at once. This is fine for smaller files but beware of running this for very large files!
+The `max_len` argument is a safety measure to ensure that very large files do not accidentally get read into memory all at once. If the file is larger than `max_len` in bytes, the assertion will fail.
 
 ## Details (advanced)
 

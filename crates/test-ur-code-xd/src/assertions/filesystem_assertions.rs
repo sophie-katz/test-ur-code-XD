@@ -19,7 +19,13 @@
 //! [sophie-katz.github.io/test-ur-code-XD/assertions/filesystem](https://sophie-katz.github.io/test-ur-code-XD/assertions/filesystem/)
 //! for a usage guide.
 
-use std::{fmt::Display, fs, panic::Location, path::Path};
+use std::{
+    fmt::Display,
+    fs::{self, File},
+    io::{BufReader, Read},
+    panic::Location,
+    path::Path,
+};
 
 use crate::utilities::panic_message_builder::PanicMessageBuilder;
 
@@ -427,17 +433,32 @@ fn unwrap_file_read<ValueType, ErrorType: Display>(
 #[doc(hidden)]
 pub fn assert_file_text_impl<OnTextType: FnOnce(String)>(
     path: impl AsRef<Path>,
+    max_len: u64,
     on_text: OnTextType,
 ) {
+    // Make sure that path points to a file that exists
     ensure_is_file(&path);
 
-    on_text(unwrap_file_read(&path, fs::read_to_string(path.as_ref())));
+    // Open the file
+    let file = unwrap_file_read(&path, File::open(path.as_ref()));
+
+    // Ensure that the file length is within limits
+    ensure_file_len_within_limit(&path, &file, max_len);
+
+    // Create a buffered reader for the file
+    let mut buf_reader = BufReader::new(file);
+
+    // Create the string into which to read the file
+    let mut string = String::new();
+
+    // Read the file
+    unwrap_file_read(&path, buf_reader.read_to_string(&mut string));
+
+    // Call the action
+    on_text(string);
 }
 
 /// Asserts that the file contains text that matches assertions.
-///
-/// **Warning:** this will read the whole file into memory as a string! Do not use on very large
-/// files.
 ///
 /// See
 /// [sophie-katz.github.io/test-ur-code-XD/assertions/filesystem](https://sophie-katz.github.io/test-ur-code-XD/assertions/filesystem/)
@@ -446,6 +467,7 @@ pub fn assert_file_text_impl<OnTextType: FnOnce(String)>(
 /// # Arguments
 ///
 /// * `path` - The path of the file to read.
+/// * `max_len` - The maximum expected size of the file in bytes.
 /// * `on_text` - A closure that takes the file content string as an argument.
 /// * Optional keyword arguments for assertions.
 ///
@@ -465,6 +487,7 @@ pub fn assert_file_text_impl<OnTextType: FnOnce(String)>(
 /// #
 /// assert_file_text!(
 ///     "hello_world_file.txt",
+///     max_len = 1024,
 ///     on_text = |text| {
 ///         assert_eq!(text, "hello, world");
 ///     }
@@ -472,26 +495,60 @@ pub fn assert_file_text_impl<OnTextType: FnOnce(String)>(
 /// ```
 #[macro_export]
 macro_rules! assert_file_text {
-    ($path:expr, on_text = $on_text:expr) => {
-        // TODO: Add a max file size limit
-        $crate::assertions::filesystem_assertions::assert_file_text_impl($path, $on_text)
+    ($path:expr, max_len = $max_len:expr, on_text = $on_text:expr) => {
+        $crate::assertions::filesystem_assertions::assert_file_text_impl($path, $max_len, $on_text)
     };
 }
 
 #[doc(hidden)]
 pub fn assert_file_text_raw_impl<OnTextType: FnOnce(&[u8])>(
     path: impl AsRef<Path>,
+    max_len: u64,
     on_text: OnTextType,
 ) {
+    // Make sure that path points to a file that exists
     ensure_is_file(&path);
 
-    on_text(&unwrap_file_read(&path, fs::read(path.as_ref())));
+    // Open the file
+    let file = unwrap_file_read(&path, File::open(path.as_ref()));
+
+    // Ensure that the file length is within limits
+    let file_len = ensure_file_len_within_limit(&path, &file, max_len);
+
+    // Create a buffered reader for the file
+    let mut buf_reader = BufReader::new(file);
+
+    // Create the string into which to read the file
+    let mut buffer = vec![0; file_len as usize];
+
+    // Read the file
+    unwrap_file_read(&path, buf_reader.read(&mut buffer));
+
+    // Call the action
+    on_text(&buffer);
+}
+
+fn ensure_file_len_within_limit(path: &impl AsRef<Path>, file: &File, max_len: u64) -> u64 {
+    // Get the file length
+    let file_len = unwrap_file_read(&path, file.metadata()).len();
+
+    // Compare the length to the limit
+    if file_len > max_len {
+        PanicMessageBuilder::new(
+            format!(
+                "file is larger than limit (size: {} bytes, limit: {} bytes)",
+                file_len, max_len
+            ),
+            Location::caller(),
+        )
+        .with_argument("path", "--", &path.as_ref())
+        .panic();
+    }
+
+    file_len
 }
 
 /// Asserts that the raw file contains text that matches assertions.
-///
-/// **Warning:** this will read the whole file into memory as a string! Do not use on very large
-/// files.
 ///
 /// See
 /// [sophie-katz.github.io/test-ur-code-XD/assertions/filesystem](https://sophie-katz.github.io/test-ur-code-XD/assertions/filesystem/)
@@ -500,6 +557,7 @@ pub fn assert_file_text_raw_impl<OnTextType: FnOnce(&[u8])>(
 /// # Arguments
 ///
 /// * `path` - The path of the file to read.
+/// * `max_len` - The maximum expected size of the file in bytes.
 /// * `on_text` - A closure that takes the file content byte array as an argument.
 /// * Optional keyword arguments for assertions.
 ///
@@ -519,6 +577,7 @@ pub fn assert_file_text_raw_impl<OnTextType: FnOnce(&[u8])>(
 /// #
 /// assert_file_text_raw!(
 ///     "hello_world_file.txt",
+///     max_len = 1024,
 ///     on_text = |text| {
 ///         assert_eq!(text, "hello, world".as_bytes());
 ///     }
@@ -526,9 +585,10 @@ pub fn assert_file_text_raw_impl<OnTextType: FnOnce(&[u8])>(
 /// ```
 #[macro_export]
 macro_rules! assert_file_text_raw {
-    ($path:expr, on_text = $on_text:expr) => {
-        // TODO: Add a max file size limit
-        $crate::assertions::filesystem_assertions::assert_file_text_raw_impl($path, $on_text)
+    ($path:expr, max_len = $max_len:expr, on_text = $on_text:expr) => {
+        $crate::assertions::filesystem_assertions::assert_file_text_raw_impl(
+            $path, $max_len, $on_text,
+        )
     };
 }
 
@@ -988,6 +1048,7 @@ mod tests {
 
         assert_file_text!(
             "some_file",
+            max_len = 1024,
             on_text = |text| {
                 assert_eq!(text, "hello, world");
             }
@@ -1004,6 +1065,7 @@ mod tests {
 
         assert_file_text!(
             "some_file",
+            max_len = 1024,
             on_text = |text| {
                 assert_eq!(text, "asdf");
             }
@@ -1020,6 +1082,7 @@ mod tests {
 
         assert_file_text!(
             "asdf",
+            max_len = 1024,
             on_text = |text| {
                 assert_eq!(text, "hello, world");
             }
@@ -1035,6 +1098,7 @@ mod tests {
 
         assert_file_text_raw!(
             "some_file",
+            max_len = 1024,
             on_text = |text| {
                 assert_eq!(text, b"hello, world");
             }
@@ -1051,6 +1115,7 @@ mod tests {
 
         assert_file_text_raw!(
             "some_file",
+            max_len = 1024,
             on_text = |text| {
                 assert_eq!(text, b"asdf");
             }
@@ -1067,6 +1132,7 @@ mod tests {
 
         assert_file_text_raw!(
             "asdf",
+            max_len = 1024,
             on_text = |text| {
                 assert_eq!(text, b"hello, world");
             }
