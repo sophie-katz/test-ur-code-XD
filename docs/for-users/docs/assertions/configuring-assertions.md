@@ -59,4 +59,4 @@ assert_le!(
 );
 ```
 
-`description` accepts as `&str` value while `description_owned` accepts a `String` value.
+`description` accepts a `&str` value while `description_owned` accepts a `String` value.

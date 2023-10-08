@@ -19,16 +19,36 @@ not, see <https://www.gnu.org/licenses/>.
 
 The output assertion checks for `stdout` and `stderr` output from specific pieces of code:
 
-```rust
-assert_outputs!(
-    || {
-        println!("hello, world");
-    },
-    on_stdout = |stdout| {
-        assert_eq!(stdout, "hello, world\n");
-    }
-);
-```
+=== "Text"
+
+    ```rust
+    assert_outputs!(
+        || {
+            println!("hello, world");
+        },
+        on_stdout = |stdout| {
+            assert_eq!(stdout, "hello, world\n");
+        }
+    );
+    ```
+
+    The closure arguments `stdout` and `stderr` are of type `String`.
+
+=== "Raw"
+
+    ```rust hl_lines="6 7"
+    assert_outputs_raw!(
+        || {
+            println!("hello, world");
+        },
+        on_stdout = |stdout| {
+            assert_eq!(stdout, b"hello, world\n");
+            //                 ↑
+        }
+    );
+    ```
+
+    The closure arguments `stdout` and `stderr` are of type `&[u8]`.
 
 You can use `on_stdout = <closure>`, `on_stderr = <closure>`, or both to check the output streams.
 

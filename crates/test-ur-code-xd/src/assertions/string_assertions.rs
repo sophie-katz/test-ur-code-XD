@@ -30,7 +30,7 @@ const DIFF_CONTEXT_SIZE: usize = 5;
 
 #[doc(hidden)]
 pub fn assert_str_eq_impl(lhs: impl AsRef<str>, rhs: impl AsRef<str>) -> bool {
-    lhs.as_ref() == rhs.as_ref()
+    lhs.as_ref().eq(rhs.as_ref())
 }
 
 #[cfg(feature = "string-diff")]
@@ -213,8 +213,8 @@ macro_rules! assert_str_eq {
             $crate::assertions::string_assertions::assert_str_eq_impl(&$lhs, &$rhs),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("lhs", stringify!($lhs), &$lhs)
-                    .with_argument("rhs", stringify!($rhs), &$rhs)
+                    .with_argument("lhs", stringify!($lhs), &::std::convert::AsRef::<str>::as_ref(&$lhs))
+                    .with_argument("rhs", stringify!($rhs), &::std::convert::AsRef::<str>::as_ref(&$rhs))
                     .with_argument_formatted("diff", "--",
                         $crate::assertions::string_assertions::format_diff(&$lhs, &$rhs)
                     )
@@ -257,8 +257,8 @@ macro_rules! assert_str_contains {
             $crate::assertions::string_assertions::assert_str_contains_impl(&$value, &$substring),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("value", stringify!($value), &$value)
-                    .with_argument("substring", stringify!($substring), &$substring)
+                    .with_argument("value", stringify!($value), &::std::convert::AsRef::<str>::as_ref(&$value))
+                    .with_argument("substring", stringify!($substring), &::std::convert::AsRef::<str>::as_ref(&$substring))
             }
             $(, $keys = $values)*
         )
@@ -298,8 +298,8 @@ macro_rules! assert_str_starts_with {
             $crate::assertions::string_assertions::assert_str_starts_with_impl(&$value, &$prefix),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("value", stringify!($value), &$value)
-                    .with_argument("prefix", stringify!($prefix), &$prefix)
+                    .with_argument("value", stringify!($value), &::std::convert::AsRef::<str>::as_ref(&$value))
+                    .with_argument("prefix", stringify!($prefix), &::std::convert::AsRef::<str>::as_ref(&$prefix))
             }
             $(, $keys = $values)*
         )
@@ -339,8 +339,8 @@ macro_rules! assert_str_ends_with {
             $crate::assertions::string_assertions::assert_str_ends_with_impl(&$value, &$suffix),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("value", stringify!($value), &$value)
-                    .with_argument("suffix", stringify!($suffix), &$suffix)
+                    .with_argument("value", stringify!($value), &::std::convert::AsRef::<str>::as_ref(&$value))
+                    .with_argument("suffix", stringify!($suffix), &::std::convert::AsRef::<str>::as_ref(&$suffix))
             }
             $(, $keys = $values)*
         )
@@ -384,8 +384,8 @@ macro_rules! assert_str_matches {
             $crate::assertions::string_assertions::assert_str_matches_impl(&$value, &$pattern),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("value", stringify!($value), &$value)
-                    .with_argument("pattern", stringify!($pattern), &$pattern)
+                    .with_argument("value", stringify!($value), &::std::convert::AsRef::<str>::as_ref(&$value))
+                    .with_argument("pattern", stringify!($pattern), &::std::convert::AsRef::<str>::as_ref(&$pattern))
             }
             $(, $keys = $values)*
         )

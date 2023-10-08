@@ -43,3 +43,41 @@ This will permute the values of `x` and `y` and run the test for each permutatio
 !!! warning
 
     The values must be array literals. Vectors or other dynamically generated values are not supported.
+
+## Other attributes
+
+Any other attributes on the test function will be applied to each permutation. For example, this test using the [`#[serial]`](https://docs.rs/serial_test/latest/serial_test/attr.serial.html) attribute:
+
+```rust hl_lines="5"
+#[test_with_parameter_values(
+    x = [5, 6, 7],
+    y = [1, 2])
+]
+#[serial]
+fn example(x: i32, y: i32) {
+    assert!(x + y > 0);
+}
+```
+
+Will be converted to these functions:
+
+```rust hl_lines="6"
+fn _test_ur_code_xd_example_parameter_function(x: i32, y: i32) {
+    assert!(x + y > 0);
+}
+
+#[test]
+#[serial]
+fn example_0() {
+    let x = 5;
+    let y = 1;
+
+    _test_ur_code_xd_example_parameter_function(x, y);
+}
+
+// ...
+```
+
+!!! warning
+
+    This means that attributes like `#[cfg(target_family = "unix")]` will only be applied to the permutation functions like `example_0`, not the parameter function `_test_ur_code_xd_example_parameter_function`.

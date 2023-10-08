@@ -63,7 +63,7 @@ macro_rules! assert_path_exists {
             $crate::assertions::filesystem_assertions::assert_path_exists_impl(&$path),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("path", stringify!($path), &$path)
+                    .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))
             }
             $(, $keys = $values)*
         )
@@ -110,7 +110,7 @@ macro_rules! assert_path_is_file {
             $crate::assertions::filesystem_assertions::assert_path_is_file_impl(&$path),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("path", stringify!($path), &$path)
+                    .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))
             }
             $(, $keys = $values)*
         )
@@ -165,7 +165,7 @@ macro_rules! assert_path_is_symlink {
             $crate::assertions::filesystem_assertions::assert_path_is_symlink_impl(&$path),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("path", stringify!($path), &$path)
+                    .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))
             }
             $(, $keys = $values)*
         )
@@ -212,7 +212,7 @@ macro_rules! assert_path_is_dir {
             $crate::assertions::filesystem_assertions::assert_path_is_dir_impl(&$path),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("path", stringify!($path), &$path)
+                    .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))
             }
             $(, $keys = $values)*
         )
@@ -252,7 +252,7 @@ macro_rules! assert_path_is_relative {
             $crate::assertions::filesystem_assertions::assert_path_is_relative_impl(&$path),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("path", stringify!($path), &$path)
+                    .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))
             }
             $(, $keys = $values)*
         )
@@ -293,7 +293,7 @@ macro_rules! assert_path_is_absolute {
             $crate::assertions::filesystem_assertions::assert_path_is_absolute_impl(&$path),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("path", stringify!($path), &$path)
+                    .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))
             }
             $(, $keys = $values)*
         )
@@ -343,8 +343,8 @@ macro_rules! assert_path_starts_with {
             $crate::assertions::filesystem_assertions::assert_path_starts_with_impl(&$path, &$base),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("path", stringify!($path), &$path)
-                    .with_argument("base", stringify!($base), &$base)
+                    .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))
+                    .with_argument("base", stringify!($base), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$base))
             }
             $(, $keys = $values)*
         )
@@ -394,8 +394,8 @@ macro_rules! assert_path_ends_with {
             $crate::assertions::filesystem_assertions::assert_path_ends_with_impl(&$path, &$child),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("path", stringify!($path), &$path)
-                    .with_argument("child", stringify!($child), &$child)
+                    .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))
+                    .with_argument("child", stringify!($child), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$child))
             }
             $(, $keys = $values)*
         )

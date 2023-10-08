@@ -39,7 +39,7 @@ assert_panics!(
 ```
 
 The second call to `assert_panics!` takes an `on_message` argument. This argument is a closure
-that takes a single argument of type `String` representing the panic message.
+that takes a single argument `message` of type `String` representing the panic message.
 
 ## Why not `#[should_panic]`?
 

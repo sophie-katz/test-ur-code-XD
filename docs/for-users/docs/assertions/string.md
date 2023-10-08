@@ -48,6 +48,7 @@ Regular expressions for `assert_str_matches` follow the rules for the [`regex` c
 
     | Assertion                | Panic condition                                |
     | ------------------------ | ---------------------------------------------- |
+    | `assert_str_eq`          | `!x.as_ref().eq(y.as_ref())`                   |
     | `assert_str_contains`    | `!x.as_ref().contains(y.as_ref())`             |
     | `assert_str_starts_with` | `!x.as_ref().starts_with(y.as_ref())`          |
     | `assert_str_ends_with`   | `!x.as_ref().ends_with(y.as_ref())`            |

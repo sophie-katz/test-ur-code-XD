@@ -53,14 +53,32 @@ assert_path_ends_with!("a/b/c", "b/c");
 
 There is an assertion to check the contents of a file:
 
-```rust
-assert_file_text!(
-    "hello_world.txt",
-    on_text = |text| {
-        assert_eq!("hello, world");
-    }
-);
-```
+=== "Text"
+
+    ```rust
+    assert_file_text!(
+        "hello_world.txt",
+        on_text = |text| {
+            assert_eq!("hello, world");
+        }
+    );
+    ```
+
+    `text` is of type `String`.
+
+=== "Raw"
+
+    ```rust hl_lines="4 5"
+    assert_file_text_raw!(
+        "hello_world.txt",
+        on_text = |text| {
+            assert_eq!(b"hello, world");
+            //         ↑
+        }
+    );
+    ```
+
+    `text` is of type `&[u8]`.
 
 Instead of directly making an assertion on the file contents, it accept a closure. The closure's single argument is the file's contents as a `String`.
 
