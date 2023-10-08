@@ -230,9 +230,11 @@ mod tests {
                 std::assert_eq!(1, 2);
             },
             on_message = |message| {
-                assert_eq!(
-                    message,
-                    "assertion `left == right` failed\n  left: 1\n right: 2"
+                // Support older assertion failure messages
+                assert!(
+                    message == "assertion `left == right` failed\n  left: 1\n right: 2"
+                        || message
+                            == "assertion failed: `(left == right)`\n  left: `1`,\n right: `2`"
                 );
             }
         );

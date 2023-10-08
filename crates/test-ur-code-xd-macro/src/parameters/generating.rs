@@ -92,7 +92,7 @@ pub fn generate_permutation_function(
 #[cfg(test)]
 mod tests {
     use quote::ToTokens;
-    use syn::{parse, parse_quote};
+    use syn::parse_quote;
 
     use super::*;
 

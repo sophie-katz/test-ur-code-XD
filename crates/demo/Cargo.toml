@@ -1,6 +1,7 @@
 [package]
 edition = "2021"
 name    = "demo"
+publish = false
 version = "0.1.0"
 
 [dependencies]

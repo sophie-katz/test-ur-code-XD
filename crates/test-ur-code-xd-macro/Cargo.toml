@@ -1,7 +1,15 @@
 [package]
-edition = "2021"
-name    = "test-ur-code-xd-macro"
-version = "0.1.0"
+authors      = ["Sophie Katz <sophie@sophiekatz.us>"]
+categories   = ["development-tools", "development-tools::testing"]
+description  = "Procedural macros for test-ur-code-xd"
+edition      = "2021"
+homepage     = "https://sophie-katz.github.io/test-ur-code-XD"
+keywords     = ["test", "testing", "tests", "assert", "color"]
+license      = "LGPL-3.0-only"
+name         = "test-ur-code-xd-macro"
+repository   = "https://github.com/sophie-katz/test-ur-code-XD"
+rust-version = "1.66"
+version      = "0.1.0"
 
 [lib]
 proc-macro = true

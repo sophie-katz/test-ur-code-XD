@@ -22,9 +22,8 @@
 //! [sophie-katz.github.io/test-ur-code-XD/assertions/configuring-assertions](https://sophie-katz.github.io/test-ur-code-XD/assertions/configuring-assertions/)
 //! for a usage guide.
 
-use std::{fmt::Display, panic::Location};
-
 use crate::{error::Error, utilities::panic_message_builder::PanicMessageBuilder};
+use std::{fmt::Display, panic::Location};
 
 /// The configuration for an assertion.
 ///
@@ -38,7 +37,7 @@ use crate::{error::Error, utilities::panic_message_builder::PanicMessageBuilder}
 //
 //   Make sure to put <br /> tags after all field doc comments except for the last one. This is to
 //   work around Rustdoc's formatting with examples for fields. It just makes it more readable.
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct Config {
     /// A flag that negates the assertion.
     ///
@@ -86,6 +85,7 @@ pub struct Config {
     /// #     true
     /// # }
     /// #
+    /// # #[cfg(not(feature = "faster-asserts"))]
     /// assert!(
     ///     some_function(),
     ///     description = "...",
@@ -138,6 +138,7 @@ pub struct Config {
     ///                                          // fails
     /// );
     /// ```
+    #[cfg(not(feature = "faster-asserts"))]
     pub description_owned: String,
 }
 
@@ -170,7 +171,7 @@ impl Config {
     ///
     /// Config {
     ///     negate: true,
-    ///     ..Default::default()
+    ///     ..Config::default()
     /// }.execute_assertion(
     ///     "lhs == rhs",
     ///     lhs.eq(&rhs),
@@ -227,9 +228,14 @@ impl Config {
         predicate_description: impl Display,
         location: &'static Location,
     ) -> Result<PanicMessageBuilder, Error> {
-        PanicMessageBuilder::new(predicate_description, location)
-            .with_description(self.description)?
-            .with_description(self.description_owned)
+        let panic_message_builder = PanicMessageBuilder::new(predicate_description, location)
+            .with_description(self.description)?;
+
+        #[cfg(not(feature = "faster-asserts"))]
+        let panic_message_builder =
+            panic_message_builder.with_description(self.description_owned)?;
+
+        Ok(panic_message_builder)
     }
 
     /// Helper method to unwrap a panic message builder result
@@ -255,7 +261,7 @@ mod tests {
     #[test]
     fn using_struct_no_panic() {
         Config {
-            ..Default::default()
+            ..Config::default()
         }
         .execute_assertion("value is true", true, Location::caller(), identity);
     }
@@ -264,7 +270,7 @@ mod tests {
     #[should_panic]
     fn using_struct_does_panic() {
         Config {
-            ..Default::default()
+            ..Config::default()
         }
         .execute_assertion("value is true", false, Location::caller(), identity);
     }
@@ -273,7 +279,7 @@ mod tests {
     fn using_struct_no_panic_negated() {
         Config {
             negate: true,
-            ..Default::default()
+            ..Config::default()
         }
         .execute_assertion("value is true", false, Location::caller(), identity);
     }
@@ -283,7 +289,7 @@ mod tests {
     fn using_struct_does_panic_negated() {
         Config {
             negate: true,
-            ..Default::default()
+            ..Config::default()
         }
         .execute_assertion("value is true", true, Location::caller(), identity);
     }
@@ -292,7 +298,7 @@ mod tests {
     #[should_panic]
     fn panic_message_no_description() {
         Config {
-            ..Default::default()
+            ..Config::default()
         }
         .execute_assertion(
             "predicate description",

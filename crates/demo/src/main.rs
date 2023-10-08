@@ -19,8 +19,8 @@
 //
 // Just uncomment the assertion you want to demo.
 
-#[allow(unused_imports)]
-use test_ur_code_xd::{assert_gt, assert_str_eq};
+#[macro_use]
+extern crate test_ur_code_xd;
 
 #[allow(unused_variables)]
 fn main() {
@@ -31,4 +31,17 @@ fn main() {
     assert_str_eq!("red fish", "two fish");
     println!();
     println!();
+}
+
+// Run this to see how an assertion would look like in an actual crate:
+//
+// $ cd crates/demo
+// $ RUST_TEST_NOCAPTURE="0" cargo test
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn example() {
+        // assert_eq!(5, 6);
+    }
 }

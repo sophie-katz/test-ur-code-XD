@@ -1,3 +1,4 @@
 [env]
+# Both of these are needed to support assert_outputs!(...)
 RUST_TEST_NOCAPTURE = "1"
 RUST_TEST_THREADS   = "1"

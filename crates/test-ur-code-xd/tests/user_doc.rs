@@ -330,6 +330,7 @@ mod assertions {
         }
 
         #[test]
+        #[cfg(not(feature = "faster-asserts"))]
         fn example_description_owned() {
             const THRESHOLD: f32 = 0.1;
 

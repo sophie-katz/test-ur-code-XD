@@ -21,7 +21,7 @@
 
 use std::{
     fmt::Display,
-    fs::{self, File},
+    fs::File,
     io::{BufReader, Read},
     panic::Location,
     path::Path,
