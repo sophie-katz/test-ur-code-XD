@@ -59,7 +59,7 @@ There is an assertion to check the contents of a file:
     assert_file_text!(
         "hello_world.txt",
         on_text = |text| {
-            assert_eq!("hello, world");
+            assert_eq!(text, "hello, world");
         }
     );
     ```
@@ -72,8 +72,8 @@ There is an assertion to check the contents of a file:
     assert_file_text_raw!(
         "hello_world.txt",
         on_text = |text| {
-            assert_eq!(b"hello, world");
-            //         ↑
+            assert_eq!(text, b"hello, world");
+            //               ↑
         }
     );
     ```

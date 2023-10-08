@@ -28,13 +28,19 @@ test-ur-code-xd = "0.1.0"
 
 ## Usage
 
-Then, add `use test_ur_code_xd::*;` to your tests:
+Then, add this to your crate root:
+
+```rust
+#[cfg(test)]
+#[macro_use]
+extern crate test_ur_code_xd;
+```
+
+Then, you can use the macros in your tests like this:
 
 ```rust hl_lines="3"
 #[cfg(test)]
 mod tests {
-    use test_ur_code_xd::*;
-
     #[test]
     fn example() {
         // ...

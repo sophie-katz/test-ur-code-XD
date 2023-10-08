@@ -17,8 +17,8 @@ use test_ur_code_xd_macro::test_with_parameter_values;
 
 #[test_with_parameter_values(
     x = [5, 6, 7],
-    y = [1, 2])
-]
+    y = [1, 2]
+)]
 fn example(x: i32, y: i32) {
     assert!(x + y > 0);
 }

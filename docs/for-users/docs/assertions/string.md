@@ -21,7 +21,7 @@ String assertions operate on string types:
 
 ```rust
 // Compare two strings and diff the results
-assert_str_eq!("hello, world", "hello");
+assert_str_eq!(hello_world, "hello, world");
 
 // Ensure that the second string is contained within the first
 assert_str_contains!("hello, world", "hello");

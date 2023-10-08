@@ -135,8 +135,8 @@
 //! # #[cfg(feature = "macros")]
 //! #[test_with_parameter_values(
 //!   x = [5, 6, 7],
-//!   y = [1, 2])
-//! ]
+//!   y = [1, 2]
+//! )]
 //! fn example(x: i32, y: i32) {
 //!   // This will permute the values and automatically run all of these cases:
 //!   //   x == 5, y == 1
@@ -151,3 +151,5 @@
 pub mod assertions;
 pub mod error;
 pub mod utilities;
+
+pub use test_ur_code_xd_macro::test_with_parameter_values;
