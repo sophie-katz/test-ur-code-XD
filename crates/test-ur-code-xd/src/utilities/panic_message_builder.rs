@@ -24,8 +24,13 @@ use std::{
 
 use crate::error::Error;
 
+use super::truncate;
+
 /// The maximum value description length before truncating.
-const MAX_VALUE_DESCRIPTION_LENGTH: usize = 50;
+const VALUE_DESCRIPTION_CONTEXT: usize = 50;
+
+/// The prefix to use before a debug representation of a value
+pub const DEBUGGED_VALUE_PREFIX: &str = "== ";
 
 /// A builder for a formatted panic message.
 ///
@@ -131,19 +136,8 @@ impl PanicMessageBuilder {
         value_description: impl Display,
         value: &impl Debug,
     ) -> Self {
-        let mut value_description_string = format!("{}", value_description);
-
-        if value_description_string.len() > MAX_VALUE_DESCRIPTION_LENGTH - 4 {
-            value_description_string = format!(
-                "{} ...",
-                &value_description_string[..MAX_VALUE_DESCRIPTION_LENGTH - 4]
-            );
-        }
-
-        if let Some(newline_index) = value_description_string.find('\n') {
-            value_description_string =
-                format!("{} ...", &value_description_string[..newline_index]);
-        }
+        let value_description_string =
+            PanicMessageBuilder::format_value_description(value_description);
 
         let value_string = format!("{:?}", value);
 
@@ -169,8 +163,8 @@ impl PanicMessageBuilder {
 
             write!(
                 indented,
-                "\n{} {:#?}",
-                style("==").dim(),
+                "\n{}{:#?}",
+                style(DEBUGGED_VALUE_PREFIX).dim(),
                 style(value).fg(Color::Cyan)
             )
             .expect("unable to write to indented writer");
@@ -218,27 +212,16 @@ impl PanicMessageBuilder {
         value_description: impl Display,
         value: impl AsRef<str>,
     ) -> Self {
-        let mut value_description_string = format!("{}", value_description);
-
-        if value_description_string.len() > MAX_VALUE_DESCRIPTION_LENGTH - 4 {
-            value_description_string = format!(
-                "{} ...",
-                &value_description_string[..MAX_VALUE_DESCRIPTION_LENGTH - 4]
-            );
-        }
-
-        if let Some(newline_index) = value_description_string.find('\n') {
-            value_description_string =
-                format!("{} ...", &value_description_string[..newline_index]);
-        }
-
         let argument_description_string = format!("{}:", argument_description);
 
         self.buffer.push_str(
             format!(
                 "\n  {} {}",
                 style(argument_description_string.as_str()),
-                style(&value_description_string).fg(Color::White),
+                style(PanicMessageBuilder::format_value_description(
+                    value_description
+                ))
+                .fg(Color::White),
             )
             .as_str(),
         );
@@ -249,8 +232,8 @@ impl PanicMessageBuilder {
 
         write!(
             indented,
-            "\n{} {}",
-            style("==").dim(),
+            "\n{}{}",
+            style(DEBUGGED_VALUE_PREFIX).dim(),
             style(value.as_ref()).fg(Color::Cyan)
         )
         .expect("unable to write to indented writer");
@@ -258,6 +241,11 @@ impl PanicMessageBuilder {
         self.buffer.push_str(indented.get_ref());
 
         self
+    }
+
+    /// Formats a value description
+    fn format_value_description(value_description: impl Display) -> String {
+        truncate::truncate_end(format!("{}", value_description), VALUE_DESCRIPTION_CONTEXT)
     }
 
     /// Adds an assertion description to the panic message.
@@ -276,15 +264,15 @@ impl PanicMessageBuilder {
         mut self,
         assertion_description: impl AsRef<str>,
     ) -> Result<Self, Error> {
-        let assertion_description_ref = assertion_description.as_ref();
+        let assertion_description = assertion_description.as_ref();
 
-        if !assertion_description_ref.is_empty() {
+        if !assertion_description.is_empty() {
             if self.has_assertion_description {
                 return Err(Error::PanicMessageMultipleDescriptions);
             }
 
             self.buffer
-                .push_str(format!("\n  info: {}", assertion_description_ref).as_str());
+                .push_str(format!("\n  info: {}", assertion_description).as_str());
 
             self.has_assertion_description = true;
         }
@@ -300,23 +288,40 @@ impl PanicMessageBuilder {
     ///
     /// The formatted panic message.
     pub fn format(mut self) -> String {
+        // Format backtrace onto the end of the buffer
+        self.buffer
+            .push_str(format!("\n\n{}", PanicMessageBuilder::format_backtrace()).as_str());
+
+        // Return the buffer
+        self.buffer
+    }
+
+    /// Format a backtrace
+    ///
+    /// # Returns
+    ///
+    /// * If the backtrace was captured, the formatted backtrace.
+    /// * Otherwise, a message telling the user how to enable backtrace capturing.
+    fn format_backtrace() -> String {
         let backtrace = Backtrace::capture();
 
         if backtrace.status() == BacktraceStatus::Captured {
-            self.buffer
-                .push_str(format!("\n\n{}", style(backtrace).dim()).as_str());
+            PanicMessageBuilder::format_backtrace_captured(backtrace)
         } else {
-            self.buffer.push_str(
-                style(
-                    "\n\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace",
-                )
-                .dim()
-                .to_string()
-                .as_str(),
-            );
+            PanicMessageBuilder::format_backtrace_message()
         }
+    }
 
-        self.buffer
+    /// Format a captured backtrace
+    fn format_backtrace_captured(backtrace: Backtrace) -> String {
+        style(backtrace).dim().to_string()
+    }
+
+    /// Format a message telling the user how to enable backtrace capturing
+    fn format_backtrace_message() -> String {
+        style("note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace")
+            .dim()
+            .to_string()
     }
 
     /// Triggers the panic with the built message.
@@ -343,7 +348,7 @@ mod tests {
     use crate::assert;
 
     #[cfg(feature = "regex")]
-    use crate::{assert_eq, assert_str_matches};
+    use crate::assert_str_matches;
 
     #[derive(Debug)]
     #[allow(dead_code)]
@@ -534,17 +539,13 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
         console::set_colors_enabled(false);
 
         let message = PanicMessageBuilder::new("predicate description", Location::caller())
-            .with_argument(
-                "argument",
-                "a".repeat(MAX_VALUE_DESCRIPTION_LENGTH + 100),
-                &1,
-            )
+            .with_argument("argument", "a".repeat(VALUE_DESCRIPTION_CONTEXT + 100), &1)
             .format();
 
         assert_str_matches!(
             message,
             r"⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: predicate description
-  argument: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...
+  argument: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...
             == 1
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"

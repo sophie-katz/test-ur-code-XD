@@ -32,15 +32,19 @@ pub fn test_with_parameter_values(
     attribute: proc_macro::TokenStream,
     item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
+    // Convert attribute token stream into proc_macro2 tokens
     let tokens = proc_macro2::TokenStream::from(attribute);
 
+    // Parse the attribute's parameters into a vector of permuted parameter maps
     let vec_of_parameter_maps: Vec<HashMap<String, Expr>> =
         match get_permuted_parameter_map_iter(tokens) {
             Ok(iter_of_parameter_maps) => iter_of_parameter_maps.collect(),
             Err(error) => return error.into_compile_error().into(),
         };
 
+    // Parse the function item
     let item_fn = parse_macro_input!(item as ItemFn);
 
+    // Generate the permuted test function
     generate_permuted_test_function(item_fn, vec_of_parameter_maps).into()
 }

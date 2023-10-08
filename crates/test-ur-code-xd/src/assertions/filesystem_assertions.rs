@@ -19,7 +19,7 @@
 //! [sophie-katz.github.io/test-ur-code-XD/assertions/filesystem](https://sophie-katz.github.io/test-ur-code-XD/assertions/filesystem/)
 //! for a usage guide.
 
-use std::{fs, panic::Location, path::Path};
+use std::{fmt::Display, fs, panic::Location, path::Path};
 
 use crate::utilities::panic_message_builder::PanicMessageBuilder;
 
@@ -402,25 +402,36 @@ macro_rules! assert_path_ends_with {
     };
 }
 
-#[doc(hidden)]
-pub fn assert_file_text_impl<OnTextType: FnOnce(String)>(
-    path: impl AsRef<Path>,
-    on_text: OnTextType,
-) {
+fn ensure_is_file(path: &impl AsRef<Path>) {
     if !path.as_ref().is_file() {
         PanicMessageBuilder::new("path is file", Location::caller())
             .with_argument("path", "--", &path.as_ref())
             .panic();
     }
+}
 
-    match fs::read_to_string(path.as_ref()) {
-        Ok(file_text) => on_text(file_text),
+fn unwrap_file_read<ValueType, ErrorType: Display>(
+    path: &impl AsRef<Path>,
+    result: Result<ValueType, ErrorType>,
+) -> ValueType {
+    match result {
+        Ok(file_text) => file_text,
         Err(error) => {
             PanicMessageBuilder::new(format!("error reading file: {}", error), Location::caller())
                 .with_argument("path", "--", &path.as_ref())
                 .panic()
         }
     }
+}
+
+#[doc(hidden)]
+pub fn assert_file_text_impl<OnTextType: FnOnce(String)>(
+    path: impl AsRef<Path>,
+    on_text: OnTextType,
+) {
+    ensure_is_file(&path);
+
+    on_text(unwrap_file_read(&path, fs::read_to_string(path.as_ref())));
 }
 
 /// Asserts that the file contains text that matches assertions.
@@ -472,20 +483,9 @@ pub fn assert_file_text_raw_impl<OnTextType: FnOnce(&[u8])>(
     path: impl AsRef<Path>,
     on_text: OnTextType,
 ) {
-    if !path.as_ref().is_file() {
-        PanicMessageBuilder::new("path is file", Location::caller())
-            .with_argument("path", "--", &path.as_ref())
-            .panic();
-    }
+    ensure_is_file(&path);
 
-    match fs::read(path.as_ref()) {
-        Ok(file_text) => on_text(&file_text),
-        Err(error) => {
-            PanicMessageBuilder::new(format!("error reading file: {}", error), Location::caller())
-                .with_argument("path", "--", &path.as_ref())
-                .panic()
-        }
-    }
+    on_text(&unwrap_file_read(&path, fs::read(path.as_ref())));
 }
 
 /// Asserts that the raw file contains text that matches assertions.

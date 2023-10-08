@@ -19,3 +19,9 @@ pub mod panic_message_builder;
 
 #[cfg(feature = "output")]
 pub mod capture_output;
+
+#[cfg(feature = "string-diff")]
+pub mod diff_utilities;
+
+#[cfg(feature = "string-diff")]
+pub mod truncate;

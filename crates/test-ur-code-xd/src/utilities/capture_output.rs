@@ -31,7 +31,10 @@ pub use captured_output::CapturedOutputs;
 pub use error::OutputCapturingError;
 
 lazy_static! {
+    /// A singleton [`OutputCapturer`] instance for the process.
     static ref OUTPUT_CAPTURER: Mutex<OutputCapturer> = Mutex::new(OutputCapturer::default());
+
+    /// A flag to prevent nesting of calls to [`capture_output`] and [`capture_output_raw`].
     static ref IS_IN_CAPTURE_OUTPUT: AtomicBool = AtomicBool::new(false);
 }
 

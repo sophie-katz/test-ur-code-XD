@@ -26,7 +26,7 @@ use float_cmp::{approx_eq, Ulps};
 use num_traits::Float;
 use std::fmt::{Debug, Display};
 
-use crate::{assert, utilities::panic_message_builder::PanicMessageBuilder};
+use crate::utilities::panic_message_builder::PanicMessageBuilder;
 
 /// Checks if two numbers are non-finite and equal
 ///
@@ -46,7 +46,6 @@ fn is_float_eq_non_finite<FloatType: Float>(lhs: FloatType, rhs: FloatType) -> O
         // One is infinite and the other is not: inequal
         return Some(false);
     } else if lhs.is_infinite() {
-        assert!(rhs.is_infinite());
         // Both are infinite: check for equality between positive and negative
         return Some(lhs == rhs);
     }
@@ -55,13 +54,9 @@ fn is_float_eq_non_finite<FloatType: Float>(lhs: FloatType, rhs: FloatType) -> O
         // One is NaN and the other is not: inequal
         return Some(false);
     } else if lhs.is_nan() {
-        assert!(rhs.is_nan());
         // Both are NaN: equal
         return Some(true);
     }
-
-    assert!(lhs.is_finite());
-    assert!(rhs.is_finite());
 
     None
 }

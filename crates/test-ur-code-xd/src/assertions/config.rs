@@ -205,21 +205,19 @@ impl Config {
         // This truth table is the same as `negate == predicate`, which is used as the condition
         // below. It's hard to read, but efficient!
         if self.negate == predicate_value {
+            // Create panic message builder
             let panic_message_builder_result =
                 self.create_panic_message_builder(predicate_description, location);
 
-            match panic_message_builder_result {
-                Ok(panic_message_builder) => {
-                    let panic_message_builder = configure_panic_message(panic_message_builder);
+            // Unwrap the panic message builder from potential errors
+            let panic_message_builder =
+                Config::unwrap_panic_message_builder_result(panic_message_builder_result);
 
-                    panic_message_builder.panic();
-                }
-                Err(error) => PanicMessageBuilder::new(
-                    format!("internal error while creating panic message: {}", error),
-                    Location::caller(),
-                )
-                .panic(),
-            }
+            // Furthur configure the panic message builder
+            let panic_message_builder = configure_panic_message(panic_message_builder);
+
+            // Trigger the actual panic
+            panic_message_builder.panic();
         }
     }
 
@@ -232,6 +230,20 @@ impl Config {
         PanicMessageBuilder::new(predicate_description, location)
             .with_description(self.description)?
             .with_description(self.description_owned)
+    }
+
+    /// Helper method to unwrap a panic message builder result
+    fn unwrap_panic_message_builder_result<ErrorType: Display>(
+        result: Result<PanicMessageBuilder, ErrorType>,
+    ) -> PanicMessageBuilder {
+        match result {
+            Ok(panic_message_builder) => panic_message_builder,
+            Err(error) => PanicMessageBuilder::new(
+                format!("internal error while creating panic message: {}", error),
+                Location::caller(),
+            )
+            .panic(),
+        }
     }
 }
 

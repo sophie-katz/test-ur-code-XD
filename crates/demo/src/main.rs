@@ -22,6 +22,7 @@
 #[allow(unused_imports)]
 use test_ur_code_xd::{assert_gt, assert_str_eq};
 
+#[allow(unused_variables)]
 fn main() {
     let x = 5;
     println!();
