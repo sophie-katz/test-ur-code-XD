@@ -1,0 +1,1050 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../string/">
+      
+      
+        <link rel="next" href="../filesystem/">
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.6">
+    
+    
+      
+        <title>Float - test ur code XD :3</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.558e4712.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.2505c338.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Poppins";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="pink">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#float-assertions" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="test ur code XD :3" class="md-header__button md-logo" aria-label="test ur code XD :3" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            test ur code XD :3
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Float
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../.." class="md-tabs__link">
+      Home
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../getting-started/" class="md-tabs__link">
+      Getting Started
+    </a>
+  </li>
+
+      
+        
+  
+  
+    
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../boolean/" class="md-tabs__link md-tabs__link--active">
+        Assertions
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../tests/parameterized-tests/" class="md-tabs__link">
+        Tests
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../extending/writing-your-own-assertions/" class="md-tabs__link">
+        Extending
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="test ur code XD :3" class="md-nav__button md-logo" aria-label="test ur code XD :3" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    test ur code XD :3
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" tabindex="0" aria-expanded="true">
+          Assertions
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Assertions" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Assertions
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../boolean/" class="md-nav__link">
+        Boolean
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../arithmetic/" class="md-nav__link">
+        Arithmetic
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../string/" class="md-nav__link">
+        String
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Float
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Float
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#floating-point-comparison-is-complicated" class="md-nav__link">
+    Floating-point comparison is complicated
+  </a>
+  
+    <nav class="md-nav" aria-label="Floating-point comparison is complicated">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#epsilons" class="md-nav__link">
+    Epsilons
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#most-floating-point-testing-is-bad" class="md-nav__link">
+    Most floating-point testing is bad
+  </a>
+  
+    <nav class="md-nav" aria-label="Most floating-point testing is bad">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#epsilons-alone-are-not-enough" class="md-nav__link">
+    Epsilons alone are not enough
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ulps-alone-are-not-enough" class="md-nav__link">
+    ULPs alone are not enough
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-that-takes-this-into-account" class="md-nav__link">
+    Testing that takes this into account
+  </a>
+  
+    <nav class="md-nav" aria-label="Testing that takes this into account">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#relative-epsilons" class="md-nav__link">
+    Relative epsilons
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ulps-with-epsilon-near-zero" class="md-nav__link">
+    ULPs with epsilon near zero
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-use-relative-epsilon-vs-ulps" class="md-nav__link">
+    When to use relative epsilon vs ULPs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#special-floating-point-values" class="md-nav__link">
+    Special floating-point values
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#assertions" class="md-nav__link">
+    Assertions
+  </a>
+  
+    <nav class="md-nav" aria-label="Assertions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#with-ulps" class="md-nav__link">
+    With ULPs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#different-types-of-comparisons" class="md-nav__link">
+    Different types of comparisons
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filesystem/" class="md-nav__link">
+        Filesystem
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../panic/" class="md-nav__link">
+        Panic
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../output/" class="md-nav__link">
+        Output
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom/" class="md-nav__link">
+        Custom
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuring-assertions/" class="md-nav__link">
+        Configuring assertions
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" tabindex="0" aria-expanded="false">
+          Tests
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Tests" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Tests
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tests/parameterized-tests/" class="md-nav__link">
+        Parameterized tests
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" tabindex="0" aria-expanded="false">
+          Extending
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Extending" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Extending
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/writing-your-own-assertions/" class="md-nav__link">
+        Writing your own assertions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extending/recommended-crates/" class="md-nav__link">
+        Recommended crates
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#floating-point-comparison-is-complicated" class="md-nav__link">
+    Floating-point comparison is complicated
+  </a>
+  
+    <nav class="md-nav" aria-label="Floating-point comparison is complicated">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#epsilons" class="md-nav__link">
+    Epsilons
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#most-floating-point-testing-is-bad" class="md-nav__link">
+    Most floating-point testing is bad
+  </a>
+  
+    <nav class="md-nav" aria-label="Most floating-point testing is bad">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#epsilons-alone-are-not-enough" class="md-nav__link">
+    Epsilons alone are not enough
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ulps-alone-are-not-enough" class="md-nav__link">
+    ULPs alone are not enough
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-that-takes-this-into-account" class="md-nav__link">
+    Testing that takes this into account
+  </a>
+  
+    <nav class="md-nav" aria-label="Testing that takes this into account">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#relative-epsilons" class="md-nav__link">
+    Relative epsilons
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ulps-with-epsilon-near-zero" class="md-nav__link">
+    ULPs with epsilon near zero
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-use-relative-epsilon-vs-ulps" class="md-nav__link">
+    When to use relative epsilon vs ULPs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#special-floating-point-values" class="md-nav__link">
+    Special floating-point values
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#assertions" class="md-nav__link">
+    Assertions
+  </a>
+  
+    <nav class="md-nav" aria-label="Assertions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#with-ulps" class="md-nav__link">
+    With ULPs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#different-types-of-comparisons" class="md-nav__link">
+    Different types of comparisons
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<!--
+Copyright (c) 2023 Sophie Katz
+
+This file is part of test ur code XD.
+
+test ur code XD is free software: you can redistribute it and/or modify it under the terms of the
+GNU General Public License as published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+test ur code XD is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with test ur code XD. If
+not, see <https://www.gnu.org/licenses/>.
+-->
+
+<h1 id="float-assertions">Float assertions</h1>
+<p>Testing with floats is deceptively complicated. <a href="assertions/arithmetic.md">Arithmetic assertions</a> can work with floats just fine, but they do not account for floating-point error in calculations. For example, this assertion will <em>fail</em>:</p>
+<div class="highlight"><pre><span></span><code><span class="fm">assert_eq!</span><span class="p">(</span>
+<span class="w">    </span><span class="mf">0.15</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">0.15</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">0.15</span><span class="p">,</span>
+<span class="w">    </span><span class="mf">0.1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">0.1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">0.25</span>
+<span class="p">);</span>
+</code></pre></div>
+<p>To explain why, we need to understand a bit of background about floating-point comparison. This <a href="https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/">excellent article</a> by Bruce Dawson goes into much more detail.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>There's a lot of explanation before this document gets to the actual assertions. <em>This is intentional.</em></p>
+<p>test ur code XD handles floating-point testing in a much more detailed manner than many other testing frameworks. It requires a bit of background to understand why.</p>
+</div>
+<p>The example above taken from the excellent <a href="https://docs.rs/float-cmp/latest/float_cmp/#the-problem"><code>float_cmp</code> crate</a>. test ur code XD builds a bit more functionality on top of it.</p>
+<h2 id="floating-point-comparison-is-complicated">Floating-point comparison is complicated</h2>
+<p>Floating-point numbers take up 32 or 64 bits on most architectures. This provides a lot of precision, but not infinite precision. For example, 0.1 cannot be represented exactly using 32 bits. Instead, it is represented as <a href="https://www.h-schmidt.net/FloatConverter/IEEE754.html">0.10000000149</a>. The next smallest floating-point number possible in 32-bits is 0.0999999940395.</p>
+<p><strong>ULP</strong> is short for Unit in Last Place. It is the distance between a given floating-point value and the next one possible. See <a href="https://randomascii.wordpress.com/2012/01/23/stupid-float-tricks-2/">this article</a> for more detail. For example, there is 1 ULP between 0.0999999940395 and 0.10000000149 because they are neighbors.</p>
+<h3 id="epsilons">Epsilons</h3>
+<p>Systems provide floating point <strong>epsilons</strong> to help with floating-point comparisons. In rust they are defined as <code>f32::EPSILON</code> and <code>f64::EPSILON</code>. They are the difference between <code>1.0</code> and the next highest floating-point value.</p>
+<h2 id="most-floating-point-testing-is-bad">Most floating-point testing is bad</h2>
+<p>Two very common methods of testing with floating-point values have major issues.</p>
+<h3 id="epsilons-alone-are-not-enough">Epsilons alone are not enough</h3>
+<p>A lot of floating-point testing is done using floating-point epsilons. It looks like this:</p>
+<div class="highlight"><pre><span></span><code>abs(x - y) &lt;= epsilon
+</code></pre></div>
+<p>But there's a problem. When <code>x</code> and <code>y</code> are between 1.0 and 2.0, an <code>f32::EPSILON</code> comparison means that the two values are within 1 ULP. However 1 ULP at 1,000,000 is 0.0625. This epsilon is way too small to be useful at that range.</p>
+<h3 id="ulps-alone-are-not-enough">ULPs alone are not enough</h3>
+<p>ULPs can also be used directly for comparison, which is what the <a href="https://github.com/google/googletest">Google Test Framework</a> does in C++. It says that if two floating-point values are within 4 ULPs, then they are close enough to equal. The problem is that in every floating-point operation there is a possible error. This error can accumulate over multiple operations, and easily get over 4 ULPs.</p>
+<p>Moreover, near zero one ULP is an incredibly small value. The next highest floating-point value after 0.0 is 1.40129846432e-45. This is way smaller than <code>f32::EPSILON</code> and implies much more precision than most floating-point calculations need. Near zero, 1 ULP is much too precise.</p>
+<h2 id="testing-that-takes-this-into-account">Testing that takes this into account</h2>
+<p>There are two potential ways to compare floating-point numbers while taking this into account. </p>
+<h3 id="relative-epsilons">Relative epsilons</h3>
+<p><code>f32::EPSILON</code> and <code>f64::EPSILON</code> are 1 ULP between 1.0 and 2.0, but they can be extended to be applicable to numbers outside that range. Multiply them by the larger magnitude of the two numbers to get a relative epsilon. This relative epsilon will have approximately the same precision at different magnitudes.</p>
+<p>This still breaks down when comparing numbers near zero, though. Near zero, an absolute epsilon can be used. This is a fixed value which represents the real precision needed for the calculation. If your calculation needs to be accurate to within 1e-6, then use 1e-6 as the absolute epsilon.</p>
+<h3 id="ulps-with-epsilon-near-zero">ULPs with epsilon near zero</h3>
+<p>ULPs by definition have precision that is relative to the magnitude of the numbers being compared. This is good, but it still breaks down near zero. The same absolute epsilon can be used near zero as for relative epsilon comparisons.</p>
+<h3 id="when-to-use-relative-epsilon-vs-ulps">When to use relative epsilon vs ULPs</h3>
+<p>Unfortunately, there is no right answer. Relative epsilons tend to make a bit more sense when you care more about real numbers, while ULPs tend to make more sense mean dealing with the details of floating-point operations.</p>
+<h3 id="special-floating-point-values">Special floating-point values</h3>
+<p>The special floating point values we care about are:</p>
+<ul>
+<li>Positive infinity</li>
+<li>Negative infinity</li>
+<li>NaN</li>
+<li>Negative zero</li>
+</ul>
+<p>These values can be compared using separate logic to the rest of the numbers:</p>
+<ul>
+<li>Positive infinity is only equal to positive infinity</li>
+<li>Negative infinity is only equal to negative infinity</li>
+<li>NaN is only equal to NaN</li>
+<li>Negative zero is equivalent to positive zero for the purposes of comparison</li>
+</ul>
+<h2 id="assertions">Assertions</h2>
+<p>test ur code XD provides assertions that follow the above guidelines. Let us take the assertion <code>assert_f32_eq!(...)</code> as an initial example for relative epsilon comparison:</p>
+<div class="highlight"><pre><span></span><code><span class="n">assert_f32_eq</span><span class="o">!</span><span class="p">(</span>
+<span class="w">    </span><span class="n">x</span><span class="p">,</span>
+<span class="w">    </span><span class="n">y</span><span class="p">,</span>
+<span class="w">    </span><span class="n">relative_epsilon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">f32</span>::<span class="n">EPSILON</span><span class="p">,</span>
+<span class="w">    </span><span class="n">epsilon_near_zero</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1e-6</span>
+<span class="p">);</span>
+</code></pre></div>
+<p>The assertion has these keyword arguments:</p>
+<ul>
+<li><code>relative_epsilon = f32::EPSILON</code> means that the relative epsilon used for comparison is <code>f32::EPSILON</code>.</li>
+<li><code>epsilon_near_zero = 1e-6</code> is the fixed epsilon that is used when <code>x</code> and <code>y</code> are near zero. This means that the comparison is guaranteed to within <code>1e-6</code> precision. You can set it to 0.0 to disable near zero comparison handling.</li>
+</ul>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>These arguments apply to every floating-point assertion in test ur code XD.</p>
+</div>
+<p>There is no default value for either argument because these values will have to change for different comparisons depending on the calculation and the needs of the testing.</p>
+<ul>
+<li><code>relative_epsilon</code> will commonly be something like <code>4 * f32::EPSILON</code> to account for more error in the calculation.</li>
+<li><code>epsilon_near_zero</code> is the absolute guaranteed precision and will need to change depending on the needs of the testing.</li>
+</ul>
+<h3 id="with-ulps">With ULPs</h3>
+<p>You can also write this assertion in terms of ULPs:</p>
+<div class="highlight"><pre><span></span><code><span class="n">assert_f32_eq</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">ulps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">epsilon_near_zero</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1e-6</span><span class="p">);</span>
+</code></pre></div>
+<p>The argument <code>ulps = 1</code> means that the calculation is guaranteed to be correct within 1 ULP.</p>
+<h3 id="different-types-of-comparisons">Different types of comparisons</h3>
+<p>test ur code XD has these assertion macros for doing different comparisons with floats:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Ensure that x and y are equal accounting for floating-point error</span>
+<span class="n">assert_f32_eq</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="o">..</span><span class="p">.);</span>
+
+<span class="c1">// Ensure that x and y are inequal accounting for floating-point error</span>
+<span class="n">assert_f32_ne</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="o">..</span><span class="p">.);</span>
+
+<span class="c1">// Ensure that x is less than or equal to y accounting for</span>
+<span class="c1">// floating-point error</span>
+<span class="n">assert_f32_le</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="o">..</span><span class="p">.);</span>
+
+<span class="c1">// Ensure that x is greater than or equal to y accounting for</span>
+<span class="c1">// floating-point error</span>
+<span class="n">assert_f32_ge</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="o">..</span><span class="p">.);</span>
+</code></pre></div>
+<p>There are also equivalent macros for dealing with <code>f64</code> values:</p>
+<div class="highlight"><pre><span></span><code><span class="n">assert_f64_eq</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="o">..</span><span class="p">.);</span>
+<span class="n">assert_f64_ne</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="o">..</span><span class="p">.);</span>
+<span class="n">assert_f64_le</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="o">..</span><span class="p">.);</span>
+<span class="n">assert_f64_ge</span><span class="o">!</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="o">..</span><span class="p">.);</span>
+</code></pre></div>
+<p>They all use the same arguments.</p>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.e5c33ebb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.51d95adb.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

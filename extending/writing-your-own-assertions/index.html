@@ -1,0 +1,1176 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../../tests/parameterized-tests/">
+      
+      
+        <link rel="next" href="../recommended-crates/">
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.6">
+    
+    
+      
+        <title>Writing your own assertions - test ur code XD :3</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.558e4712.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.2505c338.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Poppins";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="pink">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#writing-your-own-assertions" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="test ur code XD :3" class="md-header__button md-logo" aria-label="test ur code XD :3" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            test ur code XD :3
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Writing your own assertions
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../.." class="md-tabs__link">
+      Home
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../getting-started/" class="md-tabs__link">
+      Getting Started
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../assertions/boolean/" class="md-tabs__link">
+        Assertions
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../tests/parameterized-tests/" class="md-tabs__link">
+        Tests
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="./" class="md-tabs__link md-tabs__link--active">
+        Extending
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="test ur code XD :3" class="md-nav__button md-logo" aria-label="test ur code XD :3" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    test ur code XD :3
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" tabindex="0" aria-expanded="false">
+          Assertions
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Assertions" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Assertions
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assertions/boolean/" class="md-nav__link">
+        Boolean
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assertions/arithmetic/" class="md-nav__link">
+        Arithmetic
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assertions/string/" class="md-nav__link">
+        String
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assertions/float/" class="md-nav__link">
+        Float
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assertions/filesystem/" class="md-nav__link">
+        Filesystem
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assertions/panic/" class="md-nav__link">
+        Panic
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assertions/output/" class="md-nav__link">
+        Output
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assertions/custom/" class="md-nav__link">
+        Custom
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../assertions/configuring-assertions/" class="md-nav__link">
+        Configuring assertions
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" tabindex="0" aria-expanded="false">
+          Tests
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Tests" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Tests
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tests/parameterized-tests/" class="md-nav__link">
+        Parameterized tests
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_5" type="checkbox" id="__nav_5" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" tabindex="0" aria-expanded="true">
+          Extending
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Extending" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Extending
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Writing your own assertions
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Writing your own assertions
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#implement-the-predicate" class="md-nav__link">
+    Implement the predicate
+  </a>
+  
+    <nav class="md-nav" aria-label="Implement the predicate">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#declare-the-macro" class="md-nav__link">
+    Declare the macro
+  </a>
+  
+    <nav class="md-nav" aria-label="Declare the macro">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#macro-arguments" class="md-nav__link">
+    Macro arguments
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-assert_custom" class="md-nav__link">
+    Use assert_custom!(...)
+  </a>
+  
+    <nav class="md-nav" aria-label="Use assert_custom!(...)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#predicate-description" class="md-nav__link">
+    Predicate description
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#call-the-predicate-function" class="md-nav__link">
+    Call the predicate function
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-the-panic-message" class="md-nav__link">
+    Build the panic message
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#forward-keyword-arguments" class="md-nav__link">
+    Forward keyword arguments
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_1" class="md-nav__link">
+    Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#writing-your-own-assertion-wrapper-macros-advanced" class="md-nav__link">
+    Writing your own assertion wrapper macros (advanced)
+  </a>
+  
+    <nav class="md-nav" aria-label="Writing your own assertion wrapper macros (advanced)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example_2" class="md-nav__link">
+    Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recommended-crates/" class="md-nav__link">
+        Recommended crates
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#implement-the-predicate" class="md-nav__link">
+    Implement the predicate
+  </a>
+  
+    <nav class="md-nav" aria-label="Implement the predicate">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#declare-the-macro" class="md-nav__link">
+    Declare the macro
+  </a>
+  
+    <nav class="md-nav" aria-label="Declare the macro">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#macro-arguments" class="md-nav__link">
+    Macro arguments
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-assert_custom" class="md-nav__link">
+    Use assert_custom!(...)
+  </a>
+  
+    <nav class="md-nav" aria-label="Use assert_custom!(...)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#predicate-description" class="md-nav__link">
+    Predicate description
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#call-the-predicate-function" class="md-nav__link">
+    Call the predicate function
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-the-panic-message" class="md-nav__link">
+    Build the panic message
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#forward-keyword-arguments" class="md-nav__link">
+    Forward keyword arguments
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_1" class="md-nav__link">
+    Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#writing-your-own-assertion-wrapper-macros-advanced" class="md-nav__link">
+    Writing your own assertion wrapper macros (advanced)
+  </a>
+  
+    <nav class="md-nav" aria-label="Writing your own assertion wrapper macros (advanced)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example_2" class="md-nav__link">
+    Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<!--
+Copyright (c) 2023 Sophie Katz
+
+This file is part of test ur code XD.
+
+test ur code XD is free software: you can redistribute it and/or modify it under the terms of the
+GNU General Public License as published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+test ur code XD is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with test ur code XD. If
+not, see <https://www.gnu.org/licenses/>.
+-->
+
+<h1 id="writing-your-own-assertions">Writing your own assertions</h1>
+<p>This applies both when adding new assertions to this crate or when extending the library in
+another crate.</p>
+<h2 id="implement-the-predicate">Implement the predicate</h2>
+<p>First write a function that represents the assertion predicate. It will take the inputs as
+arguments and then return a boolean value. If it returns <code>true</code>, the assertion will pass. If
+it returns a <code>false</code>, the assertion will fail and cause a panic. It will look something like
+this:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Non-copyable types</label><label for="__tabbed_1_2">Copyable types</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>Unless the inputs implement the <code>Copy</code> trait, make sure to pass them in by reference:</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#[doc(hidden)]</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">my_assertion_impl</span><span class="p">(</span>
+<span class="w">    </span><span class="n">input0</span>: <span class="kp">&amp;</span><span class="nc">InputType0</span><span class="p">,</span>
+<span class="w">    </span><span class="n">input1</span>: <span class="kp">&amp;</span><span class="nc">InputType1</span><span class="p">,</span>
+<span class="w">    </span><span class="cm">/* ... */</span>
+<span class="p">)</span><span class="w"> </span>-&gt; <span class="kt">bool</span> <span class="p">{</span>
+<span class="w">    </span><span class="cm">/* ... */</span>
+<span class="p">}</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<p>If the inputs implement the <code>Copy</code> trait, you can pass them in by value:</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#[doc(hidden)]</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">my_assertion_impl</span><span class="p">(</span>
+<span class="hll"><span class="w">    </span><span class="n">input0</span>: <span class="nc">InputType0</span><span class="p">,</span>
+</span><span class="hll"><span class="w">    </span><span class="n">input1</span>: <span class="nc">InputType1</span><span class="p">,</span>
+</span><span class="w">    </span><span class="cm">/* ... */</span>
+<span class="p">)</span><span class="w"> </span>-&gt; <span class="kt">bool</span> <span class="p">{</span>
+<span class="w">    </span><span class="cm">/* ... */</span>
+<span class="p">}</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<p>It has to be public so that the macro can access it, but since it is only for internal use we
+mark it <code>#[doc(hidden)]</code>.</p>
+<h3 id="example">Example</h3>
+<p>Let's reimplement the <code>assert_str_contains!(...)</code> macro from this crate as an example. It will be
+a bit simplified from the actual implementation:</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#[doc(hidden)]</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">assert_str_contains_impl</span><span class="p">(</span><span class="n">value</span>: <span class="kp">&amp;</span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="n">substring</span>: <span class="kp">&amp;</span><span class="kt">str</span><span class="p">)</span><span class="w"> </span>-&gt; <span class="kt">bool</span> <span class="p">{</span>
+<span class="w">    </span><span class="n">value</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">substring</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Now that we have the perdicate, we can put together the macro itself.</p>
+<h2 id="declare-the-macro">Declare the macro</h2>
+<p>Once we have the predicate function, we can wrap it in a macro. This will essentially be a
+wrapper around <code>assert_custom!(...)</code> macro. It will look something like this:</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#[macro_export]</span>
+<span class="fm">macro_rules!</span><span class="w"> </span><span class="n">my_assertion</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">(</span><span class="cp">$input0</span>:<span class="nc">expr</span><span class="p">,</span><span class="w"> </span><span class="cp">$input1</span>:<span class="nc">expr</span><span class="w"> </span><span class="cp">$(,</span><span class="w"> </span><span class="cp">$keys</span>:<span class="nc">ident</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="cp">$values</span>:<span class="nc">expr</span><span class="p">)</span><span class="o">*</span><span class="w"> </span><span class="cp">$(,</span><span class="p">)</span><span class="o">?</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span>::<span class="n">test_ur_code_xd</span>::<span class="n">assert_custom</span><span class="o">!</span><span class="p">(</span>
+<span class="w">            </span><span class="s">&quot;a description of my assertion&#39;s predicate&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="cp">$crate</span>::<span class="n">my_assertion_impl</span><span class="p">(</span><span class="cp">$input0</span><span class="p">,</span><span class="w"> </span><span class="cp">$input1</span><span class="p">),</span>
+<span class="w">            </span><span class="o">|</span><span class="n">panic_message_builder</span><span class="o">|</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">panic_message_builder</span>
+<span class="w">                    </span><span class="p">.</span><span class="n">with_argument</span><span class="p">(</span><span class="s">&quot;input0&quot;</span><span class="p">,</span><span class="w"> </span><span class="fm">stringify!</span><span class="p">(</span><span class="cp">$input0</span><span class="p">),</span><span class="w"> </span><span class="o">&amp;</span><span class="cp">$input0</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">.</span><span class="n">with_argument</span><span class="p">(</span><span class="s">&quot;input1&quot;</span><span class="p">,</span><span class="w"> </span><span class="fm">stringify!</span><span class="p">(</span><span class="cp">$input1</span><span class="p">),</span><span class="w"> </span><span class="o">&amp;</span><span class="cp">$input1</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="cp">$(,</span><span class="w"> </span><span class="cp">$keys</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="cp">$values</span><span class="p">)</span><span class="o">*</span>
+<span class="w">        </span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>This is a lot! Let's break it down.</p>
+<h3 id="macro-arguments">Macro arguments</h3>
+<p>The macro will take the inputs as <code>expr</code> arguments. This means that any Rust expression can be
+used for the assertion inputs. Then we have some additional argument code:</p>
+<div class="highlight"><pre><span></span><code><span class="cp">$(,</span><span class="w"> </span><span class="cp">$keys</span>:<span class="nc">ident</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="cp">$values</span>:<span class="nc">expr</span><span class="p">)</span><span class="o">*</span><span class="w"> </span><span class="cp">$(,</span><span class="p">)</span><span class="o">?</span>
+</code></pre></div>
+<p>This is to accept any number of <code>&lt;key&gt; = &lt;value&gt;</code> arguments which are used to configure the
+macro. When you pass <code>negate = true</code> into a macro as an additional argument, it goes through
+this code.</p>
+<h3 id="use-assert_custom">Use <code>assert_custom!(...)</code></h3>
+<p>Then we have the call to <code>assert_custom!(...)</code>. We pass in all of our custom logic in as the
+arguments to this macro. This is also the only place where the macro is different between
+assertions written internally to test ur code XD and outside.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Macros written inside this crate will call this macro like <code>$crate::assert_custom(...)</code> while macros outside will write this <code>::test_ur_code_xd::assert_custom(...)</code>.</p>
+</div>
+<h4 id="predicate-description">Predicate description</h4>
+<p>The first parameter is a description of the predicate:</p>
+<div class="highlight"><pre><span></span><code><span class="s">&quot;a description of my assertion&#39;s predicate&quot;</span>
+</code></pre></div>
+<p>This is used in the first line of the panic message. For example, the description for
+<code>assert_str_contains!(...)</code> is <code>"value contains substring"</code>. It is important that the inputs are named
+here so that the panic message's inputs can easily be understood.</p>
+<h4 id="call-the-predicate-function">Call the predicate function</h4>
+<p>The second parameter is a call to our predicate function:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Non-copyable types</label><label for="__tabbed_2_2">Copyable types</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>Unless the inputs implement the <code>Copy</code> trait, make sure to pass them in by reference:</p>
+<div class="highlight"><pre><span></span><code><span class="cp">$crate</span>::<span class="n">my_assertion_impl</span><span class="p">(</span><span class="o">&amp;</span><span class="cp">$input0</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="cp">$input1</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<p>If the inputs implement the <code>Copy</code> trait, you can pass them in by value:</p>
+<div class="highlight"><pre><span></span><code><span class="cp">$crate</span>::<span class="n">my_assertion_impl</span><span class="p">(</span><span class="cp">$input0</span><span class="p">,</span><span class="w"> </span><span class="cp">$input1</span><span class="p">)</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<h4 id="build-the-panic-message">Build the panic message</h4>
+<p>The third parameter is a closure which takes a <code>PanicMessageBuilder</code> and returns the same
+instance. This is used to configure the panic message, usually to add debug information about
+the inputs:</p>
+<div class="highlight"><pre><span></span><code><span class="o">|</span><span class="n">panic_message_builder</span><span class="o">|</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">panic_message_builder</span>
+<span class="w">        </span><span class="p">.</span><span class="n">with_argument</span><span class="p">(</span><span class="s">&quot;input0&quot;</span><span class="p">,</span><span class="w"> </span><span class="fm">stringify!</span><span class="p">(</span><span class="cp">$input0</span><span class="p">),</span><span class="w"> </span><span class="o">&amp;</span><span class="cp">$input0</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="n">with_argument</span><span class="p">(</span><span class="s">&quot;input1&quot;</span><span class="p">,</span><span class="w"> </span><span class="fm">stringify!</span><span class="p">(</span><span class="cp">$input1</span><span class="p">),</span><span class="w"> </span><span class="o">&amp;</span><span class="cp">$input1</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+<h4 id="forward-keyword-arguments">Forward keyword arguments</h4>
+<p>After the three arguments, we need to pass in any <code>&lt;key&gt; = &lt;value&gt;</code> arguments that we want to
+forward from our macro invocation:</p>
+<div class="highlight"><pre><span></span><code><span class="cp">$(,</span><span class="w"> </span><span class="cp">$keys</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="cp">$values</span><span class="p">)</span><span class="o">*</span>
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Make sure not to put a comma before this! It will cause hard to debug compile-time errors.
+Make sure it's written like this:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// ...</span>
+<span class="w">    </span><span class="o">|</span><span class="n">panic_message_builder</span><span class="o">|</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">panic_message_builder</span>
+<span class="w">            </span><span class="p">.</span><span class="n">with_argument</span><span class="p">(</span><span class="s">&quot;input0&quot;</span><span class="p">,</span><span class="w"> </span><span class="fm">stringify!</span><span class="p">(</span><span class="cp">$input0</span><span class="p">),</span><span class="w"> </span><span class="o">&amp;</span><span class="cp">$input0</span><span class="p">)</span>
+<span class="w">            </span><span class="p">.</span><span class="n">with_argument</span><span class="p">(</span><span class="s">&quot;input1&quot;</span><span class="p">,</span><span class="w"> </span><span class="fm">stringify!</span><span class="p">(</span><span class="cp">$input1</span><span class="p">),</span><span class="w"> </span><span class="o">&amp;</span><span class="cp">$input1</span><span class="p">)</span>
+<span class="hll"><span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="c1">// ← no comma here</span>
+</span><span class="w">    </span><span class="cp">$(,</span><span class="w"> </span><span class="cp">$keys</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="cp">$values</span><span class="p">)</span><span class="o">*</span>
+<span class="c1">// ...</span>
+</code></pre></div>
+</div>
+<p>Now your assertion should be functional!</p>
+<h3 id="example_1">Example</h3>
+<p>Here's our simplified implementation of the <code>assert_str_contains!(...)</code> macro to use as an example:</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#[doc(hidden)]</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">assert_str_contains_impl</span><span class="p">(</span><span class="n">value</span>: <span class="kp">&amp;</span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="n">substring</span>: <span class="kp">&amp;</span><span class="kt">str</span><span class="p">)</span><span class="w"> </span>-&gt; <span class="kt">bool</span> <span class="p">{</span>
+<span class="w">    </span><span class="n">value</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">substring</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="cp">#[macro_export]</span>
+<span class="fm">macro_rules!</span><span class="w"> </span><span class="n">assert_str_contains</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">(</span><span class="cp">$value</span>:<span class="nc">expr</span><span class="p">,</span><span class="w"> </span><span class="cp">$substring</span>:<span class="nc">expr</span><span class="w"> </span><span class="cp">$(,</span><span class="w"> </span><span class="cp">$keys</span>:<span class="nc">ident</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="cp">$values</span>:<span class="nc">expr</span><span class="p">)</span><span class="o">*</span><span class="w"> </span><span class="cp">$(,</span><span class="p">)</span><span class="o">?</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span>::<span class="n">test_ur_code_xd</span>::<span class="n">assert_custom</span><span class="o">!</span><span class="p">(</span>
+<span class="w">            </span><span class="s">&quot;value contains substring&quot;</span><span class="p">,</span>
+<span class="w">            </span>::<span class="n">test_ur_code_xd</span>::<span class="n">assertions</span>::<span class="n">string_assertions</span>::<span class="n">assert_str_contains_impl</span><span class="p">(</span>
+<span class="w">                </span><span class="cp">$value</span><span class="p">,</span>
+<span class="w">                </span><span class="cp">$substring</span>
+<span class="w">            </span><span class="p">),</span>
+<span class="w">            </span><span class="o">|</span><span class="n">panic_message_builder</span><span class="o">|</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">panic_message_builder</span>
+<span class="w">                    </span><span class="p">.</span><span class="n">with_argument</span><span class="p">(</span><span class="s">&quot;value&quot;</span><span class="p">,</span><span class="w"> </span><span class="fm">stringify!</span><span class="p">(</span><span class="cp">$value</span><span class="p">),</span><span class="w"> </span><span class="o">&amp;</span><span class="cp">$value</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">.</span><span class="n">with_argument</span><span class="p">(</span><span class="s">&quot;substring&quot;</span><span class="p">,</span><span class="w"> </span><span class="fm">stringify!</span><span class="p">(</span><span class="cp">$substring</span><span class="p">),</span><span class="w"> </span><span class="o">&amp;</span><span class="cp">$substring</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="cp">$(,</span><span class="w"> </span><span class="cp">$keys</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="cp">$values</span><span class="p">)</span><span class="o">*</span>
+<span class="w">        </span><span class="p">)</span>
+<span class="w">    </span><span class="p">};</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Then you can invoke it like this:</p>
+<div class="highlight"><pre><span></span><code><span class="n">assert_str_contains</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;hello, world&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;world&quot;</span><span class="p">);</span>
+<span class="n">assert_str_contains</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;hello, world&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;asdf&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">negate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">);</span>
+</code></pre></div>
+<h2 id="writing-your-own-assertion-wrapper-macros-advanced">Writing your own assertion wrapper macros (advanced)</h2>
+<p>Some assertion macros do not explicitly make an assertion based on a predicate, but instead
+accept a closure of other assertions. For example <code>assert_outputs!(...)</code> captures output but then
+relies on closures to make assertions about the captured output:</p>
+<div class="highlight"><pre><span></span><code><span class="n">assert_outputs</span><span class="o">!</span><span class="p">(</span>
+<span class="w">    </span><span class="o">||</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="fm">println!</span><span class="p">(</span><span class="s">&quot;some text&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="n">on_stdout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">|</span><span class="n">stdout</span><span class="o">|</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="fm">assert_eq!</span><span class="p">(</span><span class="n">stdout</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;some text</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">);</span>
+</code></pre></div>
+<p>The first step towards writing a macro like this is to, again, write an implementation function.
+It will look something like this:</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#[doc(hidden)]</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">my_assertion_wrapper_impl</span><span class="o">&lt;</span>
+<span class="w">    </span><span class="n">ActionType</span>: <span class="nb">FnOnce</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">ResultCallbackType</span>: <span class="nb">FnOnce</span><span class="p">(</span><span class="n">ResultType0</span><span class="p">),</span>
+<span class="o">&gt;</span><span class="p">(</span>
+<span class="w">    </span><span class="n">action</span>: <span class="nc">ActionType</span><span class="p">,</span>
+<span class="w">    </span><span class="n">result_callback</span>: <span class="nc">ResultCallbackType</span><span class="p">,</span>
+<span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// ...</span>
+
+<span class="w">    </span><span class="n">action</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// ...</span>
+
+<span class="w">    </span><span class="n">result_callback</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Then write a macro to wrap this:</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#[macro_export]</span>
+<span class="fm">macro_rules!</span><span class="w"> </span><span class="n">my_assertion_wrapper</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">(</span>
+<span class="w">        </span><span class="cp">$action</span>:<span class="nc">expr</span><span class="p">,</span>
+<span class="w">        </span><span class="n">on_result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="cp">$on_result</span>:<span class="nc">expr</span>
+<span class="w">    </span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="cp">$crate</span>::<span class="n">my_assertion_wrapper_impl</span><span class="p">(</span>
+<span class="w">            </span><span class="cp">$action</span><span class="p">,</span>
+<span class="w">            </span><span class="cp">$on_result</span><span class="p">,</span>
+<span class="w">        </span><span class="p">)</span>
+<span class="w">    </span><span class="p">};</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Ironically, this is simpler than implementing a new assertion with a predicate.</p>
+<h3 id="example_2">Example</h3>
+<p>For a real world example of this, look at how a simplified version of <code>assert_panics!(...)</code> is implemented. Here is the predicate function:</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#[doc(hidden)]</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">assert_panics_impl</span><span class="o">&lt;</span>
+<span class="w">    </span><span class="n">ActionType</span>: <span class="nb">FnOnce</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">UnwindSafe</span><span class="p">,</span>
+<span class="w">    </span><span class="n">MessageCallbackType</span>: <span class="nb">FnOnce</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span>
+<span class="o">&gt;</span><span class="p">(</span>
+<span class="w">    </span><span class="n">action</span>: <span class="nc">ActionType</span><span class="p">,</span>
+<span class="w">    </span><span class="n">on_message</span>: <span class="nc">MessageCallbackType</span><span class="p">,</span>
+<span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// If the action panics:</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="kd">let</span><span class="w"> </span><span class="nb">Err</span><span class="p">(</span><span class="n">error</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">panic</span>::<span class="n">catch_unwind</span><span class="p">(</span><span class="n">AssertUnwindSafe</span><span class="p">(</span><span class="n">action</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Check the message</span>
+<span class="w">        </span><span class="n">on_message</span><span class="p">(</span><span class="n">panic_message</span>::<span class="n">panic_message</span><span class="p">(</span><span class="o">&amp;</span><span class="n">error</span><span class="p">).</span><span class="n">to_owned</span><span class="p">());</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Otherwise, fail the assertion</span>
+<span class="w">        </span><span class="n">PanicMessageBuilder</span>::<span class="n">new</span><span class="p">(</span><span class="s">&quot;action panics&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">Location</span>::<span class="n">caller</span><span class="p">()).</span><span class="n">panic</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>And then here is a simplified version of the macro:</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#[macro_export]</span>
+<span class="fm">macro_rules!</span><span class="w"> </span><span class="n">assert_panics</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">(</span><span class="cp">$action</span>:<span class="nc">expr</span><span class="p">,</span><span class="w"> </span><span class="n">on_message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="cp">$on_message</span>:<span class="nc">expr</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="cp">$crate</span>::<span class="n">assert_panics_impl</span><span class="p">(</span>
+<span class="w">            </span><span class="cp">$action</span><span class="p">,</span>
+<span class="w">            </span><span class="cp">$on_message</span><span class="p">,</span>
+<span class="w">        </span><span class="p">)</span>
+<span class="w">    </span><span class="p">};</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.e5c33ebb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.51d95adb.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
