@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU General Public License along with test ur code XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
+//! A cartesian product implementation.
+
 use std::{collections::HashMap, hash::Hash};
 
 /// Takes the first key and value from a [`HashMap`] and returns them as a tuple.
@@ -56,17 +58,20 @@ fn take_first_key_and_value<KeyType: Clone + Eq + Hash, ValueType>(
 }
 
 /// Helper method that actually does the recursion
-fn permute_map_of_vecs_helper<KeyType: 'static + Clone + Eq + Hash, ValueType: 'static + Clone>(
-    mut map_of_vecs: HashMap<KeyType, Vec<ValueType>>,
+fn permute_map_of_vectors_helper<
+    KeyType: 'static + Clone + Eq + Hash,
+    ValueType: 'static + Clone,
+>(
+    mut map_of_vectors: HashMap<KeyType, Vec<ValueType>>,
 ) -> Vec<HashMap<KeyType, ValueType>> {
-    if let Some((first_key, first_vec)) = take_first_key_and_value(&mut map_of_vecs) {
-        if map_of_vecs.is_empty() {
+    if let Some((first_key, first_vec)) = take_first_key_and_value(&mut map_of_vectors) {
+        if map_of_vectors.is_empty() {
             first_vec
                 .iter()
                 .map(move |value| HashMap::from([(first_key.clone(), value.clone())]))
                 .collect()
         } else {
-            permute_map_of_vecs_helper(map_of_vecs)
+            permute_map_of_vectors_helper(map_of_vectors)
                 .into_iter()
                 .flat_map(|map| {
                     let first_key = first_key.clone();
@@ -119,11 +124,12 @@ fn permute_map_of_vecs_helper<KeyType: 'static + Clone + Eq + Hash, ValueType: '
 /// * If there are no keys, it will return an empty vector.
 /// * Because the size of the resulting array is the product of the sizes of all non-empty vectors,
 ///   the result can become quite large.
-pub fn permute_map_of_vecs<KeyType: 'static + Clone + Eq + Hash, ValueType: 'static + Clone>(
-    map_of_vecs: HashMap<KeyType, Vec<ValueType>>,
+#[allow(clippy::module_name_repetitions)]
+pub fn permute_map_of_vectors<KeyType: 'static + Clone + Eq + Hash, ValueType: 'static + Clone>(
+    map_of_vectors: HashMap<KeyType, Vec<ValueType>>,
 ) -> Vec<HashMap<KeyType, ValueType>> {
-    permute_map_of_vecs_helper(
-        map_of_vecs
+    permute_map_of_vectors_helper(
+        map_of_vectors
             .into_iter()
             .filter(|(_, value)| !value.is_empty())
             .collect(),
@@ -161,6 +167,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::unwrap_used, clippy::indexing_slicing, clippy::panic)]
     fn take_first_key_and_value_two() {
         let mut hash_map: HashMap<String, String> = HashMap::from([
             ("k0".to_owned(), "v0".to_owned()),
@@ -188,29 +195,30 @@ mod tests {
 
     #[test]
     fn empty() {
-        let map_of_vecs: HashMap<String, Vec<String>> = HashMap::new();
+        let map_of_vectors: HashMap<String, Vec<String>> = HashMap::new();
 
-        let vec_of_maps = permute_map_of_vecs(map_of_vecs);
+        let vec_of_maps = permute_map_of_vectors(map_of_vectors);
 
         assert!(vec_of_maps.is_empty());
     }
 
     #[test]
     fn one_empty_key() {
-        let map_of_vecs: HashMap<String, Vec<String>> =
+        let map_of_vectors: HashMap<String, Vec<String>> =
             HashMap::from([("k0".to_owned(), Vec::new())]);
 
-        let vec_of_maps = permute_map_of_vecs(map_of_vecs);
+        let vec_of_maps = permute_map_of_vectors(map_of_vectors);
 
         assert!(vec_of_maps.is_empty());
     }
 
     #[test]
+    #[allow(clippy::indexing_slicing)]
     fn one_key_one_value() {
-        let map_of_vecs: HashMap<String, Vec<String>> =
+        let map_of_vectors: HashMap<String, Vec<String>> =
             HashMap::from([("k0".to_owned(), vec!["v0".to_owned()])]);
 
-        let vec_of_maps = permute_map_of_vecs(map_of_vecs);
+        let vec_of_maps = permute_map_of_vectors(map_of_vectors);
 
         assert_eq!(vec_of_maps.len(), 1);
         assert_eq!(vec_of_maps[0].len(), 1);
@@ -218,11 +226,12 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::indexing_slicing)]
     fn one_key_two_values() {
-        let map_of_vecs: HashMap<String, Vec<String>> =
+        let map_of_vectors: HashMap<String, Vec<String>> =
             HashMap::from([("k0".to_owned(), vec!["v0".to_owned(), "v1".to_owned()])]);
 
-        let vec_of_maps = permute_map_of_vecs(map_of_vecs);
+        let vec_of_maps = permute_map_of_vectors(map_of_vectors);
 
         assert_eq!(vec_of_maps.len(), 2);
         assert_eq!(vec_of_maps[0].len(), 1);
@@ -232,13 +241,14 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::indexing_slicing)]
     fn two_keys_one_value_and_one_empty() {
-        let map_of_vecs: HashMap<String, Vec<String>> = HashMap::from([
+        let map_of_vectors: HashMap<String, Vec<String>> = HashMap::from([
             ("k0".to_owned(), vec!["v0".to_owned()]),
             ("k1".to_owned(), Vec::new()),
         ]);
 
-        let vec_of_maps = permute_map_of_vecs(map_of_vecs);
+        let vec_of_maps = permute_map_of_vectors(map_of_vectors);
 
         assert_eq!(vec_of_maps.len(), 1);
         assert_eq!(vec_of_maps[0].len(), 1);
@@ -246,13 +256,14 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::indexing_slicing)]
     fn two_keys_one_with_two_values_and_one_empty() {
-        let map_of_vecs: HashMap<String, Vec<String>> = HashMap::from([
+        let map_of_vectors: HashMap<String, Vec<String>> = HashMap::from([
             ("k0".to_owned(), vec!["v0".to_owned(), "v1".to_owned()]),
             ("k1".to_owned(), Vec::new()),
         ]);
 
-        let vec_of_maps = permute_map_of_vecs(map_of_vecs);
+        let vec_of_maps = permute_map_of_vectors(map_of_vectors);
 
         assert_eq!(vec_of_maps.len(), 2);
         assert_eq!(vec_of_maps[0].len(), 1);
@@ -262,13 +273,14 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::indexing_slicing)]
     fn two_keys_one_value_and_one_value() {
-        let map_of_vecs: HashMap<String, Vec<String>> = HashMap::from([
+        let map_of_vectors: HashMap<String, Vec<String>> = HashMap::from([
             ("k0".to_owned(), vec!["v0".to_owned()]),
             ("k1".to_owned(), vec!["v1".to_owned()]),
         ]);
 
-        let vec_of_maps = permute_map_of_vecs(map_of_vecs);
+        let vec_of_maps = permute_map_of_vectors(map_of_vectors);
 
         assert_eq!(vec_of_maps.len(), 1);
         assert_eq!(vec_of_maps[0].len(), 2);
@@ -277,13 +289,14 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::indexing_slicing)]
     fn two_keys_one_with_two_values_and_one_value() {
-        let map_of_vecs: HashMap<String, Vec<String>> = HashMap::from([
+        let map_of_vectors: HashMap<String, Vec<String>> = HashMap::from([
             ("k0".to_owned(), vec!["v0".to_owned(), "v1".to_owned()]),
             ("k1".to_owned(), vec!["v2".to_owned()]),
         ]);
 
-        let vec_of_maps = permute_map_of_vecs(map_of_vecs);
+        let vec_of_maps = permute_map_of_vectors(map_of_vectors);
 
         assert_eq!(vec_of_maps.len(), 2);
         assert_eq!(vec_of_maps[0].len(), 2);
@@ -295,13 +308,14 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::indexing_slicing)]
     fn two_keys_one_with_two_values_and_one_with_two_values() {
-        let map_of_vecs: HashMap<String, Vec<String>> = HashMap::from([
+        let map_of_vectors: HashMap<String, Vec<String>> = HashMap::from([
             ("k0".to_owned(), vec!["v0".to_owned(), "v1".to_owned()]),
             ("k1".to_owned(), vec!["v2".to_owned(), "v3".to_owned()]),
         ]);
 
-        let vec_of_maps = permute_map_of_vecs(map_of_vecs);
+        let vec_of_maps = permute_map_of_vectors(map_of_vectors);
 
         assert_eq!(vec_of_maps.len(), 4);
         assert_eq!(vec_of_maps[0].len(), 2);

@@ -284,23 +284,23 @@
 //! Ironically, this is simpler than implementing a new assertion with a predicate. For a real world
 //! example of this, look at how [`assert_panics`] is implemented.
 
-pub mod arithmetic_assertions;
-pub mod bool_assertions;
+pub mod arithmetic;
+pub mod bool;
 pub mod config;
-pub mod custom_assertions;
-pub mod string_assertions;
+pub mod custom;
+pub mod string;
 
 #[cfg(feature = "filesystem")]
-pub mod filesystem_assertions;
+pub mod filesystem;
 
 #[cfg(feature = "float")]
-pub mod float_assertions;
+pub mod float;
 
 #[cfg(feature = "output")]
-pub mod output_assertions;
+pub mod output;
 
 #[cfg(feature = "panic")]
-pub mod panic_assertions;
+pub mod panic;
 
 // These are used for the doc comment above.
 #[allow(unused_imports)]

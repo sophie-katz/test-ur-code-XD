@@ -1,11 +1,23 @@
 [workspace]
-
 members = [
     "crates/demo",
     "crates/test-ur-code-xd",
     "crates/test-ur-code-xd-macro",
 ]
 resolver = "2" # Use 2021 edition resolver
+
+    [workspace.package]
+    authors      = ["Sophie Katz <sophie@sophiekatz.us>"]
+    categories   = ["development-tools", "development-tools::testing"]
+    edition      = "2021"
+    homepage     = "https://sophie-katz.github.io/test-ur-code-XD"
+    keywords     = ["test", "testing", "tests", "assert", "color"]
+    license      = "LGPL-3.0-only"
+    readme       = "README.md"
+    repository   = "https://github.com/sophie-katz/test-ur-code-XD"
+    rust-version = "1.66"
+    version      = "0.1.0"
+
 
 [profile.dev]
 opt-level = 0 # Ensure that optimization is disabled while debugging

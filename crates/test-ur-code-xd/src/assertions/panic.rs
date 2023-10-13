@@ -70,14 +70,14 @@ pub fn assert_panics_impl<
 #[macro_export]
 macro_rules! assert_panics {
     ($action:expr, on_message = $on_message:expr) => {
-        $crate::assertions::panic_assertions::assert_panics_impl(
+        $crate::assertions::panic::assert_panics_impl(
             $action,
             ::std::option::Option::Some($on_message),
         )
     };
 
     ($action:expr) => {
-        $crate::assertions::panic_assertions::assert_panics_impl(
+        $crate::assertions::panic::assert_panics_impl(
             $action,
             ::std::option::Option::<fn(String)>::None,
         )
@@ -85,6 +85,7 @@ macro_rules! assert_panics {
 }
 
 #[cfg(test)]
+#[allow(clippy::print_stdout, clippy::print_stderr, clippy::panic)]
 mod tests {
     use crate::assert_eq;
     use std::panic;
@@ -97,7 +98,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_panics_failing_no_panic() {
         assert_panics!(|| {});
     }
@@ -115,7 +116,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_panics_failing_no_message_text_message_assertion() {
         assert_panics!(
             || {
@@ -147,7 +148,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_panics_failing_with_message_text_message_assertion() {
         assert_panics!(
             || {
@@ -260,7 +261,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_panics_failing_nested() {
         assert_panics!(|| {
             assert_panics!(|| {

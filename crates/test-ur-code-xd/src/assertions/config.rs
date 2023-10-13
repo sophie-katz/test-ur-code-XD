@@ -22,7 +22,7 @@
 //! [sophie-katz.github.io/test-ur-code-XD/assertions/configuring-assertions](https://sophie-katz.github.io/test-ur-code-XD/assertions/configuring-assertions/)
 //! for a usage guide.
 
-use crate::{error::Error, utilities::panic_message_builder::PanicMessageBuilder};
+use crate::{errors::TestUrCodeXDError, utilities::panic_message_builder::PanicMessageBuilder};
 use std::{fmt::Display, panic::Location};
 
 /// The configuration for an assertion.
@@ -37,6 +37,7 @@ use std::{fmt::Display, panic::Location};
 //
 //   Make sure to put <br /> tags after all field doc comments except for the last one. This is to
 //   work around Rustdoc's formatting with examples for fields. It just makes it more readable.
+#[allow(clippy::exhaustive_structs)]
 #[derive(Clone, Default)]
 pub struct Config {
     /// A flag that negates the assertion.
@@ -214,7 +215,7 @@ impl Config {
             let panic_message_builder =
                 Config::unwrap_panic_message_builder_result(panic_message_builder_result);
 
-            // Furthur configure the panic message builder
+            // Further configure the panic message builder
             let panic_message_builder = configure_panic_message(panic_message_builder);
 
             // Trigger the actual panic
@@ -227,7 +228,7 @@ impl Config {
         self,
         predicate_description: impl Display,
         location: &'static Location,
-    ) -> Result<PanicMessageBuilder, Error> {
+    ) -> Result<PanicMessageBuilder, TestUrCodeXDError> {
         let panic_message_builder = PanicMessageBuilder::new(predicate_description, location)
             .with_description(self.description)?;
 
@@ -245,7 +246,7 @@ impl Config {
         match result {
             Ok(panic_message_builder) => panic_message_builder,
             Err(error) => PanicMessageBuilder::new(
-                format!("internal error while creating panic message: {}", error),
+                format!("internal error while creating panic message: {error}"),
                 Location::caller(),
             )
             .panic(),
@@ -267,7 +268,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn using_struct_does_panic() {
         Config {
             ..Config::default()
@@ -285,7 +286,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn using_struct_does_panic_negated() {
         Config {
             negate: true,
@@ -295,7 +296,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn panic_message_no_description() {
         Config {
             ..Config::default()

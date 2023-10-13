@@ -19,7 +19,24 @@
 //! [sophie-katz.github.io/test-ur-code-XD/assertions/output](https://sophie-katz.github.io/test-ur-code-XD/assertions/output/)
 //! for a usage guide.
 
-use crate::utilities::capture_output::{capture_output, capture_output_raw};
+use std::panic::Location;
+
+use crate::utilities::{
+    capture_output::{capture_output, capture_output_raw, CapturedOutputs, OutputCapturingError},
+    panic_message_builder::PanicMessageBuilder,
+};
+
+/// Helper function to unwrap captured output wrapped in an error and panic.
+fn unwrap_captured_outputs<OutputType>(
+    result: Result<CapturedOutputs<OutputType>, OutputCapturingError>,
+) -> CapturedOutputs<OutputType> {
+    match result {
+        Ok(value) => value,
+        Err(error) => PanicMessageBuilder::new("failed to capture output", Location::caller())
+            .with_argument("error", "--", &error.to_string())
+            .panic(),
+    }
+}
 
 #[doc(hidden)]
 pub fn assert_outputs_impl<ActionType: FnOnce()>(
@@ -27,7 +44,7 @@ pub fn assert_outputs_impl<ActionType: FnOnce()>(
     on_stdout: Option<Box<dyn FnOnce(String)>>,
     on_stderr: Option<Box<dyn FnOnce(String)>>,
 ) {
-    let captured_outputs = capture_output(action).unwrap();
+    let captured_outputs = unwrap_captured_outputs(capture_output(action));
 
     if let Some(on_stdout) = on_stdout {
         on_stdout(captured_outputs.stdout);
@@ -74,7 +91,7 @@ pub fn assert_outputs_impl<ActionType: FnOnce()>(
 #[macro_export]
 macro_rules! assert_outputs {
     ($action:expr, on_stdout = $on_stdout:expr $(,)?) => {
-        $crate::assertions::output_assertions::assert_outputs_impl(
+        $crate::assertions::output::assert_outputs_impl(
             $action,
             ::std::option::Option::Some(::std::boxed::Box::new($on_stdout)),
             ::std::option::Option::None,
@@ -82,7 +99,7 @@ macro_rules! assert_outputs {
     };
 
     ($action:expr, on_stderr = $on_stderr:expr $(,)?) => {
-        $crate::assertions::output_assertions::assert_outputs_impl(
+        $crate::assertions::output::assert_outputs_impl(
             $action,
             ::std::option::Option::None,
             ::std::option::Option::Some(::std::boxed::Box::new($on_stderr)),
@@ -90,7 +107,7 @@ macro_rules! assert_outputs {
     };
 
     ($action:expr, on_stdout = $on_stdout:expr, on_stderr = $on_stderr:expr $(,)?) => {
-        $crate::assertions::output_assertions::assert_outputs_impl(
+        $crate::assertions::output::assert_outputs_impl(
             $action,
             ::std::option::Option::Some(::std::boxed::Box::new($on_stdout)),
             ::std::option::Option::Some(::std::boxed::Box::new($on_stderr)),
@@ -105,7 +122,7 @@ pub fn assert_outputs_raw_impl<ActionType: FnOnce()>(
     on_stdout: Option<Box<dyn FnOnce(&[u8])>>,
     on_stderr: Option<Box<dyn FnOnce(&[u8])>>,
 ) {
-    let captured_outputs = capture_output_raw(action).unwrap();
+    let captured_outputs = unwrap_captured_outputs(capture_output_raw(action));
 
     if let Some(on_stdout) = on_stdout {
         on_stdout(&captured_outputs.stdout);
@@ -152,7 +169,7 @@ pub fn assert_outputs_raw_impl<ActionType: FnOnce()>(
 #[macro_export]
 macro_rules! assert_outputs_raw {
     ($action:expr, on_stdout = $on_stdout:expr $(,)?) => {
-        $crate::assertions::output_assertions::assert_outputs_raw_impl(
+        $crate::assertions::output::assert_outputs_raw_impl(
             $action,
             ::std::option::Option::Some(::std::boxed::Box::new($on_stdout)),
             ::std::option::Option::None,
@@ -160,7 +177,7 @@ macro_rules! assert_outputs_raw {
     };
 
     ($action:expr, on_stderr = $on_stderr:expr $(,)?) => {
-        $crate::assertions::output_assertions::assert_outputs_raw_impl(
+        $crate::assertions::output::assert_outputs_raw_impl(
             $action,
             ::std::option::Option::None,
             ::std::option::Option::Some(::std::boxed::Box::new($on_stderr)),
@@ -168,7 +185,7 @@ macro_rules! assert_outputs_raw {
     };
 
     ($action:expr, on_stdout = $on_stdout:expr, on_stderr = $on_stderr:expr $(,)?) => {
-        $crate::assertions::output_assertions::assert_outputs_raw_impl(
+        $crate::assertions::output::assert_outputs_raw_impl(
             $action,
             ::std::option::Option::Some(::std::boxed::Box::new($on_stdout)),
             ::std::option::Option::Some(::std::boxed::Box::new($on_stderr)),
@@ -177,6 +194,7 @@ macro_rules! assert_outputs_raw {
 }
 
 #[cfg(test)]
+#[allow(clippy::print_stdout, clippy::print_stderr)]
 mod tests {
     use crate::assert_eq;
 
@@ -278,7 +296,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_outputs_failing_stdout_assertion() {
         println!("this is NOT captured");
         eprintln!("this is NOT captured");
@@ -298,7 +316,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_outputs_failing_stderr_assertion() {
         println!("this is NOT captured");
         eprintln!("this is NOT captured");
@@ -319,7 +337,7 @@ mod tests {
 
     // TODO: Get this to work
     // #[test]
-    // #[should_panic]
+    // #[should_panic(expected = "explicit panic")]
     // fn assert_outputs_nested() {
     //     assert_outputs!(
     //         || {
@@ -437,7 +455,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_outputs_raw_failing_stdout_assertion() {
         println!("this is NOT captured");
         eprintln!("this is NOT captured");
@@ -457,7 +475,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_outputs_raw_failing_stderr_assertion() {
         println!("this is NOT captured");
         eprintln!("this is NOT captured");
@@ -478,7 +496,7 @@ mod tests {
 
     // TODO: Get this to work
     // #[test]
-    // #[should_panic]
+    // #[should_panic(expected = "explicit panic")]
     // fn assert_outputs_raw_nested() {
     //     assert_outputs_raw!(
     //         || {

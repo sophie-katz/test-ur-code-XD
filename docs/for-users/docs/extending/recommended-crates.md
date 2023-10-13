@@ -33,7 +33,7 @@ There are a lot of testing crates in Rust that provide functionality that test u
 
 | Crate                                                           | Description                                                                              |
 | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| [`serial_test`](https://crates.io/crates/serial_test)           | Allows for the creation of serialised Rust tests                                         |
+| [`serial_test`](https://crates.io/crates/serial_test)           | Allows for the creation of serialized Rust tests                                         |
 | [`rstest`](https://crates.io/crates/rstest)                     | Fixture-based test framework for Rust                                                    |
 | [Datatest](https://crates.io/crates/datatest)                   | Crate for supporting data-driven tests                                                   |
 

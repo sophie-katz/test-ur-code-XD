@@ -23,6 +23,8 @@ This crate tries to improve testing in Rust with a more full-featured framework.
 
 ![A screenshot of an assertion](docs/for-users/docs/assets/assertion-screenshot.png)
 
+![A screenshot of an string diff](docs/for-users/docs/assets/string-diff-screenshot.png)
+
 * [Usage](#usage)
 * [Features](#features)
     * [More assertions](#more-assertions)
@@ -30,13 +32,6 @@ This crate tries to improve testing in Rust with a more full-featured framework.
 * [Contributing](#contributing)
 
 ## Usage
-
-Add this to your `Cargo.toml` to use:
-
-```toml
-[dev-dependencies]
-test-ur-code-XD = "^0.1.0"
-```
 
 Read the [user guide](https://sophie-katz.github.io/test-ur-code-XD/) for instructions on how to use this crate in your own projects.
 

@@ -36,11 +36,6 @@
 		{
 			"type": "cargo",
 			"command": "clippy",
-			"args": [
-				"--",
-				"-W",
-				"clippy::all"
-			],
 			"problemMatcher": [
 				"$rustc"
 			],

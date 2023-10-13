@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU General Public License along with test ur code XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
+#![allow(clippy::print_stdout)]
+
 use std::time::Instant;
 
 use test_ur_code_xd::assertions::config::Config;
@@ -38,7 +40,7 @@ fn benchmark_empty_create_config() {
     let start = Instant::now();
 
     for _ in 0..SAMPLE_SIZE {
-        let _ = Config {
+        let _: Config = Config {
             ..Default::default()
         };
     }
@@ -73,6 +75,7 @@ fn benchmark_assert_if() {
     let start = Instant::now();
 
     for _ in 0..SAMPLE_SIZE {
+        #[allow(clippy::manual_assert, clippy::panic)]
         if !id(true) {
             panic!();
         }
@@ -108,6 +111,7 @@ fn benchmark_assert_eq_if() {
     let start = Instant::now();
 
     for _ in 0..SAMPLE_SIZE {
+        #[allow(clippy::manual_assert, clippy::panic)]
         if !id(3).eq(&id(3)) {
             panic!();
         }

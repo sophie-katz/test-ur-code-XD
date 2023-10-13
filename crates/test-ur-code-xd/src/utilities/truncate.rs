@@ -13,115 +13,232 @@
 // You should have received a copy of the GNU General Public License along with test ur code XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
-/// The separator used when truncating a string.
-const TRUNCATION_SEPARATOR: &str = " ... ";
+#![allow(clippy::arithmetic_side_effects, clippy::module_name_repetitions)]
 
-/// Gets the length of a string after truncating in the middle.
-///
-/// **Note:** This does not properly support newlines in the truncated string.
-///
-/// # Arguments
-///
-/// * `text` - The string to truncate.
-/// * `context_len` - The amount of context to give both before and after the `" ... "`.
-///
-/// # Returns
-///
-/// * The original string's length if the length is less than or equal to
-///   `TRUNCATION_SEPARATOR.len() + 2 * context_len`.
-/// * Otherwise, `TRUNCATION_SEPARATOR.len() + 2 * context_len`.
-pub fn middle_truncated_len(text: impl AsRef<str>, context_len: usize) -> usize {
-    text.as_ref()
-        .len()
-        .min(TRUNCATION_SEPARATOR.len() + 2 * context_len)
+use num_traits::ToPrimitive;
+use unicode_segmentation::UnicodeSegmentation;
+
+#[derive(Clone, Copy)]
+#[non_exhaustive]
+pub enum TruncationMode {
+    Start,
+    Middle,
+    End,
 }
 
-/// Truncates a string in the middle.
-///
-/// **Note:** This does not properly support newlines in the truncated string.
-///
-/// # Example
-///
-/// ```
-/// # use test_ur_code_xd::utilities::truncate;
-/// #
-/// let longer = "This is a relatively long string that can be truncated.";
-///
-/// let shorter = truncate::truncate_middle(
-///     longer,
-///     5,
-/// );
-///
-/// assert_eq!(
-///     shorter,
-///     "This  ... ated."
-/// );
-/// ```
-///
-/// # Arguments
-///
-/// * `text` - The string to truncate.
-/// * `context_len` - The amount of context to give both before and after the `" ... "`.
-///
-/// # Returns
-///
-/// * The original string if the length is less than or equal to `TRUNCATION_SEPARATOR.len() + 2 * context_len`.
-/// * Otherwise, the truncated string.
-pub fn truncate_middle(text: impl AsRef<str>, context_len: usize) -> String {
-    let text = text.as_ref();
+pub trait Truncate {
+    fn to_truncated(
+        &self,
+        separator: impl AsRef<str>,
+        mode: TruncationMode,
+        max_grapheme_len: usize,
+    ) -> String;
+}
 
-    if text.len() > TRUNCATION_SEPARATOR.len() + 2 * context_len {
-        format!(
-            "{}{}{}",
-            &text[..context_len],
-            TRUNCATION_SEPARATOR,
-            &text[text.len() - context_len..]
-        )
-    } else {
-        text.to_owned()
+#[allow(clippy::missing_trait_methods)]
+impl Truncate for str {
+    #[allow(clippy::expect_used, clippy::panic)]
+    #[warn(clippy::cognitive_complexity)]
+    fn to_truncated(
+        &self,
+        separator: impl AsRef<str>,
+        mode: TruncationMode,
+        max_grapheme_len: usize,
+    ) -> String {
+        // Segment graphemes
+        let self_graphemes: Vec<&str> = self.graphemes(true).collect();
+        let separator_graphemes: Vec<&str> = separator.as_ref().graphemes(true).collect();
+
+        // If the string is already short enough, return it as is
+        if self_graphemes.len() <= max_grapheme_len {
+            return self.to_owned();
+        }
+
+        // Generate the grapheme segments for the truncated string
+        let truncated_graphemes_iter: Vec<&str> = match mode {
+            TruncationMode::Start => {
+                // Calculate the context length in graphemes after the separator
+                let context_after_grapheme_len = get_context_grapheme_lengths_start_or_end(
+                    separator_graphemes.len(),
+                    max_grapheme_len,
+                );
+
+                // Slice the graphemes
+                let context_after_graphemes: &[&str] = self_graphemes
+                    .get(context_after_grapheme_len..)
+                    .unwrap_or_else(|| {
+                        panic!(
+                            "unable to truncate from start at index {context_after_grapheme_len}"
+                        )
+                    });
+
+                // Chain together the graphemes into a vector
+                separator_graphemes
+                    .into_iter()
+                    .chain(context_after_graphemes.iter().copied())
+                    .collect()
+            }
+            TruncationMode::Middle => {
+                // Calculate the context length in graphemes before and after the separator
+                let (context_before_grapheme_len, context_after_grapheme_len) =
+                    get_context_grapheme_lengths_middle(
+                        separator_graphemes.len(),
+                        max_grapheme_len,
+                    );
+
+                // Slice the graphemes before the separator
+                let context_before_graphemes: &[&str] =
+                    self_graphemes.get(..context_before_grapheme_len).unwrap_or_else(|| panic!("unable to truncate in middle starting at index {context_before_grapheme_len}"));
+
+                // Slice the graphemes after the separator
+                let context_after_graphemes: &[&str] =
+                    self_graphemes.get(context_after_grapheme_len..).unwrap_or_else(|| panic!("unable to truncate in middle ending at index {context_after_grapheme_len}"));
+
+                // Chain together the graphemes into a vector
+                context_before_graphemes
+                    .iter()
+                    .copied()
+                    .chain(separator_graphemes)
+                    .chain(context_after_graphemes.iter().copied())
+                    .collect()
+            }
+            TruncationMode::End => {
+                // Calculate the context length in graphemes before the separator
+                let context_before_grapheme_len = get_context_grapheme_lengths_start_or_end(
+                    separator_graphemes.len(),
+                    max_grapheme_len,
+                );
+
+                // Slice the graphemes
+                let context_before_graphemes: &[&str] = self_graphemes
+                    .get(..context_before_grapheme_len)
+                    .unwrap_or_else(|| {
+                        panic!("unable to truncate from end at index {context_before_grapheme_len}")
+                    });
+
+                // Chain together the graphemes into a vector
+                context_before_graphemes
+                    .iter()
+                    .copied()
+                    .chain(separator_graphemes)
+                    .collect()
+            }
+        };
+
+        // Concatenate the graphemes into a string
+        truncated_graphemes_iter.concat()
     }
 }
 
-/// Truncates a string at the end.
+/// Gets the context length for truncating a string from the start or the end.
 ///
-/// # Example
+/// # Examples
+///
+/// To get the context length for truncating a string at the start:
 ///
 /// ```
-/// # use test_ur_code_xd::utilities::truncate;
-/// #
-/// let longer = "This is a relatively long string.";
+/// // The separator is " ... "
+/// let separator_grapheme_len = 5;
 ///
-/// let shorter = truncate::truncate_end(
-///     longer,
-///     5
+/// // The maximum truncated string length is 10 graphemes.
+/// let max_grapheme_len = 10;
+///
+/// let after = get_context_grapheme_lengths_start_or_end(
+///     separator_grapheme_len,
+///     TruncationMode::Start,
+///     max_grapheme_len,
 /// );
 ///
-/// assert_eq!(
-///     shorter,
-///     "This  ..."
-/// );
+/// assert_eq!(after, 5);
 /// ```
 ///
 /// # Arguments
 ///
-/// * `text` - The string to truncate.
+/// * `separator_grapheme_len` - The length of the separator in graphemes.
+/// * `mode` - The truncation mode.
+/// * `max_grapheme_len` - The maximum length of the truncated string in graphemes.
 ///
 /// # Returns
 ///
-/// * The original string if the length is less then or equal to `context_len + 4`.
-/// * Otherwise, the truncated string:
-///     * Which will be cut off after `context_len` characters.
-///     * Or the first newline character, whichever comes first.
-pub fn truncate_end(text: impl AsRef<str>, context_len: usize) -> String {
-    let mut text = text.as_ref().to_owned();
+/// The context length in graphemes.
+fn get_context_grapheme_lengths_start_or_end(
+    separator_grapheme_len: usize,
+    max_grapheme_len: usize,
+) -> usize {
+    max_grapheme_len - separator_grapheme_len
+}
 
-    if text.len() > context_len + 4 {
-        text = format!("{} ...", &text[..context_len]);
+/// Gets the context length for truncating a string in the middle.
+///
+/// # Examples
+///
+/// To get the context length for truncating a string:
+///
+/// ```
+/// // The separator is " ... "
+/// let separator_grapheme_len = 5;
+///
+/// // The maximum truncated string length is 10 graphemes.
+/// let max_grapheme_len = 10;
+///
+/// let (before, after) = get_context_grapheme_lengths_middle(
+///     separator_grapheme_len,
+///     TruncationMode::Start,
+///     max_grapheme_len,
+/// );
+///
+/// assert_eq!(before, 5);
+/// assert_eq!(after, 5);
+/// ```
+///
+/// # Arguments
+///
+/// * `separator_grapheme_len` - The length of the separator in graphemes.
+/// * `mode` - The truncation mode.
+/// * `max_grapheme_len` - The maximum length of the truncated string in graphemes.
+///
+/// # Returns
+///
+/// A tuple of context lengths in graphemes `(before, after)`.
+fn get_context_grapheme_lengths_middle(
+    separator_grapheme_len: usize,
+    max_grapheme_len: usize,
+) -> (usize, usize) {
+    let unrounded = convert_grapheme_len_to_f64(max_grapheme_len) / 2.0
+        - convert_grapheme_len_to_f64(separator_grapheme_len);
+
+    (
+        convert_f64_to_grapheme_len(unrounded.ceil()),
+        convert_f64_to_grapheme_len(unrounded.floor()),
+    )
+}
+
+/// Safely converts a grapheme length to a `f64`.
+#[allow(clippy::panic)]
+fn convert_grapheme_len_to_f64(grapheme_len: usize) -> f64 {
+    match grapheme_len.to_f64() {
+        Some(value) => {
+            if value.is_sign_negative() {
+                panic!("converting grapheme length {grapheme_len} to f64 yields negative number {value}, so unable to truncate")
+            } else if !value.is_finite() {
+                panic!("converting grapheme length {grapheme_len} to f64 yields non-finite number {value}, so unable to truncate")
+            } else {
+                value
+            }
+        }
+        None => {
+            panic!("unable to convert grapheme length {grapheme_len} to f64, so unable to truncate")
+        }
     }
+}
 
-    if let Some(newline_index) = text.find('\n') {
-        text = format!("{} ...", &text[..newline_index]);
+/// Safely converts an `f64` to a grapheme length.
+#[allow(clippy::panic)]
+fn convert_f64_to_grapheme_len(value: f64) -> usize {
+    match value.to_usize() {
+        Some(value) => value,
+        None => {
+            panic!("unable to convert context length {value} to usize, so unable to truncate")
+        }
     }
-
-    text
 }

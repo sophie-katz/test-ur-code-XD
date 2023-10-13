@@ -28,7 +28,7 @@ not, see <https://www.gnu.org/licenses/>.
 ## System setup
 
 * Install [Rust Nightly](https://www.rust-lang.org/tools/install)
-* Install recommended VS Code extentions if using VS Code
+* Install recommended VS Code extensions if using VS Code
 
 ## Documentation
 

@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU General Public License along with test ur code XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
+//! Parsing functions
+
 use proc_macro2::TokenStream;
 use syn::{parse::Parser, punctuated::Punctuated, ExprAssign, Token};
 
@@ -46,6 +48,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn parse_expr_assign_iter_empty() {
         let expressions: Vec<ExprAssign> = parse_expr_assign_iter(quote! {}).unwrap().collect();
 
@@ -53,6 +56,8 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
+    #[allow(clippy::indexing_slicing)]
     fn parse_expr_assign_iter_one_empty() {
         let expressions: Vec<ExprAssign> =
             parse_expr_assign_iter(quote! { a = [] }).unwrap().collect();
@@ -63,6 +68,8 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
+    #[allow(clippy::indexing_slicing)]
     fn parse_expr_assign_iter_one_full() {
         let expressions: Vec<ExprAssign> = parse_expr_assign_iter(quote! { a = [1, 2, 3] })
             .unwrap()
@@ -77,6 +84,8 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
+    #[allow(clippy::indexing_slicing)]
     fn parse_expr_assign_iter_two_full() {
         let expressions: Vec<ExprAssign> =
             parse_expr_assign_iter(quote! { a = [1, 2, 3], b = [4, 5, 6] })
@@ -97,6 +106,8 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
+    #[allow(clippy::indexing_slicing)]
     fn parse_expr_assign_iter_comma_after() {
         let expressions: Vec<ExprAssign> =
             parse_expr_assign_iter(quote! { a = [1, 2, 3], b = [4, 5, 6], })

@@ -53,13 +53,13 @@ macro_rules! assert_str_eq {
     ($lhs:expr, $rhs:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "lhs == rhs",
-            $crate::assertions::string_assertions::assert_str_eq_impl(&$lhs, &$rhs),
+            $crate::assertions::string::assert_str_eq_impl(&$lhs, &$rhs),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("lhs", stringify!($lhs), &::std::convert::AsRef::<str>::as_ref(&$lhs))
                     .with_argument("rhs", stringify!($rhs), &::std::convert::AsRef::<str>::as_ref(&$rhs))
                     .with_argument_formatted("diff", "--",
-                        $crate::utilities::diff_utilities::format_diff(
+                        $crate::utilities::diff::format_diff(
                             &$lhs,
                             &$rhs,
                             $crate::utilities::panic_message_builder::DEBUGGED_VALUE_PREFIX.len()
@@ -101,7 +101,7 @@ macro_rules! assert_str_contains {
     ($value:expr, $substring:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "value contains substring",
-            $crate::assertions::string_assertions::assert_str_contains_impl(&$value, &$substring),
+            $crate::assertions::string::assert_str_contains_impl(&$value, &$substring),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("value", stringify!($value), &::std::convert::AsRef::<str>::as_ref(&$value))
@@ -142,7 +142,7 @@ macro_rules! assert_str_starts_with {
     ($value:expr, $prefix:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "value starts with prefix",
-            $crate::assertions::string_assertions::assert_str_starts_with_impl(&$value, &$prefix),
+            $crate::assertions::string::assert_str_starts_with_impl(&$value, &$prefix),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("value", stringify!($value), &::std::convert::AsRef::<str>::as_ref(&$value))
@@ -183,7 +183,7 @@ macro_rules! assert_str_ends_with {
     ($value:expr, $suffix:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "value ends with suffix",
-            $crate::assertions::string_assertions::assert_str_ends_with_impl(&$value, &$suffix),
+            $crate::assertions::string::assert_str_ends_with_impl(&$value, &$suffix),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("value", stringify!($value), &::std::convert::AsRef::<str>::as_ref(&$value))
@@ -197,7 +197,16 @@ macro_rules! assert_str_ends_with {
 #[doc(hidden)]
 #[cfg(feature = "regex")]
 pub fn assert_str_matches_impl(value: impl AsRef<str>, pattern: impl AsRef<str>) -> bool {
-    let pattern = Regex::new(pattern.as_ref()).unwrap();
+    use std::panic::Location;
+
+    use crate::utilities::panic_message_builder::PanicMessageBuilder;
+
+    let pattern = match Regex::new(pattern.as_ref()) {
+        Ok(pattern_value) => pattern_value,
+        Err(error) => PanicMessageBuilder::new("error while parsing regex", Location::caller())
+            .with_argument("error", "--", &error.to_string())
+            .panic(),
+    };
 
     pattern.is_match(value.as_ref())
 }
@@ -228,7 +237,7 @@ macro_rules! assert_str_matches {
     ($value:expr, $pattern:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "value matches pattern",
-            $crate::assertions::string_assertions::assert_str_matches_impl(&$value, &$pattern),
+            $crate::assertions::string::assert_str_matches_impl(&$value, &$pattern),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("value", stringify!($value), &::std::convert::AsRef::<str>::as_ref(&$value))
@@ -255,42 +264,42 @@ mod tests {
 
     #[cfg(feature = "string-diff")]
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_str_eq_failing_empty_some() {
         assert_str_eq!("", "asdf");
     }
 
     #[cfg(feature = "string-diff")]
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_str_eq_failing_some_empty() {
         assert_str_eq!("asdf", "");
     }
 
     #[cfg(feature = "string-diff")]
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_str_eq_failing_totally_different() {
         assert_str_eq!("hello, world", "asdf");
     }
 
     #[cfg(feature = "string-diff")]
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_str_eq_failing_slightly_different() {
         assert_str_eq!("hello, world", "hello! world");
     }
 
     #[cfg(feature = "string-diff")]
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_str_eq_failing_long() {
         assert_str_eq!("a".repeat(100), "b".repeat(100));
     }
 
     #[cfg(feature = "string-diff")]
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_str_eq_failing_multiline() {
         assert_str_eq!("asdf\nasdf", "asdf\nfdsa");
     }
@@ -311,13 +320,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_str_contains_failing() {
         assert_str_contains!("hello, world", "asdf");
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_str_contains_failing_empty() {
         assert_str_contains!("", "asdf");
     }
@@ -338,13 +347,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_str_starts_with_failing() {
         assert_str_starts_with!("hello, world", "world");
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_str_starts_with_failing_empty() {
         assert_str_starts_with!("", "hello");
     }
@@ -365,13 +374,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_str_ends_with_failing() {
         assert_str_ends_with!("hello, world", "hello");
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_str_ends_with_failing_empty() {
         assert_str_ends_with!("", "hello");
     }
@@ -384,21 +393,21 @@ mod tests {
 
     #[cfg(feature = "regex")]
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_str_matches_failing_partial() {
         assert_str_matches!("hello, world", "[A-Z]+");
     }
 
     #[cfg(feature = "regex")]
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_str_matches_failing_whole() {
         assert_str_matches!("hello, world", "^[a-z]+$");
     }
 
     #[cfg(feature = "regex")]
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_str_matches_failing_bad_regex() {
         assert_str_matches!("hello, world", "[a-z, ");
     }

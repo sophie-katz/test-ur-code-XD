@@ -13,34 +13,22 @@
 // You should have received a copy of the GNU General Public License along with test ur code XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
+//! Defines a struct to help with capturing output.
+
 use gag::BufferRedirect;
 use std::io::{self, Read, Write};
 
-use super::{captured_output::CapturedOutputs, error::OutputStream, OutputCapturingError};
+#[allow(unused_imports)]
+use std::io::{stderr, stdout};
 
-/// A single output-capturing instance.
-///
-/// This is **NOT** thread safe! Only one of these may be used at any given time.
-///
-/// # Example
-///
-/// ```ignore
-/// println!("this is NOT captured (stdout)");
-///
-/// let mut output_capturer = OutputCapturer::default();
-/// output_capturer.start().unwrap();
-///
-/// println!("this is captured");
-///
-/// let output = output_capturer.stop();
-///
-/// println!("this is also NOT captured");
-///
-/// assert_eq!(output.stdout, "this is captured");
-/// ```
+use super::{captured_output::CapturedOutputs, errors::OutputStream, OutputCapturingError};
+
+/// A struct to help with capturing output.
 #[derive(Default)]
 pub struct OutputCapturer {
+    /// A buffer redirect for [`stdout`]
     buffer_stdout: Option<BufferRedirect>,
+    /// A buffer redirect for [`stdout`]
     buffer_stderr: Option<BufferRedirect>,
 }
 
@@ -148,15 +136,15 @@ impl OutputCapturer {
     ///
     /// * If there is an IO error while flushing either stream, this function will return an error.
     fn flush_streams() -> Result<(), OutputCapturingError> {
-        std::io::stdout().flush().map_err(|error| {
+        stdout().flush().map_err(|error| {
             OutputCapturingError::OutputStreamFlushError(OutputStream::Stdout, error)
         })?;
-        std::io::stderr().flush().map_err(|error| {
+        stderr().flush().map_err(|error| {
             OutputCapturingError::OutputStreamFlushError(OutputStream::Stderr, error)
         })
     }
 
-    /// Reads a [`gag`] [`BufferRedect`] as a string.
+    /// Reads a [`gag`] [`BufferRedirect`] as a string.
     fn read_buffer_as_string(
         buffer_redirect: &mut Option<BufferRedirect>,
         output_stream: OutputStream,
@@ -165,7 +153,7 @@ impl OutputCapturer {
 
         buffer_redirect
             .as_mut()
-            .expect("OutputCapturer::stop() called before OutputCapturer::start()")
+            .ok_or(OutputCapturingError::StopCalledBeforeStart)?
             .read_to_string(&mut string)
             .map_err(|error| {
                 OutputCapturingError::OutputStreamBufferReadingError(output_stream, error)
@@ -174,14 +162,14 @@ impl OutputCapturer {
         Ok(string)
     }
 
-    /// Reads a [`gag`] [`BufferRedect`] as a vector of bytes.
+    /// Reads a [`gag`] [`BufferRedirect`] as a vector of bytes.
     fn read_buffer_as_bytes(
         buffer_redirect: &mut Option<BufferRedirect>,
         output_stream: OutputStream,
     ) -> Result<Vec<u8>, OutputCapturingError> {
         buffer_redirect
             .as_mut()
-            .expect("OutputCapturer::stop() called before OutputCapturer::start()")
+            .ok_or(OutputCapturingError::StopCalledBeforeStart)?
             .bytes()
             .collect::<Result<Vec<u8>, io::Error>>()
             .map_err(|error| {
@@ -197,6 +185,8 @@ impl OutputCapturer {
 }
 
 #[cfg(test)]
+#[allow(clippy::print_stdout, clippy::print_stderr)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
     use crate::{assert, assert_eq};
@@ -220,11 +210,11 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn capture_stop_without_start() {
         let mut output_capturer = OutputCapturer::default();
 
-        let _ = output_capturer.stop();
+        let _: CapturedOutputs<String> = output_capturer.stop().unwrap();
     }
 
     #[test]
@@ -267,11 +257,11 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn capture_stop_without_start_raw() {
         let mut output_capturer = OutputCapturer::default();
 
-        let _ = output_capturer.stop_raw();
+        let _: CapturedOutputs<Vec<u8>> = output_capturer.stop_raw().unwrap();
     }
 
     #[test]

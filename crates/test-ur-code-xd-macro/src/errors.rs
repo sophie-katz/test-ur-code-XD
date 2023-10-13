@@ -15,14 +15,113 @@
 
 //! Error types for test ur code XD macros.
 
+use quote::quote_spanned;
+use syn::{spanned::Spanned, Expr, FnArg, PatType, Receiver};
 use thiserror::Error;
 
 /// A general error type for test ur code XD.
 #[derive(Error, Debug)]
-pub enum Error {
+pub enum TestUrCodeXDMacroError {
+    /// An error that occurs when parsing a test function that has a `self` argument.
+    ///
+    /// Test functions should never be struct members.
     #[error("unexpected `self` argument in test function")]
-    SelfArgumentInTest,
+    SelfArgumentInTest(Receiver),
 
-    #[error("argument `{0}` has no parameter set")]
-    ArgumentHasNoParameter(String),
+    /// If a parameterized test function has an argument that is not parameterized, this error is
+    /// emitted.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// #[test_ur_code_xd::test_with_parameters(
+    ///     x = [1, 2]
+    /// )]
+    /// fn example(y: i32) {
+    ///     // `y` is not in the parameter list above
+    ///     assert_eq!(y, 1);
+    /// }
+    /// ```
+    #[error("argument has no parameter set")]
+    ArgumentHasNoParameter(PatType),
+
+    /// An error that occurs when the left-hand side of a parameter is not a simple identifier.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// #[test_ur_code_xd::test_with_parameters(
+    ///     (x, y) = [1, 2]
+    /// )]
+    /// fn example(x: i32, y: i32) {
+    ///     // ...
+    /// }
+    /// ```
+    #[error("parameter's assignment left hand side is not an identifier")]
+    ParameterAssignmentLeftHandSideIsNotIdentifier(Expr),
+
+    /// An error that occurs when the right-hand side of a parameter is not an array literal.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// #[test_ur_code_xd::test_with_parameters(
+    ///     (x, y) = [1, 2]
+    /// )]
+    /// fn example(x: i32, y: i32) {
+    ///     // ...
+    /// }
+    /// ```
+    #[error("parameter's assignment right hand side is not an array literal")]
+    ParameterAssignmentRightHandSideIsNotArrayLiteral(Expr),
+
+    /// An error that occurs when the pattern of a function argument is not a single identifier.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// #[test_ur_code_xd::test_with_parameters(
+    ///     x = [1, 2]
+    /// )]
+    /// fn example((x, _): (i32, i32)) {
+    ///     // ...
+    /// }
+    /// ```
+    #[error("parameter is not a single identifier")]
+    ArgumentPatternIsNotSingleIdentifier(FnArg),
+
+    /// Wrapper for [`syn`] parsing errors.
+    #[error("parsing error: {0}")]
+    ParsingError(#[from] syn::Error),
+}
+
+impl TestUrCodeXDMacroError {
+    /// Converts the error into a [`proc_macro2::TokenStream`] that can be used with
+    /// [`compile_error`].
+    pub fn to_compile_error(&self) -> proc_macro2::TokenStream {
+        match self {
+            Self::SelfArgumentInTest(receiver) => {
+                quote_spanned!(receiver.span() => compile_error!("test functions cannot have `self` as an argument"))
+            }
+            Self::ArgumentHasNoParameter(argument_pattern) => {
+                quote_spanned!(argument_pattern.span() => compile_error!("no parameterization exists for argument"))
+            }
+            Self::ParameterAssignmentLeftHandSideIsNotIdentifier(expr) => {
+                quote_spanned!(expr.span() => compile_error!("parameter's left-hand side must be an identifier"))
+            }
+            Self::ParameterAssignmentRightHandSideIsNotArrayLiteral(expr) => {
+                quote_spanned!(expr.span() => compile_error!("parameter's right-hand side must be an array literal"))
+            }
+            Self::ArgumentPatternIsNotSingleIdentifier(fn_arg) => {
+                quote_spanned!(fn_arg.span() => compile_error!("argument must be a single identifier, not a pattern"))
+            }
+            Self::ParsingError(error) => error.to_compile_error(),
+        }
+    }
+
+    /// Converts the error into a [`proc_macro2::TokenStream`] that can be used with
+    /// [`compile_error`].
+    pub fn into_compile_error(self) -> proc_macro2::TokenStream {
+        self.to_compile_error()
+    }
 }

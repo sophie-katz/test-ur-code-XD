@@ -39,26 +39,24 @@ use crate::utilities::panic_message_builder::PanicMessageBuilder;
 ///
 /// * If both numbers are non-finite (either infinite or NaN):
 ///     * If they are equal, return `Some(true)`
-///     * If they are inequal, return `Some(false)`
+///     * If they are unequal, return `Some(false)`
 /// * Otherwise, return `None`
 fn is_float_eq_non_finite<FloatType: Float>(lhs: FloatType, rhs: FloatType) -> Option<bool> {
     if lhs.is_infinite() != rhs.is_infinite() {
-        // One is infinite and the other is not: inequal
-        return Some(false);
+        // One is infinite and the other is not: unequal
+        Some(false)
     } else if lhs.is_infinite() {
         // Both are infinite: check for equality between positive and negative
-        return Some(lhs == rhs);
-    }
-
-    if lhs.is_nan() != rhs.is_nan() {
-        // One is NaN and the other is not: inequal
-        return Some(false);
+        Some(lhs == rhs)
+    } else if lhs.is_nan() != rhs.is_nan() {
+        // One is NaN and the other is not: unequal
+        Some(false)
     } else if lhs.is_nan() {
         // Both are NaN: equal
-        return Some(true);
+        Some(true)
+    } else {
+        None
     }
-
-    None
 }
 
 /// Checks if two numbers are equal using a relative epsilon tolerance
@@ -86,14 +84,16 @@ fn is_float_eq_relative<FloatType: Float>(
     }
 
     // Calculate absolute difference
+    #[allow(clippy::arithmetic_side_effects)]
     let diff = (lhs - rhs).abs();
 
-    // Check for absolute tolerence first to handle cases close to zero
+    // Check for absolute tolerance first to handle cases close to zero
     if diff <= absolute_tolerance {
         return true;
     }
 
     // Check for relative tolerance
+    #[allow(clippy::arithmetic_side_effects)]
     if diff <= lhs.abs().max(rhs.abs()) * relative_tolerance {
         return true;
     }
@@ -122,7 +122,7 @@ fn is_float_eq_ulps_f32(lhs: f32, rhs: f32, absolute_tolerance: f32, ulps_tolera
     // Calculate absolute difference
     let diff = (lhs - rhs).abs();
 
-    // Check for absolute tolerence first to handle cases close to zero
+    // Check for absolute tolerance first to handle cases close to zero
     if diff <= absolute_tolerance {
         return true;
     }
@@ -161,7 +161,7 @@ fn is_float_eq_ulps_f64(lhs: f64, rhs: f64, absolute_tolerance: f64, ulps_tolera
     // Calculate absolute difference
     let diff = (lhs - rhs).abs();
 
-    // Check for absolute tolerence first to handle cases close to zero
+    // Check for absolute tolerance first to handle cases close to zero
     if diff <= absolute_tolerance {
         return true;
     }
@@ -193,7 +193,7 @@ pub fn format_float_predicate_description_ulps<
     FloatType: Debug,
 >(
     operator: &str,
-    ulps_tolerance: UlpsType,
+    ulps_tolerance: &UlpsType,
     bit_width: usize,
     epsilon_near_zero: FloatType,
 ) -> String {
@@ -202,7 +202,7 @@ pub fn format_float_predicate_description_ulps<
         operator,
         ulps_tolerance,
         bit_width,
-        if ulps_tolerance == 1 { "" } else { "s" },
+        if *ulps_tolerance == 1 { "" } else { "s" },
         epsilon_near_zero
     )
 }
@@ -221,8 +221,7 @@ pub fn format_float_predicate_description_relative<FloatType: Debug>(
     epsilon_near_zero: FloatType,
 ) -> String {
     format!(
-        "lhs {} rhs (within {:?} relative to magnitude or {:?} near zero)",
-        operator, relative_epsilon, epsilon_near_zero
+        "lhs {operator} rhs (within {relative_epsilon:?} relative to magnitude or {epsilon_near_zero:?} near zero)"
     )
 }
 
@@ -246,6 +245,7 @@ pub fn configure_float_panic_message_ulps<
     rhs_description: &str,
     rhs_value: FloatType,
 ) -> PanicMessageBuilder {
+    #[allow(clippy::arithmetic_side_effects)]
     panic_message_builder
         .with_argument("lhs", lhs_description, &lhs_value)
         .with_argument("rhs", rhs_description, &rhs_value)
@@ -278,6 +278,7 @@ pub fn configure_float_panic_message_relative<FloatType: Float + Debug>(
     rhs_description: &str,
     rhs_value: FloatType,
 ) -> PanicMessageBuilder {
+    #[allow(clippy::arithmetic_side_effects)]
     panic_message_builder
         .with_argument("lhs", lhs_description, &lhs_value)
         .with_argument("rhs", rhs_description, &rhs_value)
@@ -285,11 +286,13 @@ pub fn configure_float_panic_message_relative<FloatType: Float + Debug>(
 }
 
 #[doc(hidden)]
+#[must_use]
 pub fn assert_f32_eq_impl_ulps(lhs: f32, rhs: f32, epsilon_near_zero: f32, ulps: i32) -> bool {
     is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps)
 }
 
 #[doc(hidden)]
+#[must_use]
 pub fn assert_f32_eq_impl_relative(
     lhs: f32,
     rhs: f32,
@@ -305,7 +308,7 @@ pub fn assert_f32_eq_impl_relative(
 /// [sophie-katz.github.io/test-ur-code-XD/assertions/float](https://sophie-katz.github.io/test-ur-code-XD/assertions/float/)
 /// for a usage guide.
 ///
-/// # Arguents
+/// # Arguments
 ///
 /// * `lhs` - The left-hand side
 /// * `rhs` - The right-hand side
@@ -340,20 +343,20 @@ macro_rules! assert_f32_eq {
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
-            $crate::assertions::float_assertions::format_float_predicate_description_ulps(
+            $crate::assertions::float::format_float_predicate_description_ulps(
                 "==",
-                $ulps,
+                &$ulps,
                 32,
                 $epsilon_near_zero,
             ),
-            $crate::assertions::float_assertions::assert_f32_eq_impl_ulps(
+            $crate::assertions::float::assert_f32_eq_impl_ulps(
                 $lhs,
                 $rhs,
                 $epsilon_near_zero,
                 $ulps
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message_ulps::<i32, f32>(
+                $crate::assertions::float::configure_float_panic_message_ulps::<i32, f32>(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -373,19 +376,19 @@ macro_rules! assert_f32_eq {
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
-            $crate::assertions::float_assertions::format_float_predicate_description_relative(
+            $crate::assertions::float::format_float_predicate_description_relative(
                 "==",
                 $relative_epsilon,
                 $epsilon_near_zero,
             ),
-            $crate::assertions::float_assertions::assert_f32_eq_impl_relative(
+            $crate::assertions::float::assert_f32_eq_impl_relative(
                 $lhs,
                 $rhs,
                 $epsilon_near_zero,
                 $relative_epsilon
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message_relative::<f32>(
+                $crate::assertions::float::configure_float_panic_message_relative::<f32>(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -399,11 +402,13 @@ macro_rules! assert_f32_eq {
 }
 
 #[doc(hidden)]
+#[must_use]
 pub fn assert_f32_ne_impl_ulps(lhs: f32, rhs: f32, epsilon_near_zero: f32, ulps: i32) -> bool {
     !is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps)
 }
 
 #[doc(hidden)]
+#[must_use]
 pub fn assert_f32_ne_impl_relative(
     lhs: f32,
     rhs: f32,
@@ -413,13 +418,13 @@ pub fn assert_f32_ne_impl_relative(
     !is_float_eq_relative(lhs, rhs, epsilon_near_zero, relative_epsilon)
 }
 
-/// Asserts that two `f32` values are inequal.
+/// Asserts that two `f32` values are unequal.
 ///
 /// See
 /// [sophie-katz.github.io/test-ur-code-XD/assertions/float](https://sophie-katz.github.io/test-ur-code-XD/assertions/float/)
 /// for a usage guide.
 ///
-/// # Arguents
+/// # Arguments
 ///
 /// * `lhs` - The left-hand side
 /// * `rhs` - The right-hand side
@@ -454,20 +459,20 @@ macro_rules! assert_f32_ne {
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
-            $crate::assertions::float_assertions::format_float_predicate_description_ulps(
+            $crate::assertions::float::format_float_predicate_description_ulps(
                 "!=",
-                $ulps,
+                &$ulps,
                 32,
                 $epsilon_near_zero,
             ),
-            $crate::assertions::float_assertions::assert_f32_ne_impl_ulps(
+            $crate::assertions::float::assert_f32_ne_impl_ulps(
                 $lhs,
                 $rhs,
                 $epsilon_near_zero,
                 $ulps
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message_ulps::<i32, f32>(
+                $crate::assertions::float::configure_float_panic_message_ulps::<i32, f32>(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -487,19 +492,19 @@ macro_rules! assert_f32_ne {
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
-            $crate::assertions::float_assertions::format_float_predicate_description_relative(
+            $crate::assertions::float::format_float_predicate_description_relative(
                 "!=",
                 $relative_epsilon,
                 $epsilon_near_zero,
             ),
-            $crate::assertions::float_assertions::assert_f32_ne_impl_relative(
+            $crate::assertions::float::assert_f32_ne_impl_relative(
                 $lhs,
                 $rhs,
                 $epsilon_near_zero,
                 $relative_epsilon
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message_relative::<f32>(
+                $crate::assertions::float::configure_float_panic_message_relative::<f32>(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -513,11 +518,13 @@ macro_rules! assert_f32_ne {
 }
 
 #[doc(hidden)]
+#[must_use]
 pub fn assert_f32_le_impl_ulps(lhs: f32, rhs: f32, epsilon_near_zero: f32, ulps: i32) -> bool {
     lhs <= rhs || is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps)
 }
 
 #[doc(hidden)]
+#[must_use]
 pub fn assert_f32_le_impl_relative(
     lhs: f32,
     rhs: f32,
@@ -533,7 +540,7 @@ pub fn assert_f32_le_impl_relative(
 /// [sophie-katz.github.io/test-ur-code-XD/assertions/float](https://sophie-katz.github.io/test-ur-code-XD/assertions/float/)
 /// for a usage guide.
 ///
-/// # Arguents
+/// # Arguments
 ///
 /// * `lhs` - The left-hand side
 /// * `rhs` - The right-hand side
@@ -568,20 +575,20 @@ macro_rules! assert_f32_le {
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
-            $crate::assertions::float_assertions::format_float_predicate_description_ulps(
+            $crate::assertions::float::format_float_predicate_description_ulps(
                 "<=",
-                $ulps,
+                &$ulps,
                 32,
                 $epsilon_near_zero,
             ),
-            $crate::assertions::float_assertions::assert_f32_le_impl_ulps(
+            $crate::assertions::float::assert_f32_le_impl_ulps(
                 $lhs,
                 $rhs,
                 $epsilon_near_zero,
                 $ulps
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message_ulps::<i32, f32>(
+                $crate::assertions::float::configure_float_panic_message_ulps::<i32, f32>(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -601,19 +608,19 @@ macro_rules! assert_f32_le {
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
-            $crate::assertions::float_assertions::format_float_predicate_description_relative(
+            $crate::assertions::float::format_float_predicate_description_relative(
                 "<=",
                 $relative_epsilon,
                 $epsilon_near_zero,
             ),
-            $crate::assertions::float_assertions::assert_f32_le_impl_relative(
+            $crate::assertions::float::assert_f32_le_impl_relative(
                 $lhs,
                 $rhs,
                 $epsilon_near_zero,
                 $relative_epsilon
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message_relative::<f32>(
+                $crate::assertions::float::configure_float_panic_message_relative::<f32>(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -627,11 +634,13 @@ macro_rules! assert_f32_le {
 }
 
 #[doc(hidden)]
+#[must_use]
 pub fn assert_f32_ge_impl_ulps(lhs: f32, rhs: f32, epsilon_near_zero: f32, ulps: i32) -> bool {
     lhs >= rhs || is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps)
 }
 
 #[doc(hidden)]
+#[must_use]
 pub fn assert_f32_ge_impl_relative(
     lhs: f32,
     rhs: f32,
@@ -647,7 +656,7 @@ pub fn assert_f32_ge_impl_relative(
 /// [sophie-katz.github.io/test-ur-code-XD/assertions/float](https://sophie-katz.github.io/test-ur-code-XD/assertions/float/)
 /// for a usage guide.
 ///
-/// # Arguents
+/// # Arguments
 ///
 /// * `lhs` - The left-hand side
 /// * `rhs` - The right-hand side
@@ -682,20 +691,20 @@ macro_rules! assert_f32_ge {
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
-            $crate::assertions::float_assertions::format_float_predicate_description_ulps(
+            $crate::assertions::float::format_float_predicate_description_ulps(
                 ">=",
-                $ulps,
+                &$ulps,
                 32,
                 $epsilon_near_zero,
             ),
-            $crate::assertions::float_assertions::assert_f32_ge_impl_ulps(
+            $crate::assertions::float::assert_f32_ge_impl_ulps(
                 $lhs,
                 $rhs,
                 $epsilon_near_zero,
                 $ulps
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message_ulps::<i32, f32>(
+                $crate::assertions::float::configure_float_panic_message_ulps::<i32, f32>(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -715,19 +724,19 @@ macro_rules! assert_f32_ge {
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
-            $crate::assertions::float_assertions::format_float_predicate_description_relative(
+            $crate::assertions::float::format_float_predicate_description_relative(
                 ">=",
                 $relative_epsilon,
                 $epsilon_near_zero,
             ),
-            $crate::assertions::float_assertions::assert_f32_ge_impl_relative(
+            $crate::assertions::float::assert_f32_ge_impl_relative(
                 $lhs,
                 $rhs,
                 $epsilon_near_zero,
                 $relative_epsilon
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message_relative::<f32>(
+                $crate::assertions::float::configure_float_panic_message_relative::<f32>(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -741,11 +750,13 @@ macro_rules! assert_f32_ge {
 }
 
 #[doc(hidden)]
+#[must_use]
 pub fn assert_f64_eq_impl_ulps(lhs: f64, rhs: f64, epsilon_near_zero: f64, ulps: i64) -> bool {
     is_float_eq_ulps_f64(lhs, rhs, epsilon_near_zero, ulps)
 }
 
 #[doc(hidden)]
+#[must_use]
 pub fn assert_f64_eq_impl_relative(
     lhs: f64,
     rhs: f64,
@@ -761,7 +772,7 @@ pub fn assert_f64_eq_impl_relative(
 /// [sophie-katz.github.io/test-ur-code-XD/assertions/float](https://sophie-katz.github.io/test-ur-code-XD/assertions/float/)
 /// for a usage guide.
 ///
-/// # Arguents
+/// # Arguments
 ///
 /// * `lhs` - The left-hand side
 /// * `rhs` - The right-hand side
@@ -796,20 +807,20 @@ macro_rules! assert_f64_eq {
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
-            $crate::assertions::float_assertions::format_float_predicate_description_ulps(
+            $crate::assertions::float::format_float_predicate_description_ulps(
                 "==",
-                $ulps,
+                &$ulps,
                 64,
                 $epsilon_near_zero,
             ),
-            $crate::assertions::float_assertions::assert_f64_eq_impl_ulps(
+            $crate::assertions::float::assert_f64_eq_impl_ulps(
                 $lhs,
                 $rhs,
                 $epsilon_near_zero,
                 $ulps
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message_ulps::<i64, f64>(
+                $crate::assertions::float::configure_float_panic_message_ulps::<i64, f64>(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -829,19 +840,19 @@ macro_rules! assert_f64_eq {
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
-            $crate::assertions::float_assertions::format_float_predicate_description_relative(
+            $crate::assertions::float::format_float_predicate_description_relative(
                 "==",
                 $relative_epsilon,
                 $epsilon_near_zero,
             ),
-            $crate::assertions::float_assertions::assert_f64_eq_impl_relative(
+            $crate::assertions::float::assert_f64_eq_impl_relative(
                 $lhs,
                 $rhs,
                 $epsilon_near_zero,
                 $relative_epsilon
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message_relative::<f64>(
+                $crate::assertions::float::configure_float_panic_message_relative::<f64>(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -855,11 +866,13 @@ macro_rules! assert_f64_eq {
 }
 
 #[doc(hidden)]
+#[must_use]
 pub fn assert_f64_ne_impl_ulps(lhs: f64, rhs: f64, epsilon_near_zero: f64, ulps: i64) -> bool {
     !is_float_eq_ulps_f64(lhs, rhs, epsilon_near_zero, ulps)
 }
 
 #[doc(hidden)]
+#[must_use]
 pub fn assert_f64_ne_impl_relative(
     lhs: f64,
     rhs: f64,
@@ -869,13 +882,13 @@ pub fn assert_f64_ne_impl_relative(
     !is_float_eq_relative(lhs, rhs, epsilon_near_zero, relative_epsilon)
 }
 
-/// Asserts that two `f64` values are inequal.
+/// Asserts that two `f64` values are unequal.
 ///
 /// See
 /// [sophie-katz.github.io/test-ur-code-XD/assertions/float](https://sophie-katz.github.io/test-ur-code-XD/assertions/float/)
 /// for a usage guide.
 ///
-/// # Arguents
+/// # Arguments
 ///
 /// * `lhs` - The left-hand side
 /// * `rhs` - The right-hand side
@@ -910,20 +923,20 @@ macro_rules! assert_f64_ne {
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
-            $crate::assertions::float_assertions::format_float_predicate_description_ulps(
+            $crate::assertions::float::format_float_predicate_description_ulps(
                 "!=",
-                $ulps,
+                &$ulps,
                 64,
                 $epsilon_near_zero,
             ),
-            $crate::assertions::float_assertions::assert_f64_ne_impl_ulps(
+            $crate::assertions::float::assert_f64_ne_impl_ulps(
                 $lhs,
                 $rhs,
                 $epsilon_near_zero,
                 $ulps
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message_ulps::<i64, f64>(
+                $crate::assertions::float::configure_float_panic_message_ulps::<i64, f64>(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -943,19 +956,19 @@ macro_rules! assert_f64_ne {
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
-            $crate::assertions::float_assertions::format_float_predicate_description_relative(
+            $crate::assertions::float::format_float_predicate_description_relative(
                 "!=",
                 $relative_epsilon,
                 $epsilon_near_zero,
             ),
-            $crate::assertions::float_assertions::assert_f64_ne_impl_relative(
+            $crate::assertions::float::assert_f64_ne_impl_relative(
                 $lhs,
                 $rhs,
                 $epsilon_near_zero,
                 $relative_epsilon
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message_relative::<f64>(
+                $crate::assertions::float::configure_float_panic_message_relative::<f64>(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -969,11 +982,13 @@ macro_rules! assert_f64_ne {
 }
 
 #[doc(hidden)]
+#[must_use]
 pub fn assert_f64_le_impl_ulps(lhs: f64, rhs: f64, epsilon_near_zero: f64, ulps: i64) -> bool {
     lhs <= rhs || is_float_eq_ulps_f64(lhs, rhs, epsilon_near_zero, ulps)
 }
 
 #[doc(hidden)]
+#[must_use]
 pub fn assert_f64_le_impl_relative(
     lhs: f64,
     rhs: f64,
@@ -989,7 +1004,7 @@ pub fn assert_f64_le_impl_relative(
 /// [sophie-katz.github.io/test-ur-code-XD/assertions/float](https://sophie-katz.github.io/test-ur-code-XD/assertions/float/)
 /// for a usage guide.
 ///
-/// # Arguents
+/// # Arguments
 ///
 /// * `lhs` - The left-hand side
 /// * `rhs` - The right-hand side
@@ -1024,20 +1039,20 @@ macro_rules! assert_f64_le {
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
-            $crate::assertions::float_assertions::format_float_predicate_description_ulps(
+            $crate::assertions::float::format_float_predicate_description_ulps(
                 "<=",
-                $ulps,
+                &$ulps,
                 64,
                 $epsilon_near_zero,
             ),
-            $crate::assertions::float_assertions::assert_f64_le_impl_ulps(
+            $crate::assertions::float::assert_f64_le_impl_ulps(
                 $lhs,
                 $rhs,
                 $epsilon_near_zero,
                 $ulps
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message_ulps::<i64, f64>(
+                $crate::assertions::float::configure_float_panic_message_ulps::<i64, f64>(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -1057,19 +1072,19 @@ macro_rules! assert_f64_le {
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
-            $crate::assertions::float_assertions::format_float_predicate_description_relative(
+            $crate::assertions::float::format_float_predicate_description_relative(
                 "<=",
                 $relative_epsilon,
                 $epsilon_near_zero,
             ),
-            $crate::assertions::float_assertions::assert_f64_le_impl_relative(
+            $crate::assertions::float::assert_f64_le_impl_relative(
                 $lhs,
                 $rhs,
                 $epsilon_near_zero,
                 $relative_epsilon
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message_relative::<f64>(
+                $crate::assertions::float::configure_float_panic_message_relative::<f64>(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -1083,11 +1098,13 @@ macro_rules! assert_f64_le {
 }
 
 #[doc(hidden)]
+#[must_use]
 pub fn assert_f64_ge_impl_ulps(lhs: f64, rhs: f64, epsilon_near_zero: f64, ulps: i64) -> bool {
     lhs >= rhs || is_float_eq_ulps_f64(lhs, rhs, epsilon_near_zero, ulps)
 }
 
 #[doc(hidden)]
+#[must_use]
 pub fn assert_f64_ge_impl_relative(
     lhs: f64,
     rhs: f64,
@@ -1103,7 +1120,7 @@ pub fn assert_f64_ge_impl_relative(
 /// [sophie-katz.github.io/test-ur-code-XD/assertions/float](https://sophie-katz.github.io/test-ur-code-XD/assertions/float/)
 /// for a usage guide.
 ///
-/// # Arguents
+/// # Arguments
 ///
 /// * `lhs` - The left-hand side
 /// * `rhs` - The right-hand side
@@ -1138,20 +1155,20 @@ macro_rules! assert_f64_ge {
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
-            $crate::assertions::float_assertions::format_float_predicate_description_ulps(
+            $crate::assertions::float::format_float_predicate_description_ulps(
                 ">=",
-                $ulps,
+                &$ulps,
                 64,
                 $epsilon_near_zero,
             ),
-            $crate::assertions::float_assertions::assert_f64_ge_impl_ulps(
+            $crate::assertions::float::assert_f64_ge_impl_ulps(
                 $lhs,
                 $rhs,
                 $epsilon_near_zero,
                 $ulps
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message_ulps::<i64, f64>(
+                $crate::assertions::float::configure_float_panic_message_ulps::<i64, f64>(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -1171,19 +1188,19 @@ macro_rules! assert_f64_ge {
         $(, $keys:ident = $values:expr)* $(,)?
     ) => {
         $crate::assert_custom!(
-            $crate::assertions::float_assertions::format_float_predicate_description_relative(
+            $crate::assertions::float::format_float_predicate_description_relative(
                 ">=",
                 $relative_epsilon,
                 $epsilon_near_zero,
             ),
-            $crate::assertions::float_assertions::assert_f64_ge_impl_relative(
+            $crate::assertions::float::assert_f64_ge_impl_relative(
                 $lhs,
                 $rhs,
                 $epsilon_near_zero,
                 $relative_epsilon
             ),
             |panic_message_builder| {
-                $crate::assertions::float_assertions::configure_float_panic_message_relative::<f64>(
+                $crate::assertions::float::configure_float_panic_message_relative::<f64>(
                     panic_message_builder,
                     stringify!($lhs),
                     $lhs,
@@ -1402,7 +1419,7 @@ mod tests {
     #[test]
     fn format_float_predicate_description_ulps_simple() {
         assert_eq!(
-            format_float_predicate_description_ulps("==", 0, 32, 0.0),
+            format_float_predicate_description_ulps("==", &0, 32, 0.0),
             "lhs == rhs (within 0 32-bit float ulps or 0.0 near zero)"
         );
     }
@@ -1410,7 +1427,7 @@ mod tests {
     #[test]
     fn format_float_predicate_description_ulps_operator() {
         assert_eq!(
-            format_float_predicate_description_ulps("!=", 0, 32, 0.0),
+            format_float_predicate_description_ulps("!=", &0, 32, 0.0),
             "lhs != rhs (within 0 32-bit float ulps or 0.0 near zero)"
         );
     }
@@ -1418,7 +1435,7 @@ mod tests {
     #[test]
     fn format_float_predicate_description_ulps_ulps_tolerance_1() {
         assert_eq!(
-            format_float_predicate_description_ulps("==", 1, 32, 0.0),
+            format_float_predicate_description_ulps("==", &1, 32, 0.0),
             "lhs == rhs (within 1 32-bit float ulp or 0.0 near zero)"
         );
     }
@@ -1426,7 +1443,7 @@ mod tests {
     #[test]
     fn format_float_predicate_description_ulps_ulps_tolerance_2() {
         assert_eq!(
-            format_float_predicate_description_ulps("==", 2, 32, 0.0),
+            format_float_predicate_description_ulps("==", &2, 32, 0.0),
             "lhs == rhs (within 2 32-bit float ulps or 0.0 near zero)"
         );
     }
@@ -1434,7 +1451,7 @@ mod tests {
     #[test]
     fn format_float_predicate_description_ulps_bit_width() {
         assert_eq!(
-            format_float_predicate_description_ulps("==", 0, 64, 0.0),
+            format_float_predicate_description_ulps("==", &0, 64, 0.0),
             "lhs == rhs (within 0 64-bit float ulps or 0.0 near zero)"
         );
     }
@@ -1442,7 +1459,7 @@ mod tests {
     #[test]
     fn format_float_predicate_description_ulps_epsilon_near_zero_e_neg_30() {
         assert_eq!(
-            format_float_predicate_description_ulps("==", 0, 32, 1e-30),
+            format_float_predicate_description_ulps("==", &0, 32, 1e-30),
             "lhs == rhs (within 0 32-bit float ulps or 1e-30 near zero)"
         );
     }
@@ -1450,7 +1467,7 @@ mod tests {
     #[test]
     fn format_float_predicate_description_ulps_epsilon_near_zero_1() {
         assert_eq!(
-            format_float_predicate_description_ulps("==", 0, 32, 1.0),
+            format_float_predicate_description_ulps("==", &0, 32, 1.0),
             "lhs == rhs (within 0 32-bit float ulps or 1.0 near zero)"
         );
     }
@@ -1510,24 +1527,24 @@ mod tests {
 
     #[test]
     fn assert_f32_eq_passing_ulps_1_ulps() {
-        assert_f32_eq!(1.0, 1.0000001, ulps = 1, epsilon_near_zero = 0.0);
+        assert_f32_eq!(1.0, 1.000_000_1, ulps = 1, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_1_ulps() {
-        assert_f32_eq!(1.0, 1.0000002, ulps = 1, epsilon_near_zero = 0.0);
+        assert_f32_eq!(1.0, 1.000_000_2, ulps = 1, epsilon_near_zero = 0.0);
     }
 
     #[test]
     fn assert_f32_eq_passing_ulps_2_ulps() {
-        assert_f32_eq!(1.0, 1.0000002, ulps = 2, epsilon_near_zero = 0.0);
+        assert_f32_eq!(1.0, 1.000_000_2, ulps = 2, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_2_ulps() {
-        assert_f32_eq!(1.0, 1.0000003, ulps = 2, epsilon_near_zero = 0.0);
+        assert_f32_eq!(1.0, 1.000_000_3, ulps = 2, epsilon_near_zero = 0.0);
     }
 
     #[test]
@@ -1536,11 +1553,11 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_exact() {
         assert_f32_eq!(
             1.0,
-            1.0000001,
+            1.000_000_1,
             relative_epsilon = 0.0,
             epsilon_near_zero = 0.0
         );
@@ -1550,7 +1567,7 @@ mod tests {
     fn assert_f32_eq_passing_relative_1_ulp_below_epsilon() {
         assert_f32_eq!(
             0.5,
-            0.99999994,
+            0.999_999_94,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -1562,11 +1579,11 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_1_ulp_above_epsilon() {
         assert_f32_eq!(
             0.5,
-            1.0000001,
+            1.000_000_1,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -1586,18 +1603,18 @@ mod tests {
     fn assert_f32_eq_passing_ulps_1_ulps_large() {
         assert_f32_eq!(
             1_000_000_000.0,
-            1_000_000_064.0,
+            1_000_000_060.0,
             ulps = 1,
             epsilon_near_zero = 0.0
         );
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_1_ulps_large() {
         assert_f32_eq!(
             1_000_000_000.0,
-            1_000_000_128.0,
+            1_000_000_100.0,
             ulps = 1,
             epsilon_near_zero = 0.0
         );
@@ -1607,18 +1624,18 @@ mod tests {
     fn assert_f32_eq_passing_ulps_2_ulps_large() {
         assert_f32_eq!(
             1_000_000_000.0,
-            1_000_000_128.0,
+            1_000_000_100.0,
             ulps = 2,
             epsilon_near_zero = 0.0
         );
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_2_ulps_large() {
         assert_f32_eq!(
             1_000_000_000.0,
-            1_000_000_192.0,
+            1_000_000_200.0,
             ulps = 2,
             epsilon_near_zero = 0.0
         );
@@ -1635,11 +1652,11 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_exact_large() {
         assert_f32_eq!(
             1_000_000_000.0,
-            1_000_000_064.0,
+            1_000_000_060.0,
             relative_epsilon = 0.0,
             epsilon_near_zero = 0.0
         );
@@ -1649,7 +1666,7 @@ mod tests {
     fn assert_f32_eq_passing_relative_1_ulp_below_epsilon_large() {
         assert_f32_eq!(
             500_000_000.0,
-            999_999_936.0,
+            999_999_940.0,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -1666,11 +1683,11 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_1_ulp_above_epsilon_large() {
         assert_f32_eq!(
             500_000_000.0,
-            1_000_000_064.0,
+            1_000_000_060.0,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -1687,7 +1704,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_1_ulps_near_zero() {
         assert_f32_eq!(0.0, 3e-45, ulps = 1, epsilon_near_zero = 0.0);
     }
@@ -1698,7 +1715,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_2_ulps_near_zero() {
         assert_f32_eq!(0.0, 4e-45, ulps = 2, epsilon_near_zero = 0.0);
     }
@@ -1709,7 +1726,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_exact_near_zero() {
         assert_f32_eq!(0.0, 1e-45, relative_epsilon = 0.0, epsilon_near_zero = 0.0);
     }
@@ -1725,7 +1742,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_1_ulp_above_epsilon_near_zero() {
         assert_f32_eq!(0.0, 1e-45, relative_epsilon = 0.5, epsilon_near_zero = 0.0);
     }
@@ -1741,7 +1758,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_0_ulps_absolute_epsilon_1_ulp_above() {
         assert_f32_eq!(0.0, 3e-45, ulps = 0, epsilon_near_zero = 1e-45);
     }
@@ -1758,24 +1775,24 @@ mod tests {
 
     #[test]
     fn assert_f32_eq_passing_ulps_1_ulps_negative() {
-        assert_f32_eq!(-1.0, -1.0000001, ulps = 1, epsilon_near_zero = 0.0);
+        assert_f32_eq!(-1.0, -1.000_000_1, ulps = 1, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_1_ulps_negative() {
-        assert_f32_eq!(-1.0, -1.0000002, ulps = 1, epsilon_near_zero = 0.0);
+        assert_f32_eq!(-1.0, -1.000_000_2, ulps = 1, epsilon_near_zero = 0.0);
     }
 
     #[test]
     fn assert_f32_eq_passing_ulps_2_ulps_negative() {
-        assert_f32_eq!(-1.0, -1.0000002, ulps = 2, epsilon_near_zero = 0.0);
+        assert_f32_eq!(-1.0, -1.000_000_2, ulps = 2, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_2_ulps_negative() {
-        assert_f32_eq!(-1.0, -1.0000003, ulps = 2, epsilon_near_zero = 0.0);
+        assert_f32_eq!(-1.0, -1.000_000_3, ulps = 2, epsilon_near_zero = 0.0);
     }
 
     #[test]
@@ -1784,11 +1801,11 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_exact_negative() {
         assert_f32_eq!(
             -1.0,
-            -1.0000001,
+            -1.000_000_1,
             relative_epsilon = 0.0,
             epsilon_near_zero = 0.0
         );
@@ -1798,7 +1815,7 @@ mod tests {
     fn assert_f32_eq_passing_relative_1_ulp_below_epsilon_negative() {
         assert_f32_eq!(
             -0.5,
-            -0.99999994,
+            -0.999_999_94,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -1810,11 +1827,11 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_1_ulp_above_epsilon_negative() {
         assert_f32_eq!(
             -0.5,
-            -1.0000001,
+            -1.000_000_1,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -1834,18 +1851,18 @@ mod tests {
     fn assert_f32_eq_passing_ulps_1_ulps_large_negative() {
         assert_f32_eq!(
             -1_000_000_000.0,
-            -1_000_000_064.0,
+            -1_000_000_060.0,
             ulps = 1,
             epsilon_near_zero = 0.0
         );
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_1_ulps_large_negative() {
         assert_f32_eq!(
             -1_000_000_000.0,
-            -1_000_000_128.0,
+            -1_000_000_100.0,
             ulps = 1,
             epsilon_near_zero = 0.0
         );
@@ -1855,18 +1872,18 @@ mod tests {
     fn assert_f32_eq_passing_ulps_2_ulps_large_negative() {
         assert_f32_eq!(
             -1_000_000_000.0,
-            -1_000_000_128.0,
+            -1_000_000_100.0,
             ulps = 2,
             epsilon_near_zero = 0.0
         );
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_2_ulps_large_negative() {
         assert_f32_eq!(
             -1_000_000_000.0,
-            -1_000_000_192.0,
+            -1_000_000_200.0,
             ulps = 2,
             epsilon_near_zero = 0.0
         );
@@ -1883,11 +1900,11 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_exact_large_negative() {
         assert_f32_eq!(
             -1_000_000_000.0,
-            -1_000_000_064.0,
+            -1_000_000_060.0,
             relative_epsilon = 0.0,
             epsilon_near_zero = 0.0
         );
@@ -1897,7 +1914,7 @@ mod tests {
     fn assert_f32_eq_passing_relative_1_ulp_below_epsilon_large_negative() {
         assert_f32_eq!(
             -500_000_000.0,
-            -999_999_936.0,
+            -999_999_940.0,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -1914,11 +1931,11 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_1_ulp_above_epsilon_large_negative() {
         assert_f32_eq!(
             -500_000_000.0,
-            -1_000_000_064.0,
+            -1_000_000_060.0,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -1930,13 +1947,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_1_ulps_near_zero_negative() {
         assert_f32_eq!(0.0, -1e-45, ulps = 1, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_2_ulps_near_zero_negative() {
         assert_f32_eq!(0.0, -3e-45, ulps = 2, epsilon_near_zero = 0.0);
     }
@@ -1947,7 +1964,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_exact_near_zero_negative() {
         assert_f32_eq!(0.0, -1e-45, relative_epsilon = 0.0, epsilon_near_zero = 0.0);
     }
@@ -1963,7 +1980,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_1_ulp_above_epsilon_near_zero_negative() {
         assert_f32_eq!(0.0, -1e-45, relative_epsilon = 0.5, epsilon_near_zero = 0.0);
     }
@@ -1979,7 +1996,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_0_ulps_absolute_epsilon_1_ulp_above_negative() {
         assert_f32_eq!(0.0, -3e-45, ulps = 0, epsilon_near_zero = 1e-45);
     }
@@ -1996,24 +2013,44 @@ mod tests {
 
     #[test]
     fn assert_f64_eq_passing_ulps_1_ulps() {
-        assert_f64_eq!(1.0, 1.0000000000000002, ulps = 1, epsilon_near_zero = 0.0);
+        assert_f64_eq!(
+            1.0,
+            1.000_000_000_000_000_2,
+            ulps = 1,
+            epsilon_near_zero = 0.0
+        );
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_1_ulps() {
-        assert_f64_eq!(1.0, 1.0000000000000004, ulps = 1, epsilon_near_zero = 0.0);
+        assert_f64_eq!(
+            1.0,
+            1.000_000_000_000_000_4,
+            ulps = 1,
+            epsilon_near_zero = 0.0
+        );
     }
 
     #[test]
     fn assert_f64_eq_passing_ulps_2_ulps() {
-        assert_f64_eq!(1.0, 1.0000000000000004, ulps = 2, epsilon_near_zero = 0.0);
+        assert_f64_eq!(
+            1.0,
+            1.000_000_000_000_000_4,
+            ulps = 2,
+            epsilon_near_zero = 0.0
+        );
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_2_ulps() {
-        assert_f64_eq!(1.0, 1.0000000000000007, ulps = 2, epsilon_near_zero = 0.0);
+        assert_f64_eq!(
+            1.0,
+            1.000_000_000_000_000_7,
+            ulps = 2,
+            epsilon_near_zero = 0.0
+        );
     }
 
     #[test]
@@ -2022,11 +2059,11 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_exact() {
         assert_f64_eq!(
             1.0,
-            1.0000000000000002,
+            1.000_000_000_000_000_2,
             relative_epsilon = 0.0,
             epsilon_near_zero = 0.0
         );
@@ -2036,7 +2073,7 @@ mod tests {
     fn assert_f64_eq_passing_relative_1_ulp_below_epsilon() {
         assert_f64_eq!(
             0.5,
-            0.9999999999999999,
+            0.999_999_999_999_999_9,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -2048,11 +2085,11 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_1_ulp_above_epsilon() {
         assert_f64_eq!(
             0.5,
-            1.0000000000000002,
+            1.000_000_000_000_000_2,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -2072,18 +2109,18 @@ mod tests {
     fn assert_f64_eq_passing_ulps_1_ulps_large() {
         assert_f64_eq!(
             1_000_000_000.0,
-            1000000000.0000001,
+            1_000_000_000.000_000_1,
             ulps = 1,
             epsilon_near_zero = 0.0
         );
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_1_ulps_large() {
         assert_f64_eq!(
             1_000_000_000.0,
-            1000000000.0000002,
+            1_000_000_000.000_000_2,
             ulps = 1,
             epsilon_near_zero = 0.0
         );
@@ -2093,18 +2130,18 @@ mod tests {
     fn assert_f64_eq_passing_ulps_2_ulps_large() {
         assert_f64_eq!(
             1_000_000_000.0,
-            1000000000.0000002,
+            1_000_000_000.000_000_2,
             ulps = 2,
             epsilon_near_zero = 0.0
         );
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_2_ulps_large() {
         assert_f64_eq!(
             1_000_000_000.0,
-            1000000000.0000004,
+            1_000_000_000.000_000_4,
             ulps = 2,
             epsilon_near_zero = 0.0
         );
@@ -2121,11 +2158,11 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_exact_large() {
         assert_f64_eq!(
             1_000_000_000.0,
-            1000000000.0000001,
+            1_000_000_000.000_000_1,
             relative_epsilon = 0.0,
             epsilon_near_zero = 0.0
         );
@@ -2135,7 +2172,7 @@ mod tests {
     fn assert_f64_eq_passing_relative_1_ulp_below_epsilon_large() {
         assert_f64_eq!(
             500_000_000.0,
-            999999999.9999999,
+            999_999_999.999_999_9,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -2152,11 +2189,11 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_1_ulp_above_epsilon_large() {
         assert_f64_eq!(
             500_000_000.0,
-            1000000000.0000001,
+            1_000_000_000.000_000_1,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -2173,7 +2210,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_1_ulps_near_zero() {
         assert_f64_eq!(0.0, 1e-323, ulps = 1, epsilon_near_zero = 0.0);
     }
@@ -2184,7 +2221,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_2_ulps_near_zero() {
         assert_f64_eq!(0.0, 1.5e-323, ulps = 2, epsilon_near_zero = 0.0);
     }
@@ -2195,7 +2232,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_exact_near_zero() {
         assert_f64_eq!(0.0, 5e-324, relative_epsilon = 0.0, epsilon_near_zero = 0.0);
     }
@@ -2211,7 +2248,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_1_ulp_above_epsilon_near_zero() {
         assert_f64_eq!(0.0, 5e-324, relative_epsilon = 0.5, epsilon_near_zero = 0.0);
     }
@@ -2227,7 +2264,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_0_ulps_absolute_epsilon_1_ulp_above() {
         assert_f64_eq!(0.0, 1e-323, ulps = 0, epsilon_near_zero = 5e-324);
     }
@@ -2244,24 +2281,44 @@ mod tests {
 
     #[test]
     fn assert_f64_eq_passing_ulps_1_ulps_negative() {
-        assert_f64_eq!(-1.0, -1.0000000000000002, ulps = 1, epsilon_near_zero = 0.0);
+        assert_f64_eq!(
+            -1.0,
+            -1.000_000_000_000_000_2,
+            ulps = 1,
+            epsilon_near_zero = 0.0
+        );
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_1_ulps_negative() {
-        assert_f64_eq!(-1.0, -1.0000000000000004, ulps = 1, epsilon_near_zero = 0.0);
+        assert_f64_eq!(
+            -1.0,
+            -1.000_000_000_000_000_4,
+            ulps = 1,
+            epsilon_near_zero = 0.0
+        );
     }
 
     #[test]
     fn assert_f64_eq_passing_ulps_2_ulps_negative() {
-        assert_f64_eq!(-1.0, -1.0000000000000004, ulps = 2, epsilon_near_zero = 0.0);
+        assert_f64_eq!(
+            -1.0,
+            -1.000_000_000_000_000_4,
+            ulps = 2,
+            epsilon_near_zero = 0.0
+        );
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_2_ulps_negative() {
-        assert_f64_eq!(-1.0, -1.0000000000000007, ulps = 2, epsilon_near_zero = 0.0);
+        assert_f64_eq!(
+            -1.0,
+            -1.000_000_000_000_000_7,
+            ulps = 2,
+            epsilon_near_zero = 0.0
+        );
     }
 
     #[test]
@@ -2270,11 +2327,11 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_exact_negative() {
         assert_f64_eq!(
             -1.0,
-            -1.0000000000000002,
+            -1.000_000_000_000_000_2,
             relative_epsilon = 0.0,
             epsilon_near_zero = 0.0
         );
@@ -2284,7 +2341,7 @@ mod tests {
     fn assert_f64_eq_passing_relative_1_ulp_below_epsilon_negative() {
         assert_f64_eq!(
             -0.5,
-            -0.9999999999999999,
+            -0.999_999_999_999_999_9,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -2296,11 +2353,11 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_1_ulp_above_epsilon_negative() {
         assert_f64_eq!(
             -0.5,
-            -1.0000000000000002,
+            -1.000_000_000_000_000_2,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -2320,18 +2377,18 @@ mod tests {
     fn assert_f64_eq_passing_ulps_1_ulps_large_negative() {
         assert_f64_eq!(
             -1_000_000_000.0,
-            -1000000000.0000001,
+            -1_000_000_000.000_000_1,
             ulps = 1,
             epsilon_near_zero = 0.0
         );
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_1_ulps_large_negative() {
         assert_f64_eq!(
             -1_000_000_000.0,
-            -1000000000.0000002,
+            -1_000_000_000.000_000_2,
             ulps = 1,
             epsilon_near_zero = 0.0
         );
@@ -2341,18 +2398,18 @@ mod tests {
     fn assert_f64_eq_passing_ulps_2_ulps_large_negative() {
         assert_f64_eq!(
             -1_000_000_000.0,
-            -1000000000.0000002,
+            -1_000_000_000.000_000_2,
             ulps = 2,
             epsilon_near_zero = 0.0
         );
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_2_ulps_large_negative() {
         assert_f64_eq!(
             -1_000_000_000.0,
-            -1000000000.0000004,
+            -1_000_000_000.000_000_4,
             ulps = 2,
             epsilon_near_zero = 0.0
         );
@@ -2369,11 +2426,11 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_exact_large_negative() {
         assert_f64_eq!(
             -1_000_000_000.0,
-            -1000000000.0000001,
+            -1_000_000_000.000_000_1,
             relative_epsilon = 0.0,
             epsilon_near_zero = 0.0
         );
@@ -2383,7 +2440,7 @@ mod tests {
     fn assert_f64_eq_passing_relative_1_ulp_below_epsilon_large_negative() {
         assert_f64_eq!(
             -500_000_000.0,
-            -999999999.9999999,
+            -999_999_999.999_999_9,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -2400,11 +2457,11 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_1_ulp_above_epsilon_large_negative() {
         assert_f64_eq!(
             -500_000_000.0,
-            -1000000000.0000001,
+            -1_000_000_000.000_000_1,
             relative_epsilon = 0.5,
             epsilon_near_zero = 0.0
         );
@@ -2416,13 +2473,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_1_ulps_near_zero_negative() {
         assert_f64_eq!(0.0, -5e-324, ulps = 1, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_2_ulps_near_zero_negative() {
         assert_f64_eq!(0.0, -1e-323, ulps = 2, epsilon_near_zero = 0.0);
     }
@@ -2433,7 +2490,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_exact_near_zero_negative() {
         assert_f64_eq!(
             0.0,
@@ -2464,7 +2521,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_1_ulp_above_epsilon_near_zero_negative() {
         assert_f64_eq!(
             0.0,
@@ -2485,7 +2542,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_0_ulps_absolute_epsilon_1_ulp_above_negative() {
         assert_f64_eq!(0.0, -1e-323, ulps = 0, epsilon_near_zero = 5e-324);
     }
@@ -2501,7 +2558,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_simple() {
         assert_f32_eq!(0.0, 1.0, ulps = 0, epsilon_near_zero = 0.0);
     }
@@ -2512,7 +2569,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_ne_failing_simple() {
         assert_f32_ne!(0.0, 0.0, ulps = 0, epsilon_near_zero = 0.0);
     }
@@ -2528,7 +2585,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_le_failing_simple() {
         assert_f32_le!(1.0, 0.0, ulps = 0, epsilon_near_zero = 0.0);
     }
@@ -2544,7 +2601,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_ge_failing_simple() {
         assert_f32_ge!(0.0, 1.0, ulps = 0, epsilon_near_zero = 0.0);
     }
@@ -2555,7 +2612,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_simple_negate() {
         assert_f32_eq!(0.0, 0.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
@@ -2566,19 +2623,19 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_ne_failing_simple_negate() {
         assert_f32_ne!(0.0, 1.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_le_failing_simple_lt_negate() {
         assert_f32_le!(0.0, 1.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_le_failing_simple_eq_negate() {
         assert_f32_le!(0.0, 0.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
@@ -2589,13 +2646,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_ge_failing_simple_gt_negate() {
         assert_f32_ge!(1.0, 0.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_ge_failing_simple_eq_negate() {
         assert_f32_ge!(0.0, 0.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
@@ -2611,7 +2668,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_simple() {
         assert_f64_eq!(0.0, 1.0, ulps = 0, epsilon_near_zero = 0.0);
     }
@@ -2622,7 +2679,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_ne_failing_simple() {
         assert_f64_ne!(0.0, 0.0, ulps = 0, epsilon_near_zero = 0.0);
     }
@@ -2638,7 +2695,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_le_failing_simple() {
         assert_f64_le!(1.0, 0.0, ulps = 0, epsilon_near_zero = 0.0);
     }
@@ -2654,7 +2711,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_ge_failing_simple() {
         assert_f64_ge!(0.0, 1.0, ulps = 0, epsilon_near_zero = 0.0);
     }
@@ -2665,7 +2722,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_simple_negate() {
         assert_f64_eq!(0.0, 0.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
@@ -2676,19 +2733,19 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_ne_failing_simple_negate() {
         assert_f64_ne!(0.0, 1.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_le_failing_simple_lt_negate() {
         assert_f64_le!(0.0, 1.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_le_failing_simple_eq_negate() {
         assert_f64_le!(0.0, 0.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
@@ -2699,13 +2756,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_ge_failing_simple_gt_negate() {
         assert_f64_ge!(1.0, 0.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_ge_failing_simple_eq_negate() {
         assert_f64_ge!(0.0, 0.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
@@ -2736,7 +2793,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_infinity_neg_infinity() {
         assert_f32_eq!(
             f32::INFINITY,
@@ -2747,7 +2804,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_infinity_neg_infinity() {
         assert_f32_eq!(
             f32::INFINITY,
@@ -2758,13 +2815,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_infinity_nan() {
         assert_f32_eq!(f32::INFINITY, f32::NAN, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_infinity_nan() {
         assert_f32_eq!(
             f32::INFINITY,
@@ -2775,13 +2832,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_infinity_five() {
         assert_f32_eq!(f32::INFINITY, 5.0, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_infinity_five() {
         assert_f32_eq!(
             f32::INFINITY,
@@ -2792,7 +2849,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_neg_infinity_infinity() {
         assert_f32_eq!(
             -f32::INFINITY,
@@ -2803,7 +2860,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_neg_infinity_infinity() {
         assert_f32_eq!(
             -f32::INFINITY,
@@ -2834,13 +2891,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_neg_infinity_nan() {
         assert_f32_eq!(-f32::INFINITY, f32::NAN, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_neg_infinity_nan() {
         assert_f32_eq!(
             -f32::INFINITY,
@@ -2851,13 +2908,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_neg_infinity_five() {
         assert_f32_eq!(-f32::INFINITY, 5.0, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_neg_infinity_five() {
         assert_f32_eq!(
             -f32::INFINITY,
@@ -2868,7 +2925,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_nan_infinity() {
         assert_f32_eq!(
             -f32::INFINITY,
@@ -2879,7 +2936,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_nan_infinity() {
         assert_f32_eq!(
             f32::NAN,
@@ -2890,13 +2947,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_nan_neg_infinity() {
         assert_f32_eq!(f32::NAN, -f32::INFINITY, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_nan_neg_infinity() {
         assert_f32_eq!(
             f32::NAN,
@@ -2922,13 +2979,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_ulps_nan_five() {
         assert_f32_eq!(f32::NAN, 5.0, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f32_eq_failing_relative_nan_five() {
         assert_f32_eq!(
             f32::NAN,
@@ -2959,7 +3016,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_infinity_neg_infinity() {
         assert_f64_eq!(
             f64::INFINITY,
@@ -2970,7 +3027,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_infinity_neg_infinity() {
         assert_f64_eq!(
             f64::INFINITY,
@@ -2981,13 +3038,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_infinity_nan() {
         assert_f64_eq!(f64::INFINITY, f64::NAN, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_infinity_nan() {
         assert_f64_eq!(
             f64::INFINITY,
@@ -2998,13 +3055,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_infinity_five() {
         assert_f64_eq!(f64::INFINITY, 5.0, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_infinity_five() {
         assert_f64_eq!(
             f64::INFINITY,
@@ -3015,7 +3072,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_neg_infinity_infinity() {
         assert_f64_eq!(
             -f64::INFINITY,
@@ -3026,7 +3083,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_neg_infinity_infinity() {
         assert_f64_eq!(
             -f64::INFINITY,
@@ -3057,13 +3114,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_neg_infinity_nan() {
         assert_f64_eq!(-f64::INFINITY, f64::NAN, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_neg_infinity_nan() {
         assert_f64_eq!(
             -f64::INFINITY,
@@ -3074,13 +3131,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_neg_infinity_five() {
         assert_f64_eq!(-f64::INFINITY, 5.0, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_neg_infinity_five() {
         assert_f64_eq!(
             -f64::INFINITY,
@@ -3091,7 +3148,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_nan_infinity() {
         assert_f64_eq!(
             -f64::INFINITY,
@@ -3102,7 +3159,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_nan_infinity() {
         assert_f64_eq!(
             f64::NAN,
@@ -3113,13 +3170,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_nan_neg_infinity() {
         assert_f64_eq!(f64::NAN, -f64::INFINITY, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_nan_neg_infinity() {
         assert_f64_eq!(
             f64::NAN,
@@ -3145,13 +3202,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_ulps_nan_five() {
         assert_f64_eq!(f64::NAN, 5.0, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_f64_eq_failing_relative_nan_five() {
         assert_f64_eq!(
             f64::NAN,

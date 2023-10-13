@@ -8,11 +8,6 @@
     // More advanced linting with Clippy
     "rust-analyzer.checkOnSave": true,
     "rust-analyzer.check.command": "clippy",
-    "rust-analyzer.check.extraArgs": [
-        "--",
-        "-W",
-        "clippy::all"
-    ],
     "rust-analyzer.lens.enable": true,
     // Formatting
     "editor.formatOnSave": true,
@@ -27,5 +22,38 @@
     "editor.rulers": [
         100
     ],
-    "editor.renderWhitespace": "trailing"
+    "editor.renderWhitespace": "trailing",
+    "cSpell.enabled": true,
+    "cSpell.words": [
+        "Katz",
+        "unseparated",
+        "pseudocode"
+    ],
+    "cSpell.ignoreWords": [
+        "thiserror",
+        "RUST_TEST_NOCAPTURE",
+        "ulps",
+        "tempfile",
+        "tempdir",
+        "elems",
+        "diffable",
+        "helloworld",
+        "mhausenblas",
+        "mkdocs",
+        "Rustdoc",
+        "localtime",
+        "nfdsa",
+        "println",
+        "Nextest",
+        "rstest",
+        "Datatest",
+        "Proptest",
+        "Kani",
+        "Mockall",
+        "pymdownx",
+        "superfences",
+        "arithmatex",
+        "javascripts",
+        "mathjax"
+    ],
 }

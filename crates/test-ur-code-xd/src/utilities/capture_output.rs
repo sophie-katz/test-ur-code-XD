@@ -14,7 +14,7 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 mod captured_output;
-mod error;
+mod errors;
 mod output_capturer;
 
 use lazy_static::lazy_static;
@@ -28,7 +28,7 @@ use std::{
 };
 
 pub use captured_output::CapturedOutputs;
-pub use error::OutputCapturingError;
+pub use errors::OutputCapturingError;
 
 lazy_static! {
     /// A singleton [`OutputCapturer`] instance for the process.
@@ -66,9 +66,9 @@ fn non_nesting_helper<
 ) -> Result<ResultType, OutputCapturingError> {
     if IS_IN_CAPTURE_OUTPUT.load(Ordering::SeqCst) {
         return Err(OutputCapturingError::NestedCaptureError);
-    } else {
-        IS_IN_CAPTURE_OUTPUT.store(true, Ordering::SeqCst);
     }
+
+    IS_IN_CAPTURE_OUTPUT.store(true, Ordering::SeqCst);
 
     let result = action();
 
@@ -130,16 +130,16 @@ pub fn capture_output<ActionType: FnOnce()>(
 ) -> Result<CapturedOutputs<String>, OutputCapturingError> {
     non_nesting_helper(|| {
         // Lock the output capturer for the process to this thread.
-        let mut output_captuerer = get_output_capturer()?;
+        let mut output_capturer = get_output_capturer()?;
 
         // Start capturing
-        output_captuerer.start()?;
+        output_capturer.start()?;
 
         // Run the closure
         action();
 
         // Stop the capture and return the captured output
-        let captured_outputs = output_captuerer.stop()?;
+        let captured_outputs = output_capturer.stop()?;
 
         Ok(captured_outputs)
     })
@@ -176,27 +176,29 @@ pub fn capture_output<ActionType: FnOnce()>(
 /// * If there are any issues with locking mutexes, this function will return an error.
 /// * If calls to [`capture_output`] or [`capture_output_raw`] are nested, this function will
 ///   return an error.
+#[allow(clippy::module_name_repetitions)]
 pub fn capture_output_raw<ActionType: FnOnce()>(
     action: ActionType,
 ) -> Result<CapturedOutputs<Vec<u8>>, OutputCapturingError> {
     non_nesting_helper(|| {
         // Lock the output capturer for the process to this thread.
-        let mut output_captuerer = get_output_capturer()?;
+        let mut output_capturer = get_output_capturer()?;
 
         // Start capturing
-        output_captuerer.start()?;
+        output_capturer.start()?;
 
         // Run the closure
         action();
 
         // Stop the capture and return the captured output
-        let captured_outputs = output_captuerer.stop_raw()?;
+        let captured_outputs = output_capturer.stop_raw()?;
 
         Ok(captured_outputs)
     })
 }
 
 #[cfg(test)]
+#[allow(clippy::print_stdout, clippy::print_stderr, clippy::unwrap_used)]
 mod tests {
     use super::*;
     use crate::{assert, assert_eq};
@@ -209,8 +211,8 @@ mod tests {
         assert_eq!(
             capture_output(|| ()).unwrap(),
             CapturedOutputs {
-                stdout: "".to_owned(),
-                stderr: "".to_owned(),
+                stdout: String::new(),
+                stderr: String::new(),
             }
         );
     }
@@ -227,7 +229,7 @@ mod tests {
             .unwrap(),
             CapturedOutputs {
                 stdout: "this IS captured (stdout)\n".to_owned(),
-                stderr: "".to_owned(),
+                stderr: String::new(),
             }
         );
     }
@@ -243,7 +245,7 @@ mod tests {
             })
             .unwrap(),
             CapturedOutputs {
-                stdout: "".to_owned(),
+                stdout: String::new(),
                 stderr: "this IS captured (stderr)\n".to_owned(),
             }
         );

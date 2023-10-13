@@ -58,6 +58,7 @@
 ///     negate = true,
 /// )
 /// ```
+#[allow(clippy::module_name_repetitions)]
 #[macro_export]
 macro_rules! assert_custom {
     (
@@ -88,7 +89,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_custom_failing() {
         assert_custom!("value is true", false, |panic_message_builder| {
             panic_message_builder.with_argument("value", "value", &true)
@@ -108,7 +109,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_failing_negated() {
         assert_custom!(
             "value is true",

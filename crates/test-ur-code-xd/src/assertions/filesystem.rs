@@ -66,7 +66,7 @@ macro_rules! assert_path_exists {
     ($path:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "path exists",
-            $crate::assertions::filesystem_assertions::assert_path_exists_impl(&$path),
+            $crate::assertions::filesystem::assert_path_exists_impl(&$path),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))
@@ -113,7 +113,7 @@ macro_rules! assert_path_is_file {
     ($path:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "path is file",
-            $crate::assertions::filesystem_assertions::assert_path_is_file_impl(&$path),
+            $crate::assertions::filesystem::assert_path_is_file_impl(&$path),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))
@@ -168,7 +168,7 @@ macro_rules! assert_path_is_symlink {
     ($path:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "path is symlink",
-            $crate::assertions::filesystem_assertions::assert_path_is_symlink_impl(&$path),
+            $crate::assertions::filesystem::assert_path_is_symlink_impl(&$path),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))
@@ -215,7 +215,7 @@ macro_rules! assert_path_is_dir {
     ($path:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "path is directory",
-            $crate::assertions::filesystem_assertions::assert_path_is_dir_impl(&$path),
+            $crate::assertions::filesystem::assert_path_is_dir_impl(&$path),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))
@@ -255,7 +255,7 @@ macro_rules! assert_path_is_relative {
     ($path:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "path is relative",
-            $crate::assertions::filesystem_assertions::assert_path_is_relative_impl(&$path),
+            $crate::assertions::filesystem::assert_path_is_relative_impl(&$path),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))
@@ -296,7 +296,7 @@ macro_rules! assert_path_is_absolute {
     ($path:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "path is absolute",
-            $crate::assertions::filesystem_assertions::assert_path_is_absolute_impl(&$path),
+            $crate::assertions::filesystem::assert_path_is_absolute_impl(&$path),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))
@@ -346,7 +346,7 @@ macro_rules! assert_path_starts_with {
     ($path:expr, $base:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "path is starts with base",
-            $crate::assertions::filesystem_assertions::assert_path_starts_with_impl(&$path, &$base),
+            $crate::assertions::filesystem::assert_path_starts_with_impl(&$path, &$base),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))
@@ -397,7 +397,7 @@ macro_rules! assert_path_ends_with {
     ($path:expr, $child:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "path is ends with child",
-            $crate::assertions::filesystem_assertions::assert_path_ends_with_impl(&$path, &$child),
+            $crate::assertions::filesystem::assert_path_ends_with_impl(&$path, &$child),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))
@@ -408,6 +408,7 @@ macro_rules! assert_path_ends_with {
     };
 }
 
+/// Helper method that panics if a path does not exist or is not a file.
 fn ensure_is_file(path: &impl AsRef<Path>) {
     if !path.as_ref().is_file() {
         PanicMessageBuilder::new("path is file", Location::caller())
@@ -416,6 +417,7 @@ fn ensure_is_file(path: &impl AsRef<Path>) {
     }
 }
 
+/// Helper method that tries to read a file and panics if there are any errors.
 fn unwrap_file_read<ValueType, ErrorType: Display>(
     path: &impl AsRef<Path>,
     result: Result<ValueType, ErrorType>,
@@ -423,7 +425,7 @@ fn unwrap_file_read<ValueType, ErrorType: Display>(
     match result {
         Ok(file_text) => file_text,
         Err(error) => {
-            PanicMessageBuilder::new(format!("error reading file: {}", error), Location::caller())
+            PanicMessageBuilder::new(format!("error reading file: {error}"), Location::caller())
                 .with_argument("path", "--", &path.as_ref())
                 .panic()
         }
@@ -496,11 +498,12 @@ pub fn assert_file_text_impl<OnTextType: FnOnce(String)>(
 #[macro_export]
 macro_rules! assert_file_text {
     ($path:expr, max_len = $max_len:expr, on_text = $on_text:expr) => {
-        $crate::assertions::filesystem_assertions::assert_file_text_impl($path, $max_len, $on_text)
+        $crate::assertions::filesystem::assert_file_text_impl($path, $max_len, $on_text)
     };
 }
 
 #[doc(hidden)]
+#[allow(clippy::expect_used)]
 pub fn assert_file_text_raw_impl<OnTextType: FnOnce(&[u8])>(
     path: impl AsRef<Path>,
     max_len: u64,
@@ -519,7 +522,26 @@ pub fn assert_file_text_raw_impl<OnTextType: FnOnce(&[u8])>(
     let mut buf_reader = BufReader::new(file);
 
     // Create the string into which to read the file
-    let mut buffer = vec![0; file_len as usize];
+    let mut buffer = Vec::new();
+
+    match file_len.try_into() {
+        Ok(file_len_mem) => {
+            buffer.resize(file_len_mem, 0);
+        }
+        Err(error) => {
+            PanicMessageBuilder::new(
+                format!(
+                    "file size overflows system bit width (file size: {} bytes, maximum value of bit width: {} bytes)",
+                    file_len, usize::MAX
+                ),
+                Location::caller(),
+            )
+            .with_description("try setting max_len to a smaller value")
+            .expect("failed to set description")
+            .with_argument("conversion error", "--", &error.to_string())
+            .panic();
+        }
+    }
 
     // Read the file
     unwrap_file_read(&path, buf_reader.read(&mut buffer));
@@ -528,6 +550,7 @@ pub fn assert_file_text_raw_impl<OnTextType: FnOnce(&[u8])>(
     on_text(&buffer);
 }
 
+/// Ensures that the file length is within a limit and panics otherwise
 fn ensure_file_len_within_limit(path: &impl AsRef<Path>, file: &File, max_len: u64) -> u64 {
     // Get the file length
     let file_len = unwrap_file_read(&path, file.metadata()).len();
@@ -535,10 +558,7 @@ fn ensure_file_len_within_limit(path: &impl AsRef<Path>, file: &File, max_len: u
     // Compare the length to the limit
     if file_len > max_len {
         PanicMessageBuilder::new(
-            format!(
-                "file is larger than limit (size: {} bytes, limit: {} bytes)",
-                file_len, max_len
-            ),
+            format!("file is larger than limit (size: {file_len} bytes, limit: {max_len} bytes)"),
             Location::caller(),
         )
         .with_argument("path", "--", &path.as_ref())
@@ -586,9 +606,7 @@ fn ensure_file_len_within_limit(path: &impl AsRef<Path>, file: &File, max_len: u
 #[macro_export]
 macro_rules! assert_file_text_raw {
     ($path:expr, max_len = $max_len:expr, on_text = $on_text:expr) => {
-        $crate::assertions::filesystem_assertions::assert_file_text_raw_impl(
-            $path, $max_len, $on_text,
-        )
+        $crate::assertions::filesystem::assert_file_text_raw_impl($path, $max_len, $on_text)
     };
 }
 
@@ -605,6 +623,7 @@ mod tests {
     use std::os::windows::fs::symlink_file as symlink;
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_exists_passing_file() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -614,6 +633,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_exists_passing_symlink() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -624,6 +644,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_exists_passing_directory() {
         let temp_dir = tempdir().unwrap();
 
@@ -631,13 +652,14 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_path_exists_failing_bad_name() {
         assert_path_exists!("a_file_that_does_not_exist");
     }
 
     #[test]
-    #[should_panic]
+    #[allow(clippy::unwrap_used)]
+    #[should_panic(expected = "explicit panic")]
     fn assert_path_exists_failing_bad_nest() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -647,6 +669,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_is_file_passing() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -656,6 +679,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_is_file_passing_symlink_to_file() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -666,18 +690,20 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_is_file_failing_symlink_to_dir() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
-        fs::create_dir("some_dir").unwrap();
+        fs::create_dir_all("some_dir").unwrap();
         symlink("some_dir", "some_symlink").unwrap();
 
         assert_path_is_file!("some_symlink");
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_is_file_failing_directory() {
         let temp_dir = tempdir().unwrap();
 
@@ -685,13 +711,14 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_path_is_file_failing_bad_name() {
         assert_path_is_file!("a_file_that_does_not_exist");
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_is_file_failing_bad_nest() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -701,6 +728,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_is_symlink_passing_symlink_to_file() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -711,17 +739,19 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_is_symlink_passing_symlink_to_dir() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
-        fs::create_dir("some_dir").unwrap();
+        fs::create_dir_all("some_dir").unwrap();
         symlink("some_dir", "some_symlink").unwrap();
 
         assert_path_is_symlink!("some_symlink");
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_is_symlink_failing_file() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -731,7 +761,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_is_symlink_failing_directory() {
         let temp_dir = tempdir().unwrap();
 
@@ -739,13 +770,14 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_path_is_symlink_failing_bad_name() {
         assert_path_is_symlink!("a_file_that_does_not_exist");
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_is_symlink_failing_bad_nest() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -755,6 +787,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_is_dir_passing() {
         let temp_dir = tempdir().unwrap();
 
@@ -762,7 +795,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_is_dir_failing_symlink_to_file() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -773,17 +807,19 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_is_dir_passing_symlink_to_dir() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
-        fs::create_dir("some_dir").unwrap();
+        fs::create_dir_all("some_dir").unwrap();
         symlink("some_dir", "some_symlink").unwrap();
 
         assert_path_is_dir!("some_symlink");
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_is_dir_failing_file() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -793,13 +829,14 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_path_is_dir_failing_bad_name() {
         assert_path_is_dir!("a_file_that_does_not_exist");
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_is_dir_failing_bad_nest() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -809,6 +846,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_is_relative_passing() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -819,20 +857,22 @@ mod tests {
 
     #[cfg(target_family = "unix")]
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_path_is_relative_failing() {
         assert_path_is_relative!("/etc");
     }
 
     #[cfg(target_family = "unix")]
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_is_relative_passing_at_root() {
         env::set_current_dir("/").unwrap();
         assert_path_is_relative!("etc");
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_is_absolute_failing() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -849,197 +889,199 @@ mod tests {
 
     #[cfg(target_family = "unix")]
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_is_absolute_failing_at_root() {
         env::set_current_dir("/").unwrap();
         assert_path_is_absolute!("etc");
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_starts_with_passing_flat() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
-        fs::create_dir("a").unwrap();
-        fs::create_dir("a/b").unwrap();
+        fs::create_dir_all("a/b").unwrap();
         fs::File::create("a/b/c").unwrap();
 
         assert_path_starts_with!("a/b/c", "a");
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_starts_with_passing_nested() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
-        fs::create_dir("a").unwrap();
-        fs::create_dir("a/b").unwrap();
+        fs::create_dir_all("a/b").unwrap();
         fs::File::create("a/b/c").unwrap();
 
         assert_path_starts_with!("a/b/c", "a/b");
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_starts_with_passing_equal() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
-        fs::create_dir("a").unwrap();
-        fs::create_dir("a/b").unwrap();
+        fs::create_dir_all("a/b").unwrap();
         fs::File::create("a/b/c").unwrap();
 
         assert_path_starts_with!("a/b/c", "a/b/c");
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_starts_with_passing_empty() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
-        fs::create_dir("a").unwrap();
-        fs::create_dir("a/b").unwrap();
+        fs::create_dir_all("a/b").unwrap();
         fs::File::create("a/b/c").unwrap();
 
         assert_path_starts_with!("a/b/c", "");
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_starts_with_failing_flat() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
-        fs::create_dir("a").unwrap();
-        fs::create_dir("a/b").unwrap();
+        fs::create_dir_all("a/b").unwrap();
         fs::File::create("a/b/c").unwrap();
 
         assert_path_starts_with!("a/b/c", "d");
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_starts_with_failing_nested() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
-        fs::create_dir("a").unwrap();
-        fs::create_dir("a/b").unwrap();
+        fs::create_dir_all("a/b").unwrap();
         fs::File::create("a/b/c").unwrap();
 
         assert_path_starts_with!("a/b/c", "a/d");
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_starts_with_failing_full() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
-        fs::create_dir("a").unwrap();
-        fs::create_dir("a/b").unwrap();
+        fs::create_dir_all("a/b").unwrap();
         fs::File::create("a/b/c").unwrap();
 
         assert_path_starts_with!("a/b/c", "a/b/d");
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_starts_with_failing_wrong_prefix() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
-        fs::create_dir("a").unwrap();
-        fs::create_dir("a/b").unwrap();
+        fs::create_dir_all("a/b").unwrap();
         fs::File::create("a/b/c").unwrap();
 
         assert_path_starts_with!("a/b/c", "d/b/c");
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_ends_with_passing_flat() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
-        fs::create_dir("a").unwrap();
-        fs::create_dir("a/b").unwrap();
+        fs::create_dir_all("a/b").unwrap();
         fs::File::create("a/b/c").unwrap();
 
         assert_path_ends_with!("a/b/c", "c");
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_ends_with_passing_nested() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
-        fs::create_dir("a").unwrap();
-        fs::create_dir("a/b").unwrap();
+        fs::create_dir_all("a/b").unwrap();
         fs::File::create("a/b/c").unwrap();
 
         assert_path_ends_with!("a/b/c", "b/c");
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_ends_with_passing_equal() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
-        fs::create_dir("a").unwrap();
-        fs::create_dir("a/b").unwrap();
+        fs::create_dir_all("a/b").unwrap();
         fs::File::create("a/b/c").unwrap();
 
         assert_path_ends_with!("a/b/c", "a/b/c");
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_ends_with_passing_empty() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
-        fs::create_dir("a").unwrap();
-        fs::create_dir("a/b").unwrap();
+        fs::create_dir_all("a/b").unwrap();
         fs::File::create("a/b/c").unwrap();
 
         assert_path_ends_with!("a/b/c", "");
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_ends_with_failing_flat() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
-        fs::create_dir("a").unwrap();
-        fs::create_dir("a/b").unwrap();
+        fs::create_dir_all("a/b").unwrap();
         fs::File::create("a/b/c").unwrap();
 
         assert_path_ends_with!("a/b/c", "d");
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_ends_with_failing_nested() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
-        fs::create_dir("a").unwrap();
-        fs::create_dir("a/b").unwrap();
+        fs::create_dir_all("a/b").unwrap();
         fs::File::create("a/b/c").unwrap();
 
         assert_path_ends_with!("a/b/c", "d/c");
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_ends_with_failing_full() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
-        fs::create_dir("a").unwrap();
-        fs::create_dir("a/b").unwrap();
+        fs::create_dir_all("a/b").unwrap();
         fs::File::create("a/b/c").unwrap();
 
         assert_path_ends_with!("a/b/c", "d/b/c");
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_path_ends_with_failing_wrong_suffix() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
-        fs::create_dir("a").unwrap();
-        fs::create_dir("a/b").unwrap();
+        fs::create_dir_all("a/b").unwrap();
         fs::File::create("a/b/c").unwrap();
 
         assert_path_ends_with!("a/b/c", "a/b/d");
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_file_text_passing() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -1056,7 +1098,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_file_text_failing_assertion() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -1073,7 +1116,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_file_text_failing_bad_path() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -1090,6 +1134,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::unwrap_used)]
     fn assert_file_text_raw_passing() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -1106,7 +1151,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_file_text_raw_failing_assertion() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -1123,7 +1169,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
+    #[allow(clippy::unwrap_used)]
     fn assert_file_text_raw_failing_bad_path() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();

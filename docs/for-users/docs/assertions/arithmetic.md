@@ -27,7 +27,7 @@ These assertions compare values that implement the `PartialEq` trait:
 // Ensure that the values are equal
 assert_eq!(x, y);
 
-// Ensure that the values are inequal
+// Ensure that the values are unequal
 assert_ne!(x, y);
 ```
 

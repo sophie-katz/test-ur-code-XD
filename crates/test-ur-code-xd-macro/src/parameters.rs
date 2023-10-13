@@ -13,24 +13,23 @@
 // You should have received a copy of the GNU General Public License along with test ur code XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
+//! Utility functions for dealing with test parameters.
+
 pub mod extracting;
 pub mod generating;
 pub mod parsing;
-
-use crate::{
-    errors::Error,
-    parameters::extracting::{filter_fn_attrs_without_this_macro, take_fn_attrs},
-};
 
 use self::{
     extracting::iter_parameterized_fn_inputs,
     generating::{generate_parameter_function, generate_permutation_function},
 };
-
-use super::permute::permute_map_of_vecs;
-use extracting::get_map_of_parameter_vecs_from_expr_assign_iter;
+use super::permute::permute_map_of_vectors;
+use crate::{
+    errors::TestUrCodeXDMacroError,
+    parameters::extracting::{filter_fn_attrs_without_this_macro, take_fn_attrs},
+};
+use extracting::get_map_of_parameter_vectors_from_expr_assign_iter;
 use parsing::parse_expr_assign_iter;
-use quote::quote_spanned;
 use std::collections::HashMap;
 use syn::{Attribute, Expr, ItemFn};
 
@@ -86,10 +85,10 @@ use syn::{Attribute, Expr, ItemFn};
 /// * Returns a [`syn::Error`] if the token stream cannot be parsed as expected.
 pub fn get_permuted_parameter_map_iter(
     tokens: proc_macro2::TokenStream,
-) -> Result<impl Iterator<Item = HashMap<String, Expr>>, syn::Error> {
-    let map_of_parameter_vecs =
-        get_map_of_parameter_vecs_from_expr_assign_iter(parse_expr_assign_iter(tokens)?);
-    Ok(permute_map_of_vecs(map_of_parameter_vecs).into_iter())
+) -> Result<impl Iterator<Item = HashMap<String, Expr>>, TestUrCodeXDMacroError> {
+    let map_of_parameter_vectors =
+        get_map_of_parameter_vectors_from_expr_assign_iter(parse_expr_assign_iter(tokens)?);
+    Ok(permute_map_of_vectors(map_of_parameter_vectors?).into_iter())
 }
 
 /// Generates a permutation function for a given test function and parameterization. This is the
@@ -109,7 +108,7 @@ pub fn get_permuted_parameter_map_iter(
 pub fn generate_permuted_test_function(
     mut item: ItemFn,
     vec_of_parameter_maps: Vec<HashMap<String, Expr>>,
-) -> proc_macro2::TokenStream {
+) -> Result<proc_macro2::TokenStream, TestUrCodeXDMacroError> {
     // Take attribute list
     let attributes: Vec<Attribute> =
         filter_fn_attrs_without_this_macro(take_fn_attrs(&mut item)).collect();
@@ -120,29 +119,16 @@ pub fn generate_permuted_test_function(
     // For each permutation, generate a permutation function
     for (counter, parameter_map) in vec_of_parameter_maps.into_iter().enumerate() {
         // Initialize vector for parameterized function inputs
-        let mut paramterized_fn_inputs = Vec::new();
+        let mut parameterized_fn_inputs = Vec::new();
 
         // Iterate over the parameterized function inputs and populate the vector, generating
         // compiler errors as needed
         for input in iter_parameterized_fn_inputs(&item, &parameter_map) {
             match input {
                 Ok((name, ty, expr)) => {
-                    paramterized_fn_inputs.push((name, ty.clone(), expr.clone()))
+                    parameterized_fn_inputs.push((name, ty.clone(), expr.clone()));
                 }
-                Err(error) => match error {
-                    Error::ArgumentHasNoParameter(name) => {
-                        result.extend(quote_spanned!(item.sig.ident.span() => {
-                            compile_error!(concat!("argument `", #name, "` must also be defined in the attribute"));
-                        }));
-                        return result;
-                    }
-                    Error::SelfArgumentInTest => {
-                        result.extend(quote_spanned!(item.sig.ident.span() => {
-                            compile_error!(concat!("test functions cannot take `self` as an argument"));
-                        }));
-                        return result;
-                    }
-                },
+                Err(error) => return Err(error),
             }
         }
 
@@ -150,8 +136,8 @@ pub fn generate_permuted_test_function(
         result.extend(generate_permutation_function(
             &attributes,
             &item,
-            &paramterized_fn_inputs,
-            counter as u32,
+            &parameterized_fn_inputs,
+            counter,
         ));
     }
 
@@ -159,10 +145,11 @@ pub fn generate_permuted_test_function(
     result.extend(generate_parameter_function(item));
 
     // Return results
-    result
+    Ok(result)
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
     use quote::{quote, ToTokens};
@@ -187,6 +174,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::indexing_slicing)]
     fn get_permuted_parameter_map_iter_one_full() {
         let vec_of_maps: Vec<HashMap<String, Expr>> =
             get_permuted_parameter_map_iter(quote! {a = [1, 2]})
@@ -201,6 +189,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::indexing_slicing)]
     fn get_permuted_parameter_map_iter_two_full() {
         let vec_of_maps: Vec<HashMap<String, Expr>> =
             get_permuted_parameter_map_iter(quote! {a = [1, 2], b = [3, 4]})

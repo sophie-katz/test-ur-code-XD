@@ -41,13 +41,13 @@ assert_panics!(
 The second call to `assert_panics!` takes an `on_message` argument. This argument is a closure
 that takes a single argument `message` of type `String` representing the panic message.
 
-## Why not `#[should_panic]`?
+## Why not `#[should_panic(expected = "explicit panic")]`?
 
-Rust has a built-in attribute called `#[should_panic]` that can be used to check if a unit test will panic:
+Rust has a built-in attribute called `#[should_panic(expected = "explicit panic")]` that can be used to check if a unit test will panic:
 
 ```rust
 #[test]
-#[should_panic]
+#[should_panic(expected = "explicit panic")]
 fn unit_test() {
     panic!();
 

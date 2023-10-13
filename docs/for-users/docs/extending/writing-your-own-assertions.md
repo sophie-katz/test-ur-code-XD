@@ -72,7 +72,7 @@ pub fn assert_str_contains_impl(value: &str, substring: &str) -> bool {
 }
 ```
 
-Now that we have the perdicate, we can put together the macro itself.
+Now that we have the predicate, we can put together the macro itself.
 
 ## Declare the macro
 

@@ -25,6 +25,8 @@ use super::output_capturer::OutputCapturer;
 
 /// Differentiator between output streams.
 #[derive(Debug, PartialEq)]
+#[allow(clippy::missing_docs_in_private_items)]
+#[non_exhaustive]
 pub enum OutputStream {
     Stdout,
     Stderr,
@@ -32,6 +34,7 @@ pub enum OutputStream {
 
 /// An error that can occur when capturing output.
 #[derive(Error, Debug)]
+#[non_exhaustive]
 pub enum OutputCapturingError {
     #[error("error while flushing {0:?}: {1}")]
     OutputStreamFlushError(OutputStream, io::Error),
@@ -42,10 +45,13 @@ pub enum OutputCapturingError {
     #[error("error while reading buffer for {0:?}: {1}")]
     OutputStreamBufferReadingError(OutputStream, io::Error),
 
-    /// A wrapper for an error which occurrs when locking a mutex.
+    /// A wrapper for an error which occurs when locking a mutex.
     #[error("guard poison error: {0}")]
     CapturerMutexError(PoisonError<MutexGuard<'static, OutputCapturer>>),
 
     #[error("nested calls to capture_output or capture_output_raw")]
     NestedCaptureError,
+
+    #[error("OutputCapturer::stop() was called before OutputCapturer::start()")]
+    StopCalledBeforeStart,
 }

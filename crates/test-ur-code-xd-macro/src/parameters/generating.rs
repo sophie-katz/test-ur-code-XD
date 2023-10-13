@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU General Public License along with test ur code XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
+//! Utility functions for generating token stream.
+//!
 //! A single function that is decorated with the `#[test_with_parameter_values]` attribute gets
 //! broken down into multiple functions after evaluation of the macro:
 //!
@@ -34,7 +36,7 @@ use syn::{Attribute, Expr, Ident, ItemFn, Type};
 ///
 /// # Returns
 ///
-/// The identifier to be used for the paraemter function.
+/// The identifier to be used for the parameter function.
 pub fn get_parameter_function_ident(item: &ItemFn) -> Ident {
     format_ident!("_test_ur_code_xd_{}_parameter_function", item.sig.ident)
 }
@@ -59,16 +61,16 @@ pub fn generate_permutation_function(
     attributes: &[Attribute],
     item: &ItemFn,
     parameterized_fn_inputs: &[(String, Type, Expr)],
-    index: u32,
+    index: usize,
 ) -> proc_macro2::TokenStream {
     // Generate test function identifier
     let test_function_ident = format_ident!("{}_{}", item.sig.ident, index);
 
     // Get test function with parameters identifier
-    let test_function_with_parrameters_ident = get_parameter_function_ident(item);
+    let test_function_with_parameters_ident = get_parameter_function_ident(item);
 
     // Generate let expression iterators
-    let let_expression_idents: Vec<Ident> = parameterized_fn_inputs
+    let let_expression_identifiers: Vec<Ident> = parameterized_fn_inputs
         .iter()
         .map(|(ident, _, _)| format_ident!("{}", ident))
         .collect();
@@ -82,9 +84,9 @@ pub fn generate_permutation_function(
         #[test]
         #( #attributes )*
         fn #test_function_ident () {
-            #(let #let_expression_idents: #let_expression_types = #let_expression_values;)*
+            #(let #let_expression_identifiers: #let_expression_types = #let_expression_values;)*
 
-            #test_function_with_parrameters_ident ( #( #let_expression_idents ),* );
+            #test_function_with_parameters_ident ( #( #let_expression_identifiers ),* );
         }
     }
 }

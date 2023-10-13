@@ -13,16 +13,25 @@
 // You should have received a copy of the GNU General Public License along with test ur code XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
+#![allow(clippy::unwrap_used)]
+
 #[cfg(test)]
 #[macro_use]
 extern crate test_ur_code_xd;
 
 mod home {
+    // WARNING: Rust Analyzer displays a false negative error here. This is due to a bug in Rust
+    //          Analyzer, not an actual issue with the code.
+    //
+    //          See https://github.com/rust-lang/rust-analyzer/issues/12450 for more info.
     #[test_with_parameter_values(
         x = [5, 6, 7],
         y = [1, 2]
     )]
     fn example(x: i32, y: i32) {
+        #[allow(clippy::arithmetic_side_effects)]
+        let z = x + y;
+
         // This will permute the values and automatically run all of these cases:
         //   x == 5, y == 1
         //   x == 5, y == 2
@@ -30,7 +39,7 @@ mod home {
         //   x == 6, y == 2
         //   x == 7, y == 1
         //   x == 7, y == 2
-        assert!(x + y > 0);
+        assert!(z > 0);
     }
 }
 
@@ -51,6 +60,7 @@ mod assertions {
             // Ensure that value is true
             assert!(value);
 
+            #[allow(clippy::shadow_unrelated)]
             let value = false;
 
             // Ensure that value is false
@@ -58,7 +68,7 @@ mod assertions {
         }
     }
 
-    mod arithemtic {
+    mod arithmetic {
         #[test]
         fn example_equality() {
             let x = 5;
@@ -67,9 +77,10 @@ mod assertions {
             // Ensure that the values are equal
             assert_eq!(x, y);
 
+            #[allow(clippy::shadow_unrelated)]
             let y = 6;
 
-            // Ensure that the values are inequal
+            // Ensure that the values are unequal
             assert_ne!(x, y);
         }
 
@@ -84,7 +95,9 @@ mod assertions {
             // Ensure that x is less than or equal to y
             assert_le!(x, y);
 
+            #[allow(clippy::shadow_unrelated)]
             let x = 5;
+            #[allow(clippy::shadow_unrelated)]
             let y = 4;
 
             // Ensure that x is greater than y
@@ -119,7 +132,7 @@ mod assertions {
 
     mod float {
         #[test]
-        #[should_panic]
+        #[should_panic(expected = "explicit panic")]
         fn example_failing() {
             assert_eq!(0.15 + 0.15 + 0.15, 0.1 + 0.1 + 0.25);
         }
@@ -157,15 +170,15 @@ mod assertions {
         use std::os::windows::fs::symlink_file as symlink;
 
         #[test]
+
         fn example() {
             let temp_dir = tempdir().unwrap();
             env::set_current_dir(temp_dir.path()).unwrap();
             fs::File::create("some_path").unwrap();
             fs::File::create("some_file").unwrap();
             symlink("some_file", "some_symlink").unwrap();
-            fs::create_dir("some_dir").unwrap();
-            fs::create_dir("a").unwrap();
-            fs::create_dir("a/b").unwrap();
+            fs::create_dir_all("some_dir").unwrap();
+            fs::create_dir_all("a/b").unwrap();
             fs::File::create("a/b/c").unwrap();
 
             // Ensure that the path exists
@@ -230,6 +243,7 @@ mod assertions {
 
     mod panic {
         #[test]
+        #[allow(clippy::panic)]
         fn example() {
             // Ensure that the code panics
             assert_panics!(|| {
@@ -248,7 +262,8 @@ mod assertions {
         }
 
         #[test]
-        #[should_panic]
+        #[should_panic(expected = "explicit panic")]
+        #[allow(clippy::panic)]
         fn example_should_panic() {
             panic!();
 
@@ -256,6 +271,7 @@ mod assertions {
         }
 
         #[test]
+        #[allow(clippy::panic)]
         fn example_panic_assertion() {
             assert_panics!(|| {
                 panic!();
@@ -265,6 +281,7 @@ mod assertions {
         }
     }
 
+    #[allow(clippy::print_stdout)]
     mod output {
         #[test]
         fn example() {
@@ -305,7 +322,7 @@ mod assertions {
                 panic_message_builder
                     .with_argument("lhs", "x", &x)
                     .with_argument("rhs", "y", &y)
-            })
+            });
         }
     }
 
@@ -348,21 +365,35 @@ mod assertions {
 
 mod tests {
     mod parameterized_tests {
+        // WARNING: Rust Analyzer displays a false negative error here. This is due to a bug in Rust
+        //          Analyzer, not an actual issue with the code.
+        //
+        //          See https://github.com/rust-lang/rust-analyzer/issues/12450 for more info.
         #[test_with_parameter_values(
             x = [5, 6, 7],
             y = [1, 2])
         ]
         fn example(x: i32, y: i32) {
-            assert!(x + y > 0);
+            #[allow(clippy::arithmetic_side_effects)]
+            let z = x + y;
+
+            assert!(z > 0);
         }
 
+        // WARNING: Rust Analyzer displays a false negative error here. This is due to a bug in Rust
+        //          Analyzer, not an actual issue with the code.
+        //
+        //          See https://github.com/rust-lang/rust-analyzer/issues/12450 for more info.
         #[test_with_parameter_values(
             x = [5, 6, 7],
             y = [1, 2])
         ]
-        #[should_panic]
+        #[should_panic(expected = "explicit panic")]
         fn example_attributes(x: i32, y: i32) {
-            assert!(x + y < 0);
+            #[allow(clippy::arithmetic_side_effects)]
+            let z = x + y;
+
+            assert!(z < 0);
         }
     }
 }

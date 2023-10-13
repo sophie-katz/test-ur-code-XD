@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU General Public License along with test ur code XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
+use crate::errors::TestUrCodeXDError;
+use crate::utilities::truncate::Truncate;
 use console::{style, Color};
 use indent_write::fmt::IndentWriter;
 use std::fmt::Write;
@@ -22,12 +24,13 @@ use std::{
     panic::{self, Location},
 };
 
-use crate::error::Error;
+use super::truncate::TruncationMode;
 
-use super::truncate;
+/// The truncation separator to use for value descriptions.
+const VALUE_DESCRIPTION_SEPARATOR: &str = " ...";
 
 /// The maximum value description length before truncating.
-const VALUE_DESCRIPTION_CONTEXT: usize = 50;
+const VALUE_DESCRIPTION_MAX_GRAPHEME_LEN: usize = 50;
 
 /// The prefix to use before a debug representation of a value
 pub const DEBUGGED_VALUE_PREFIX: &str = "== ";
@@ -62,7 +65,10 @@ pub const DEBUGGED_VALUE_PREFIX: &str = "== ";
 //   developers extending this library to add their own assertions. And efficiency shouldn't matter
 //   so much for assertion failure printing lol.
 pub struct PanicMessageBuilder {
+    /// A string buffer that is built up through member calls.
     buffer: String,
+
+    /// A flag that is set when the first assertion description is set.
     has_assertion_description: bool,
 }
 
@@ -130,6 +136,8 @@ impl PanicMessageBuilder {
     /// # PanicMessageBuilder::new("lhs == rhs", Location::caller())
     /// .with_argument("lhs", lhs_description, &lhs_value);
     /// ```
+    #[must_use]
+    #[allow(clippy::arithmetic_side_effects)]
     pub fn with_argument(
         mut self,
         argument_description: impl Display,
@@ -139,9 +147,9 @@ impl PanicMessageBuilder {
         let value_description_string =
             PanicMessageBuilder::format_value_description(value_description);
 
-        let value_string = format!("{:?}", value);
+        let value_string = format!("{value:?}");
 
-        let argument_description_string = format!("{}:", argument_description);
+        let argument_description_string = format!("{argument_description}:");
 
         self.buffer.push_str(
             format!(
@@ -206,13 +214,15 @@ impl PanicMessageBuilder {
     /// # PanicMessageBuilder::new("lhs == rhs", Location::caller())
     /// .with_argument_formatted("lhs", lhs_description, "5");
     /// ```
+    #[must_use]
+    #[allow(clippy::arithmetic_side_effects)]
     pub fn with_argument_formatted(
         mut self,
         argument_description: impl Display,
         value_description: impl Display,
         value: impl AsRef<str>,
     ) -> Self {
-        let argument_description_string = format!("{}:", argument_description);
+        let argument_description_string = format!("{argument_description}:");
 
         self.buffer.push_str(
             format!(
@@ -245,7 +255,12 @@ impl PanicMessageBuilder {
 
     /// Formats a value description
     fn format_value_description(value_description: impl Display) -> String {
-        truncate::truncate_end(format!("{}", value_description), VALUE_DESCRIPTION_CONTEXT)
+        // truncate::truncate_end(format!("{value_description}"), VALUE_DESCRIPTION_CONTEXT)
+        format!("{value_description}").to_truncated(
+            VALUE_DESCRIPTION_SEPARATOR,
+            TruncationMode::End,
+            VALUE_DESCRIPTION_MAX_GRAPHEME_LEN,
+        )
     }
 
     /// Adds an assertion description to the panic message.
@@ -257,22 +272,26 @@ impl PanicMessageBuilder {
     /// * `assertion_description` - The description of the assertion. If this is an empty string,
     ///                             none is added.
     ///
+    /// # Errors
+    ///
+    /// * If the assertion description is already set.
+    ///
     /// # Panics
     ///
     /// Panics if assertion description is already set.
     pub fn with_description(
         mut self,
         assertion_description: impl AsRef<str>,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, TestUrCodeXDError> {
         let assertion_description = assertion_description.as_ref();
 
         if !assertion_description.is_empty() {
             if self.has_assertion_description {
-                return Err(Error::PanicMessageMultipleDescriptions);
+                return Err(TestUrCodeXDError::PanicMessageMultipleDescriptions);
             }
 
             self.buffer
-                .push_str(format!("\n  info: {}", assertion_description).as_str());
+                .push_str(format!("\n  info: {assertion_description}").as_str());
 
             self.has_assertion_description = true;
         }
@@ -287,6 +306,7 @@ impl PanicMessageBuilder {
     /// # Returns
     ///
     /// The formatted panic message.
+    #[must_use]
     pub fn format(mut self) -> String {
         // Format backtrace onto the end of the buffer
         self.buffer
@@ -331,11 +351,12 @@ impl PanicMessageBuilder {
     /// # Returns
     ///
     /// This function never returns. It always panics.
+    #[allow(clippy::missing_panics_doc, clippy::print_stderr, clippy::panic)]
     pub fn panic(self) -> ! {
         let buffer = self.format();
 
         panic::set_hook(Box::new(move |_| {
-            eprintln!("{}", buffer);
+            eprintln!("{buffer}");
         }));
 
         panic!();
@@ -343,6 +364,7 @@ impl PanicMessageBuilder {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
     use crate::assert;
@@ -359,7 +381,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn panics() {
         PanicMessageBuilder::new("lhs == rhs", Location::caller()).panic();
     }
@@ -373,7 +395,7 @@ mod tests {
 
         assert_str_matches!(
             message,
-            r"⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: lhs == rhs
+            r"\u{26cc} assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: lhs == rhs
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
         );
@@ -390,7 +412,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
 
         assert_str_matches!(
             message,
-            r"⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: 
+            r"\u{26cc} assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: 
   lhs: 5
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
@@ -399,7 +421,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
 
     #[cfg(feature = "regex")]
     #[test]
-    fn format_one_argument_description_doesnt_match() {
+    fn format_one_argument_description_does_not_match() {
         console::set_colors_enabled(false);
 
         let message = PanicMessageBuilder::new("", Location::caller())
@@ -408,7 +430,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
 
         assert_str_matches!(
             message,
-            r"⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: 
+            r"\u{26cc} assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: 
   lhs: x
        == 5
 
@@ -428,7 +450,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
 
         assert_str_matches!(
             message,
-            r"⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: 
+            r"\u{26cc} assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: 
   lhs: x
        == 5
   rhs: y
@@ -450,7 +472,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
 
         assert_str_matches!(
             message,
-            r"⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: 
+            r"\u{26cc} assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: 
   info: assertion description
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
@@ -470,7 +492,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
 
         assert_str_matches!(
             message,
-            r"⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: 
+            r"\u{26cc} assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: 
   info: assertion description
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
@@ -503,7 +525,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
             )
             .format();
 
-        assert_str_matches!(message, "⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\\.rs:[0-9]+: predicate description
+        assert_str_matches!(message, "\u{26cc} assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\\.rs:[0-9]+: predicate description
   argument: value
             == SomeStruct \\{
                 a: 1,
@@ -525,7 +547,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
 
         assert_str_matches!(
             message,
-            r"⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: predicate description
+            r"\u{26cc} assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: predicate description
   argument: a ...
             == 1
 
@@ -539,12 +561,16 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
         console::set_colors_enabled(false);
 
         let message = PanicMessageBuilder::new("predicate description", Location::caller())
-            .with_argument("argument", "a".repeat(VALUE_DESCRIPTION_CONTEXT + 100), &1)
+            .with_argument(
+                "argument",
+                "a".repeat(VALUE_DESCRIPTION_MAX_GRAPHEME_LEN + 100),
+                &1,
+            )
             .format();
 
         assert_str_matches!(
             message,
-            r"⛌ assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: predicate description
+            r"\u{26cc} assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: predicate description
   argument: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...
             == 1
 

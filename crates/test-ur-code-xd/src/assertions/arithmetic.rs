@@ -50,7 +50,7 @@ macro_rules! assert_eq {
     ($lhs:expr, $rhs:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "lhs == rhs",
-            $crate::assertions::arithmetic_assertions::assert_eq_impl(&$lhs, &$rhs),
+            $crate::assertions::arithmetic::assert_eq_impl(&$lhs, &$rhs),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("lhs", stringify!($lhs), &$lhs)
@@ -66,7 +66,7 @@ pub fn assert_ne_impl<LhsType: PartialEq<RhsType>, RhsType>(lhs: &LhsType, rhs: 
     !lhs.eq(rhs)
 }
 
-/// Asserts that two values are inequal to each other using the [`PartialEq`] trait.
+/// Asserts that two values are unequal to each other using the [`PartialEq`] trait.
 ///
 /// See
 /// [sophie-katz.github.io/test-ur-code-XD/assertions/arithmetic](https://sophie-katz.github.io/test-ur-code-XD/assertions/arithmetic/)
@@ -92,7 +92,7 @@ macro_rules! assert_ne {
     ($lhs:expr, $rhs:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "lhs != rhs",
-            $crate::assertions::arithmetic_assertions::assert_ne_impl(&$lhs, &$rhs),
+            $crate::assertions::arithmetic::assert_ne_impl(&$lhs, &$rhs),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("lhs", stringify!($lhs), &$lhs)
@@ -134,7 +134,7 @@ macro_rules! assert_lt {
     ($lhs:expr, $rhs:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "lhs < rhs",
-            $crate::assertions::arithmetic_assertions::assert_lt_impl(&$lhs, &$rhs),
+            $crate::assertions::arithmetic::assert_lt_impl(&$lhs, &$rhs),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("lhs", stringify!($lhs), &$lhs)
@@ -176,7 +176,7 @@ macro_rules! assert_le {
     ($lhs:expr, $rhs:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "lhs <= rhs",
-            $crate::assertions::arithmetic_assertions::assert_le_impl(&$lhs, &$rhs),
+            $crate::assertions::arithmetic::assert_le_impl(&$lhs, &$rhs),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("lhs", stringify!($lhs), &$lhs)
@@ -218,7 +218,7 @@ macro_rules! assert_gt {
     ($lhs:expr, $rhs:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "lhs > rhs",
-            $crate::assertions::arithmetic_assertions::assert_gt_impl(&$lhs, &$rhs),
+            $crate::assertions::arithmetic::assert_gt_impl(&$lhs, &$rhs),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("lhs", stringify!($lhs), &$lhs)
@@ -260,7 +260,7 @@ macro_rules! assert_ge {
     ($lhs:expr, $rhs:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "lhs >= rhs",
-            $crate::assertions::arithmetic_assertions::assert_ge_impl(&$lhs, &$rhs),
+            $crate::assertions::arithmetic::assert_ge_impl(&$lhs, &$rhs),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("lhs", stringify!($lhs), &$lhs)
@@ -284,7 +284,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_eq_failing_bool() {
         assert_eq!(true, false);
     }
@@ -295,7 +295,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_eq_failing_bool_negate() {
         assert_eq!(false, false, negate = true);
     }
@@ -306,7 +306,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_eq_failing_i32() {
         assert_eq!(3, 4);
     }
@@ -317,7 +317,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_eq_failing_i32_negate() {
         assert_eq!(3, 3, negate = true);
     }
@@ -328,7 +328,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_eq_failing_f64() {
         assert_eq!(1.4, 1.5);
     }
@@ -339,7 +339,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_eq_failing_f64_negate() {
         assert_eq!(3.0, 3.0, negate = true);
     }
@@ -350,7 +350,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_eq_failing_string() {
         assert_eq!("hi".to_owned(), "bye".to_owned());
     }
@@ -361,9 +361,9 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_eq_failing_string_negate() {
-        assert_eq!("".to_owned(), "".to_owned(), negate = true);
+        assert_eq!(String::new(), String::new(), negate = true);
     }
 
     #[test]
@@ -372,8 +372,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    fn assert_eq_failing_vec() {
+    #[should_panic = "explicit panic"]
+    fn assert_eq_failing_vector() {
         assert_eq!(vec![1, 2], vec![3, 4]);
     }
 
@@ -383,8 +383,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    fn assert_eq_failing_vec_negate() {
+    #[should_panic = "explicit panic"]
+    fn assert_eq_failing_vector_negate() {
         assert_eq!(Vec::<i32>::new(), Vec::<i32>::new(), negate = true);
     }
 
@@ -394,7 +394,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_ne_failing_bool() {
         assert_ne!(true, true);
     }
@@ -405,7 +405,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_ne_failing_bool_negate() {
         assert_ne!(false, true, negate = true);
     }
@@ -416,7 +416,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_ne_failing_i32() {
         assert_ne!(3, 3);
     }
@@ -427,7 +427,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_ne_failing_i32_negate() {
         assert_ne!(3, -3, negate = true);
     }
@@ -438,7 +438,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_ne_failing_f64() {
         assert_ne!(1.4, 1.4);
     }
@@ -449,7 +449,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_ne_failing_f64_negate() {
         assert_ne!(3.0, -3.0, negate = true);
     }
@@ -460,7 +460,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_ne_failing_string() {
         assert_ne!("hi".to_owned(), "hi".to_owned());
     }
@@ -471,9 +471,9 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_ne_failing_string_negate() {
-        assert_ne!("".to_owned(), "a".to_owned(), negate = true);
+        assert_ne!(String::new(), "a".to_owned(), negate = true);
     }
 
     #[test]
@@ -482,7 +482,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_ne_failing_vec() {
         assert_ne!(vec![1, 2], vec![1, 2]);
     }
@@ -493,7 +493,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_ne_failing_vec_negate() {
         assert_ne!(Vec::<i32>::new(), vec![1], negate = true);
     }
@@ -504,13 +504,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_lt_failing_i32_eq() {
         assert_lt!(3, 3);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_lt_failing_i32_gt() {
         assert_lt!(-3, -4);
     }
@@ -521,7 +521,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_lt_failing_i32_negate() {
         assert_lt!(3, 4, negate = true);
     }
@@ -532,13 +532,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_lt_failing_f64_eq() {
         assert_lt!(1.4, 1.4);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_lt_failing_f64_gt() {
         assert_lt!(1.41, 1.4);
     }
@@ -549,7 +549,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_lt_failing_f64_negate() {
         assert_lt!(3.0, 4.0, negate = true);
     }
@@ -563,7 +563,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_lt_failing_no_default_traits_i32_eq() {
         assert_lt!(
             NoDefaultTraitsI32 { value: 0 },
@@ -572,7 +572,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_lt_failing_no_default_traits_i32_gt() {
         assert_lt!(
             NoDefaultTraitsI32 { value: 100 },
@@ -590,7 +590,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_lt_failing_no_default_traits_i32_negate() {
         assert_lt!(
             NoDefaultTraitsI32 { value: 99 },
@@ -610,7 +610,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_le_failing_i32() {
         assert_le!(-3, -4);
     }
@@ -621,7 +621,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_le_failing_i32_negate() {
         assert_le!(3, 4, negate = true);
     }
@@ -637,7 +637,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_le_failing_f64() {
         assert_le!(1.41, 1.4);
     }
@@ -648,7 +648,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_le_failing_f64_negate() {
         assert_le!(3.0, 4.0, negate = true);
     }
@@ -670,7 +670,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_le_failing_no_default_traits_i32() {
         assert_le!(
             NoDefaultTraitsI32 { value: 100 },
@@ -688,7 +688,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_le_failing_no_default_traits_i32_negate() {
         assert_le!(
             NoDefaultTraitsI32 { value: 99 },
@@ -703,13 +703,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_gt_failing_i32_eq() {
         assert_gt!(3, 3);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_gt_failing_i32_lt() {
         assert_gt!(-4, -3);
     }
@@ -720,7 +720,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_gt_failing_i32_negate() {
         assert_gt!(4, 3, negate = true);
     }
@@ -731,13 +731,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_gt_failing_f64_eq() {
         assert_gt!(1.4, 1.4);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_gt_failing_f64_lt() {
         assert_gt!(1.4, 1.41);
     }
@@ -748,7 +748,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_gt_failing_f64_negate() {
         assert_gt!(4.0, 3.0, negate = true);
     }
@@ -762,7 +762,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_gt_failing_no_default_traits_i32_eq() {
         assert_gt!(
             NoDefaultTraitsI32 { value: 0 },
@@ -771,7 +771,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_gt_failing_no_default_traits_i32_lt() {
         assert_gt!(
             NoDefaultTraitsI32 { value: 0 },
@@ -789,7 +789,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_gt_failing_no_default_traits_i32_negate() {
         assert_gt!(
             NoDefaultTraitsI32 { value: 100 },
@@ -809,7 +809,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_ge_failing_i32() {
         assert_ge!(-4, -3);
     }
@@ -820,7 +820,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_ge_failing_i32_negate() {
         assert_ge!(4, 3, negate = true);
     }
@@ -836,7 +836,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_ge_failing_f64() {
         assert_ge!(1.4, 1.41);
     }
@@ -847,7 +847,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_ge_failing_f64_negate() {
         assert_ge!(4.0, 3.0, negate = true);
     }
@@ -869,7 +869,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_ge_failing_no_default_traits_i32() {
         assert_ge!(
             NoDefaultTraitsI32 { value: 0 },
@@ -887,7 +887,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "explicit panic"]
     fn assert_ge_failing_no_default_traits_i32_negate() {
         assert_ge!(
             NoDefaultTraitsI32 { value: 100 },

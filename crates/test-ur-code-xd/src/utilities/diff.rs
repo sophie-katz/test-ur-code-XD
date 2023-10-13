@@ -15,10 +15,19 @@
 
 //! Some utilities to extend the [`diff`] crate.
 
-use crate::utilities::truncate;
-use console::{style, Color};
+#![allow(clippy::absolute_paths)]
 
-const DIFF_CONTEXT_SIZE: usize = 5;
+use crate::utilities::truncate::Truncate;
+use console::{style, Color};
+use unicode_segmentation::UnicodeSegmentation;
+
+use super::truncate::TruncationMode;
+
+/// Separator to use for diff truncation.
+const DIFF_TRUNCATION_SEPARATOR: &str = " ... ";
+
+/// The amount of context in characters to show around a diff.
+const DIFF_MAX_GRAPHEME_LEN: usize = 20;
 
 /// Formats the diff between two strings.
 ///
@@ -31,6 +40,8 @@ const DIFF_CONTEXT_SIZE: usize = 5;
 /// # Returns
 ///
 /// * The formatted diff.
+#[must_use]
+#[allow(clippy::module_name_repetitions)]
 pub fn format_diff(lhs: &str, rhs: &str, indent: usize) -> String {
     // Make strings diffable
     let lhs_diffable = convert_str_to_diffable_string(lhs);
@@ -53,7 +64,7 @@ pub fn format_diff(lhs: &str, rhs: &str, indent: usize) -> String {
 
 /// Takes a string and converts it to a diffable string.
 fn convert_str_to_diffable_string(string: &str) -> String {
-    format!("{:?}", string)
+    format!("{string:?}")
 }
 
 /// Formats the first line of the diff, where the text is just displayed.
@@ -72,22 +83,37 @@ fn format_diff_text_line(diffs: &[diff::Result<String>]) -> String {
         match diff {
             diff::Result::Left(left) => {
                 result.push_str(
-                    style(truncate::truncate_middle(left, DIFF_CONTEXT_SIZE))
-                        .fg(Color::Green)
-                        .to_string()
-                        .as_str(),
+                    style(left.to_truncated(
+                        DIFF_TRUNCATION_SEPARATOR,
+                        TruncationMode::Middle,
+                        DIFF_MAX_GRAPHEME_LEN,
+                    ))
+                    .fg(Color::Green)
+                    .to_string()
+                    .as_str(),
                 );
             }
             diff::Result::Right(right) => {
                 result.push_str(
-                    style(truncate::truncate_middle(right, DIFF_CONTEXT_SIZE))
-                        .fg(Color::Red)
-                        .to_string()
-                        .as_str(),
+                    style(right.to_truncated(
+                        DIFF_TRUNCATION_SEPARATOR,
+                        TruncationMode::Middle,
+                        DIFF_MAX_GRAPHEME_LEN,
+                    ))
+                    .fg(Color::Red)
+                    .to_string()
+                    .as_str(),
                 );
             }
             diff::Result::Both(both, _) => {
-                result.push_str(truncate::truncate_middle(both, DIFF_CONTEXT_SIZE).as_str());
+                result.push_str(
+                    both.to_truncated(
+                        DIFF_TRUNCATION_SEPARATOR,
+                        TruncationMode::Middle,
+                        DIFF_MAX_GRAPHEME_LEN,
+                    )
+                    .as_str(),
+                );
             }
         }
     }
@@ -109,24 +135,30 @@ fn format_diff_marker_line(diffs: &[diff::Result<String>]) -> String {
     for diff in diffs {
         match diff {
             diff::Result::Left(left) => {
+                let left_graphemes_len = left.graphemes(true).count();
+
                 result.push_str(
-                    style("<".repeat(truncate::middle_truncated_len(left, DIFF_CONTEXT_SIZE)))
+                    style("<".repeat(left_graphemes_len.min(DIFF_MAX_GRAPHEME_LEN)))
                         .fg(Color::Green)
                         .to_string()
                         .as_str(),
                 );
             }
             diff::Result::Right(right) => {
+                let right_graphemes_len = right.graphemes(true).count();
+
                 result.push_str(
-                    style(">".repeat(truncate::middle_truncated_len(right, DIFF_CONTEXT_SIZE)))
+                    style(">".repeat(right_graphemes_len.min(DIFF_MAX_GRAPHEME_LEN)))
                         .fg(Color::Red)
                         .to_string()
                         .as_str(),
                 );
             }
             diff::Result::Both(both, _) => {
+                let both_graphemes_len = both.graphemes(true).count();
+
                 result.push_str(
-                    " ".repeat(truncate::middle_truncated_len(both, DIFF_CONTEXT_SIZE))
+                    " ".repeat(both_graphemes_len.min(DIFF_MAX_GRAPHEME_LEN))
                         .as_str(),
                 );
             }
@@ -166,7 +198,8 @@ fn append_char_diff_to_string_diff(
     char_diff: &diff::Result<char>,
 ) -> Option<diff::Result<String>> {
     match (&mut string_diff, char_diff) {
-        (diff::Result::Left(string_value), diff::Result::Left(char_value)) => {
+        (diff::Result::Left(string_value), diff::Result::Left(char_value))
+        | (diff::Result::Right(string_value), diff::Result::Right(char_value)) => {
             string_value.push(*char_value);
             Some(string_diff)
         }
@@ -178,24 +211,19 @@ fn append_char_diff_to_string_diff(
             string_value_right.push(*char_value);
             Some(string_diff)
         }
-        (diff::Result::Right(string_value), diff::Result::Right(char_value)) => {
-            string_value.push(*char_value);
-            Some(string_diff)
-        }
         _ => None,
     }
 }
 
 /// Merges a sequence of character diffs into a sequence of string diffs.
+#[allow(clippy::expect_used)]
 fn merge_char_diffs(diffs: &[diff::Result<char>]) -> Vec<diff::Result<String>> {
     let mut result: Vec<diff::Result<String>> = Vec::new();
 
     let mut current: Option<diff::Result<String>> = None;
 
     for diff in diffs {
-        if current.is_none() {
-            current = Some(convert_char_diff_to_string_diff(diff));
-        } else if let Some(current_value) = current {
+        if let Some(current_value) = current {
             if are_diffs_same_variant(&current_value, diff) {
                 current = Some(
                     append_char_diff_to_string_diff(current_value, diff)
@@ -205,6 +233,8 @@ fn merge_char_diffs(diffs: &[diff::Result<char>]) -> Vec<diff::Result<String>> {
                 result.push(current_value.clone());
                 current = Some(convert_char_diff_to_string_diff(diff));
             }
+        } else {
+            current = Some(convert_char_diff_to_string_diff(diff));
         }
     }
 
@@ -252,8 +282,8 @@ mod tests {
         console::set_colors_enabled(false);
 
         let formatted = format_diff_text_line(&[diff::Result::Both(
-            "a".repeat(DIFF_CONTEXT_SIZE + 100),
-            "a".repeat(DIFF_CONTEXT_SIZE + 100),
+            "a".repeat(DIFF_MAX_GRAPHEME_LEN + 100),
+            "a".repeat(DIFF_MAX_GRAPHEME_LEN + 100),
         )]);
 
         assert_eq!(formatted, "aaaaa ... aaaaa");
@@ -264,7 +294,7 @@ mod tests {
         console::set_colors_enabled(false);
 
         let formatted =
-            format_diff_text_line(&[diff::Result::Left("a".repeat(DIFF_CONTEXT_SIZE + 100))]);
+            format_diff_text_line(&[diff::Result::Left("a".repeat(DIFF_MAX_GRAPHEME_LEN + 100))]);
 
         assert_eq!(formatted, "aaaaa ... aaaaa");
     }
@@ -274,7 +304,7 @@ mod tests {
         console::set_colors_enabled(false);
 
         let formatted =
-            format_diff_text_line(&[diff::Result::Right("a".repeat(DIFF_CONTEXT_SIZE + 100))]);
+            format_diff_text_line(&[diff::Result::Right("a".repeat(DIFF_MAX_GRAPHEME_LEN + 100))]);
 
         assert_eq!(formatted, "aaaaa ... aaaaa");
     }
@@ -325,8 +355,8 @@ mod tests {
         console::set_colors_enabled(false);
 
         let formatted = format_diff_marker_line(&[diff::Result::Both(
-            "a".repeat(DIFF_CONTEXT_SIZE + 100),
-            "a".repeat(DIFF_CONTEXT_SIZE + 100),
+            "a".repeat(DIFF_MAX_GRAPHEME_LEN + 100),
+            "a".repeat(DIFF_MAX_GRAPHEME_LEN + 100),
         )]);
 
         assert_eq!(formatted, "               ");
@@ -337,7 +367,7 @@ mod tests {
         console::set_colors_enabled(false);
 
         let formatted =
-            format_diff_marker_line(&[diff::Result::Left("a".repeat(DIFF_CONTEXT_SIZE + 100))]);
+            format_diff_marker_line(&[diff::Result::Left("a".repeat(DIFF_MAX_GRAPHEME_LEN + 100))]);
 
         assert_eq!(formatted, "<<<<<<<<<<<<<<<");
     }
@@ -346,8 +376,9 @@ mod tests {
     fn format_diff_marker_line_long_right() {
         console::set_colors_enabled(false);
 
-        let formatted =
-            format_diff_marker_line(&[diff::Result::Right("a".repeat(DIFF_CONTEXT_SIZE + 100))]);
+        let formatted = format_diff_marker_line(&[diff::Result::Right(
+            "a".repeat(DIFF_MAX_GRAPHEME_LEN + 100),
+        )]);
 
         assert_eq!(formatted, ">>>>>>>>>>>>>>>");
     }

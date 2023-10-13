@@ -1,15 +1,16 @@
 [package]
-authors      = ["Sophie Katz <sophie@sophiekatz.us>"]
-categories   = ["development-tools", "development-tools::testing"]
-description  = "Procedural macros for test-ur-code-xd"
-edition      = "2021"
-homepage     = "https://sophie-katz.github.io/test-ur-code-XD"
-keywords     = ["test", "testing", "tests", "assert", "color"]
-license      = "LGPL-3.0-only"
-name         = "test-ur-code-xd-macro"
-repository   = "https://github.com/sophie-katz/test-ur-code-XD"
-rust-version = "1.66"
-version      = "0.1.0"
+authors.workspace      = true
+categories.workspace   = true
+description            = "Procedural macros for test-ur-code-xd"
+edition.workspace      = true
+homepage.workspace     = true
+keywords.workspace     = true
+license.workspace      = true
+name                   = "test-ur-code-xd-macro"
+readme.workspace       = true
+repository.workspace   = true
+rust-version.workspace = true
+version.workspace      = true
 
 [lib]
 proc-macro = true
@@ -17,5 +18,5 @@ proc-macro = true
 [dependencies]
 proc-macro2 = "1.0.67"
 quote       = "1.0.33"
-syn         = { version = "2.0.35", features = ["full"] }
+syn         = { version = "2.0.35", features = ["full", "extra-traits"] }
 thiserror   = "1.0.49"

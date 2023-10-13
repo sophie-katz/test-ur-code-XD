@@ -19,7 +19,23 @@ use thiserror::Error;
 
 /// A general error type for test ur code XD.
 #[derive(Error, Debug)]
-pub enum Error {
+#[non_exhaustive]
+pub enum TestUrCodeXDError {
+    /// An error that happens when multiple descriptions are added to a panic message builder.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// // Either two of the same call
+    /// PanicMessageBuilder::new("panic", Location::caller())
+    ///     .with_description("some description")
+    ///     .with_description("some other description");
+    ///
+    /// // Or two different calls
+    /// PanicMessageBuilder::new("panic", Location::caller())
+    ///     .with_description("some description")
+    ///     .with_description_owned("some other description".to_owned());
+    /// ```
     #[error("cannot add multiple descriptions to a panic message")]
     PanicMessageMultipleDescriptions,
 }

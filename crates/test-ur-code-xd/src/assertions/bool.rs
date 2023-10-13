@@ -20,6 +20,7 @@
 //! for a usage guide.
 
 #[doc(hidden)]
+#[must_use]
 pub fn assert_impl(value: bool) -> bool {
     value
 }
@@ -47,7 +48,7 @@ macro_rules! assert {
     ($value:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "value is true",
-            $crate::assertions::bool_assertions::assert_impl($value),
+            $crate::assertions::bool::assert_impl($value),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("value", stringify!($value), &$value)
@@ -58,6 +59,7 @@ macro_rules! assert {
 }
 
 #[doc(hidden)]
+#[must_use]
 pub fn assert_not_impl(value: bool) -> bool {
     !value
 }
@@ -85,7 +87,7 @@ macro_rules! assert_not {
     ($value:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
             "value is false",
-            $crate::assertions::bool_assertions::assert_not_impl($value),
+            $crate::assertions::bool::assert_not_impl($value),
             |panic_message_builder| {
                 panic_message_builder
                     .with_argument("value", stringify!($value), &$value)
@@ -103,7 +105,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_failing() {
         assert!(false);
     }
@@ -114,7 +116,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_failing_negate() {
         assert!(true, negate = true);
     }
@@ -125,7 +127,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_not_failing() {
         assert_not!(true);
     }
@@ -136,7 +138,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "explicit panic")]
     fn assert_not_failing_negate() {
         assert_not!(false, negate = true);
     }

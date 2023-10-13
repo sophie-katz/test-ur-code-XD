@@ -1,15 +1,16 @@
 [package]
-authors      = ["Sophie Katz <sophie@sophiekatz.us>"]
-categories   = ["development-tools", "development-tools::testing"]
-description  = "Testing framework for Rust"
-edition      = "2021"
-homepage     = "https://sophie-katz.github.io/test-ur-code-XD"
-keywords     = ["test", "testing", "tests", "assert", "color"]
-license      = "LGPL-3.0-only"
-name         = "test-ur-code-xd"
-repository   = "https://github.com/sophie-katz/test-ur-code-XD"
-rust-version = "1.66"
-version      = "0.1.0"
+authors.workspace      = true
+categories.workspace   = true
+description            = "Testing framework for Rust"
+edition.workspace      = true
+homepage.workspace     = true
+keywords.workspace     = true
+license.workspace      = true
+name                   = "test-ur-code-xd"
+readme.workspace       = true
+repository.workspace   = true
+rust-version.workspace = true
+version.workspace      = true
 
 [dependencies]
 console               = "0.15.7"
@@ -23,6 +24,7 @@ panic-message         = { version = "0.3.0", optional = true }
 regex                 = { version = "1.9.5", optional = true }
 test-ur-code-xd-macro = { path = "../test-ur-code-xd-macro", optional = true }
 thiserror             = "1.0.48"
+unicode-segmentation  = "1.10.1"
 
 [dev-dependencies]
 tempfile = "3.8.0"

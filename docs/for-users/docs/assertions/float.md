@@ -145,7 +145,7 @@ test ur code XD has these assertion macros for doing different comparisons with 
 // Ensure that x and y are equal accounting for floating-point error
 assert_f32_eq!(x, y, ...);
 
-// Ensure that x and y are inequal accounting for floating-point error
+// Ensure that x and y are unequal accounting for floating-point error
 assert_f32_ne!(x, y, ...);
 
 // Ensure that x is less than or equal to y accounting for
