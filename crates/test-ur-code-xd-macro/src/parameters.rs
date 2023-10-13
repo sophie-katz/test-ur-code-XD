@@ -30,8 +30,11 @@ use crate::{
 };
 use extracting::get_map_of_parameter_vectors_from_expr_assign_iter;
 use parsing::parse_expr_assign_iter;
-use std::collections::HashMap;
-use syn::{Attribute, Expr, ItemFn};
+use std::{collections::HashMap, env};
+use syn::{spanned::Spanned, Attribute, Expr, ItemFn};
+
+/// The default maximum number of permutations allowed for parameterized tests.
+const DEFAULT_MAX_PERMUTATION_COUNT: usize = 256;
 
 /// Gets an iterator over parameter maps from the token stream taken from a given attribute.
 ///
@@ -75,6 +78,7 @@ use syn::{Attribute, Expr, ItemFn};
 /// # Arguments
 ///
 /// * `tokens` - a token stream taken from the attribute
+/// * `max_permutation_count` - the maximum number of permutations to generate
 ///
 /// # Returns
 ///
@@ -85,10 +89,24 @@ use syn::{Attribute, Expr, ItemFn};
 /// * Returns a [`syn::Error`] if the token stream cannot be parsed as expected.
 pub fn get_permuted_parameter_map_iter(
     tokens: proc_macro2::TokenStream,
+    max_permutation_count: usize,
 ) -> Result<impl Iterator<Item = HashMap<String, Expr>>, TestUrCodeXDMacroError> {
+    let span = tokens.span();
+
     let map_of_parameter_vectors =
-        get_map_of_parameter_vectors_from_expr_assign_iter(parse_expr_assign_iter(tokens)?);
-    Ok(permute_map_of_vectors(map_of_parameter_vectors?).into_iter())
+        get_map_of_parameter_vectors_from_expr_assign_iter(parse_expr_assign_iter(tokens)?)?;
+
+    let actual_permutation_count: usize = map_of_parameter_vectors.values().map(Vec::len).product();
+
+    if actual_permutation_count > max_permutation_count {
+        return Err(TestUrCodeXDMacroError::TooManyPermutations {
+            span,
+            limit: max_permutation_count,
+            actual: actual_permutation_count,
+        });
+    }
+
+    Ok(permute_map_of_vectors(map_of_parameter_vectors).into_iter())
 }
 
 /// Generates a permutation function for a given test function and parameterization. This is the
@@ -148,6 +166,14 @@ pub fn generate_permuted_test_function(
     Ok(result)
 }
 
+/// Gets the maximum number of permutations allows for parameterized tests.
+pub fn get_max_permutation_count() -> usize {
+    env::var("TEST_UR_CODE_XD_MAX_PERMUTATION_COUNT")
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(DEFAULT_MAX_PERMUTATION_COUNT)
+}
+
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
@@ -156,9 +182,10 @@ mod tests {
 
     #[test]
     fn get_permuted_parameter_map_iter_empty() {
-        let vec_of_maps: Vec<HashMap<String, Expr>> = get_permuted_parameter_map_iter(quote! {})
-            .unwrap()
-            .collect();
+        let vec_of_maps: Vec<HashMap<String, Expr>> =
+            get_permuted_parameter_map_iter(quote! {}, 10)
+                .unwrap()
+                .collect();
 
         assert!(vec_of_maps.is_empty());
     }
@@ -166,7 +193,7 @@ mod tests {
     #[test]
     fn get_permuted_parameter_map_iter_one_empty() {
         let vec_of_maps: Vec<HashMap<String, Expr>> =
-            get_permuted_parameter_map_iter(quote! {a = []})
+            get_permuted_parameter_map_iter(quote! {a = []}, 10)
                 .unwrap()
                 .collect();
 
@@ -177,7 +204,7 @@ mod tests {
     #[allow(clippy::indexing_slicing)]
     fn get_permuted_parameter_map_iter_one_full() {
         let vec_of_maps: Vec<HashMap<String, Expr>> =
-            get_permuted_parameter_map_iter(quote! {a = [1, 2]})
+            get_permuted_parameter_map_iter(quote! {a = [1, 2]}, 10)
                 .unwrap()
                 .collect();
 
@@ -192,7 +219,7 @@ mod tests {
     #[allow(clippy::indexing_slicing)]
     fn get_permuted_parameter_map_iter_two_full() {
         let vec_of_maps: Vec<HashMap<String, Expr>> =
-            get_permuted_parameter_map_iter(quote! {a = [1, 2], b = [3, 4]})
+            get_permuted_parameter_map_iter(quote! {a = [1, 2], b = [3, 4]}, 10)
                 .unwrap()
                 .collect();
 
@@ -201,5 +228,51 @@ mod tests {
         assert_eq!(vec_of_maps[1].len(), 2);
         assert_eq!(vec_of_maps[2].len(), 2);
         assert_eq!(vec_of_maps[3].len(), 2);
+    }
+
+    #[test]
+    #[allow(unused_must_use)]
+    fn get_permuted_parameter_map_iter_at_limit() {
+        get_permuted_parameter_map_iter(
+            quote! {a = [0, 1, 2, 3, 4, 5, 6, 7], b = [0, 1, 2, 3, 4, 5, 6, 7]},
+            64,
+        )
+        .unwrap();
+    }
+
+    #[test]
+    #[allow(unused_must_use, clippy::panic)]
+    fn get_permuted_parameter_map_iter_above_limit() {
+        match get_permuted_parameter_map_iter(
+            quote! {a = [0, 1, 2, 3, 4, 5, 6, 7], b = [0, 1, 2, 3, 4, 5, 6, 7]},
+            63,
+        ) {
+            Ok(_) => panic!("no error"),
+            Err(error) => {
+                if let TestUrCodeXDMacroError::TooManyPermutations { limit, actual, .. } = error {
+                    assert_eq!(limit, 63);
+                    assert_eq!(actual, 64);
+                } else {
+                    panic!("different type of error");
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn get_max_permutation_count_default() {
+        env::remove_var("TEST_UR_CODE_XD_MAX_PERMUTATION_COUNT");
+        assert_eq!(get_max_permutation_count(), DEFAULT_MAX_PERMUTATION_COUNT);
+    }
+
+    #[test]
+    fn get_max_permutation_count_overridden() {
+        let override_count = 512;
+        assert_ne!(override_count, DEFAULT_MAX_PERMUTATION_COUNT);
+        env::set_var(
+            "TEST_UR_CODE_XD_MAX_PERMUTATION_COUNT",
+            override_count.to_string(),
+        );
+        assert_eq!(get_max_permutation_count(), override_count);
     }
 }

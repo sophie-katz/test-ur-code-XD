@@ -15,6 +15,7 @@
 
 //! Error types for test ur code XD macros.
 
+use proc_macro2::Span;
 use quote::quote_spanned;
 use syn::{spanned::Spanned, Expr, FnArg, PatType, Receiver};
 use thiserror::Error;
@@ -93,6 +94,22 @@ pub enum TestUrCodeXDMacroError {
     /// Wrapper for [`syn`] parsing errors.
     #[error("parsing error: {0}")]
     ParsingError(#[from] syn::Error),
+
+    /// Emitted when too many permutations are generated for a parameterized test.
+    ///
+    /// This count is [`DEFAULT_MAX_PERMUTATION_COUNT`] by default, but can be overridden with the
+    /// `TEST_UR_CODE_XD_MAX_PERMUTATION_COUNT` environment variable.
+    #[error("too many permutations generated for parameterized test (limit is {limit}, but {actual} permutations were generated)")]
+    TooManyPermutations {
+        /// The span to use for the compile-time error
+        span: Span,
+
+        /// The maximum number of permutations allowed
+        limit: usize,
+
+        /// The actual number of permutations generated
+        actual: usize,
+    },
 }
 
 impl TestUrCodeXDMacroError {
@@ -116,6 +133,9 @@ impl TestUrCodeXDMacroError {
                 quote_spanned!(fn_arg.span() => compile_error!("argument must be a single identifier, not a pattern"))
             }
             Self::ParsingError(error) => error.to_compile_error(),
+            Self::TooManyPermutations { span, .. } => {
+                quote_spanned!(*span => compile_error!("too many permutations generated for parameterized test"))
+            }
         }
     }
 

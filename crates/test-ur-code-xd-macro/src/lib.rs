@@ -111,7 +111,7 @@ mod parameters;
 mod permute;
 
 use crate::parameters::get_permuted_parameter_map_iter;
-use parameters::generate_permuted_test_function;
+use parameters::{generate_permuted_test_function, get_max_permutation_count};
 use std::collections::HashMap;
 use syn::{parse_macro_input, Expr, ItemFn};
 
@@ -133,7 +133,7 @@ pub fn test_with_parameter_values(
 
     // Parse the attribute's parameters into a vector of permuted parameter maps
     let vector_of_parameter_maps: Vec<HashMap<String, Expr>> =
-        match get_permuted_parameter_map_iter(tokens) {
+        match get_permuted_parameter_map_iter(tokens, get_max_permutation_count()) {
             Ok(iter_of_parameter_maps) => iter_of_parameter_maps.collect(),
             Err(error) => {
                 return error.into_compile_error().into();
