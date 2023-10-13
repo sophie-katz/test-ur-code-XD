@@ -18,15 +18,45 @@
 use num_traits::ToPrimitive;
 use unicode_segmentation::UnicodeSegmentation;
 
+/// Different modes of truncation
 #[derive(Clone, Copy)]
 #[non_exhaustive]
 pub enum TruncationMode {
+    /// Truncate text at the start so that the end of the string is guaranteed to be present.
     Start,
+    /// Truncate text in the middle so that the start and end of the string are guaranteed to be
+    /// present.
     Middle,
+    /// Truncate text at the end so that the start of the string is guaranteed to be present.
     End,
 }
 
+/// A trait for truncation
 pub trait Truncate {
+    /// Truncates a string.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let truncated = "This is a string that is long enough to be truncated.".to_truncated(" ... ", TruncationMode::Middle, 12);
+    ///
+    /// assert_eq!(truncated, "This is ... cated.");
+    /// ```
+    ///
+    /// # Arguments
+    ///
+    /// * `separator` - The separator to use between the truncated parts of the string.
+    /// * `mode` - The truncation mode.
+    /// * `max_grapheme_len` - The maximum length of the truncated string in graphemes.
+    ///
+    /// # Returns
+    ///
+    /// The truncated string.
+    ///
+    /// # Panics
+    ///
+    /// * If the there are issues converting sizes. Since most strings are not gigabytes in length,
+    ///   this should not be an issue.
     fn to_truncated(
         &self,
         separator: impl AsRef<str>,

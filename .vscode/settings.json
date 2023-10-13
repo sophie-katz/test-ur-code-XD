@@ -54,6 +54,7 @@
         "superfences",
         "arithmatex",
         "javascripts",
-        "mathjax"
+        "mathjax",
+        "cated"
     ],
 }
