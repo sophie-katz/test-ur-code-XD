@@ -160,6 +160,52 @@ impl Truncate for str {
     }
 }
 
+/// Gets the context length for truncating a string from the start while being aware of newlines.
+///
+/// # Arguments
+///
+/// * `graphemes` - The graphemes of the string.
+/// * `context_grapheme_len` - The context length in graphemes.
+///
+/// # Returns
+///
+/// * `context_grapheme` if there are no newlines before `context_grapheme`
+/// * or the index just before the first newline if there is one before `context_grapheme`.
+fn get_context_grapheme_length_or_before_first_newline(
+    graphemes: &[&str],
+    context_grapheme_len: usize,
+) -> usize {
+    graphemes
+        .iter()
+        .take(context_grapheme_len)
+        .copied()
+        .position(|value| value == "\n" || value == "\r\n")
+        .unwrap_or(context_grapheme_len)
+}
+
+/// Gets the context length for truncating a string from the end while being aware of newlines.
+///
+/// # Arguments
+///
+/// * `graphemes` - The graphemes of the string.
+/// * `context_grapheme_len` - The context length in graphemes.
+///
+/// # Returns
+///
+/// * `context_grapheme` if there are no newlines after `context_grapheme`
+/// * or the index just before the first newline if there is one before `context_grapheme`.
+fn get_context_grapheme_length_or_before_first_newline(
+    graphemes: &[&str],
+    context_grapheme_len: usize,
+) -> usize {
+    graphemes
+        .iter()
+        .take(context_grapheme_len)
+        .copied()
+        .position(|value| value == "\n" || value == "\r\n")
+        .unwrap_or(context_grapheme_len)
+}
+
 /// Gets the context length for truncating a string from the start or the end.
 ///
 /// # Examples

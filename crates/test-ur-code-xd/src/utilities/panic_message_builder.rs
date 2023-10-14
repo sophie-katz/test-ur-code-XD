@@ -17,12 +17,12 @@ use crate::errors::TestUrCodeXDError;
 use crate::utilities::truncate::Truncate;
 use console::{style, Color};
 use indent_write::fmt::IndentWriter;
-use std::fmt::Write;
 use std::{
     backtrace::{Backtrace, BacktraceStatus},
     fmt::{Debug, Display},
     panic::{self, Location},
 };
+use std::{fmt::Write, mem};
 
 use super::truncate::TruncationMode;
 
@@ -65,6 +65,12 @@ pub const DEBUGGED_VALUE_PREFIX: &str = "== ";
 //   developers extending this library to add their own assertions. And efficiency shouldn't matter
 //   so much for assertion failure printing lol.
 pub struct PanicMessageBuilder {
+    /// The panic message to use for the [`panic!`] macro.
+    ///
+    /// This is not displayed in the console because a panic hook is used to print to `stderr`, but
+    /// this message can be used for assertions and testing.
+    panic_message: String,
+
     /// A string buffer that is built up through member calls.
     buffer: String,
 
@@ -91,6 +97,7 @@ impl PanicMessageBuilder {
     /// ```
     pub fn new(predicate_description: impl Display, location: &'static Location<'static>) -> Self {
         Self {
+            panic_message: format!("{predicate_description}"),
             buffer: format!(
                 "{} assertion failed {}: {}",
                 style("\u{26CC}").fg(Color::Red).bright().bold(),
@@ -352,14 +359,16 @@ impl PanicMessageBuilder {
     ///
     /// This function never returns. It always panics.
     #[allow(clippy::missing_panics_doc, clippy::print_stderr, clippy::panic)]
-    pub fn panic(self) -> ! {
+    pub fn panic(mut self) -> ! {
+        let panic_message = mem::take(&mut self.panic_message);
+
         let buffer = self.format();
 
         panic::set_hook(Box::new(move |_| {
             eprintln!("{buffer}");
         }));
 
-        panic!();
+        panic!("{panic_message}");
     }
 }
 
@@ -381,7 +390,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs")]
     fn panics() {
         PanicMessageBuilder::new("lhs == rhs", Location::caller()).panic();
     }
@@ -547,7 +556,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
 
         assert_str_matches!(
             message,
-            r"\u{26cc} assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: predicate description
+            "\u{26cc} assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\\.rs:[0-9]+: predicate description
   argument: a ...
             == 1
 
@@ -571,7 +580,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
         assert_str_matches!(
             message,
             r"\u{26cc} assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\.rs:[0-9]+: predicate description
-  argument: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...
+  argument: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ...
             == 1
 
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"

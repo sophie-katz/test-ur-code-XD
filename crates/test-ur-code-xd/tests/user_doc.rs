@@ -132,7 +132,7 @@ mod assertions {
 
     mod float {
         #[test]
-        #[should_panic(expected = "explicit panic")]
+        #[should_panic(expected = "lhs == rhs")]
         fn example_failing() {
             assert_eq!(0.15 + 0.15 + 0.15, 0.1 + 0.1 + 0.25);
         }
@@ -388,7 +388,7 @@ mod tests {
             x = [5, 6, 7],
             y = [1, 2])
         ]
-        #[should_panic(expected = "explicit panic")]
+        #[should_panic(expected = "value is true")]
         fn example_attributes(x: i32, y: i32) {
             #[allow(clippy::arithmetic_side_effects)]
             let z = x + y;
