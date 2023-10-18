@@ -46,7 +46,6 @@ pub fn parse_expr_assign_iter(
 //
 // Indexing and slicing allowed to reduce length of test code.
 #[allow(clippy::unwrap_used, clippy::indexing_slicing)]
-
 mod tests {
     use quote::{quote, ToTokens};
 

@@ -239,6 +239,7 @@ impl Config {
     }
 
     /// Helper method to unwrap a panic message builder result
+    #[must_use]
     fn unwrap_panic_message_builder_result<ErrorType: Display>(
         result: Result<PanicMessageBuilder, ErrorType>,
     ) -> PanicMessageBuilder {

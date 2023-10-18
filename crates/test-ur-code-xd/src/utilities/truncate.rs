@@ -60,6 +60,7 @@ pub trait Truncate {
     ///
     /// * If the there are issues converting sizes. Since most strings are not gigabytes in length,
     ///   this should not be an issue.
+    #[must_use]
     fn to_truncated(
         &self,
         separator: impl AsRef<str>,
@@ -72,6 +73,7 @@ impl Truncate for str {
     // Allow panic because of issues with truncation that shouldn't occur between grapheme
     // boundaries.
     #[allow(clippy::panic)]
+    #[must_use]
     fn to_truncated(
         &self,
         separator: impl AsRef<str>,
@@ -199,6 +201,7 @@ impl Truncate for str {
 ///
 /// * `context_grapheme` if there are no newlines before `context_grapheme`
 /// * or the index just before the first newline if there is one before `context_grapheme`.
+#[must_use]
 fn get_context_grapheme_length_or_before_first_newline(
     graphemes: &[&str],
     context_grapheme_len: usize,
@@ -222,6 +225,7 @@ fn get_context_grapheme_length_or_before_first_newline(
 ///
 /// * `context_grapheme` if there are no newlines after `context_grapheme`
 /// * or the index just before the first newline if there is one before `context_grapheme`.
+#[must_use]
 fn get_context_grapheme_length_or_after_last_newline(
     graphemes: &[&str],
     context_grapheme_len: usize,
@@ -265,6 +269,7 @@ fn get_context_grapheme_length_or_after_last_newline(
 /// # Returns
 ///
 /// The context length in graphemes.
+#[must_use]
 fn get_context_grapheme_lengths_start_or_end(
     separator_grapheme_len: usize,
     max_grapheme_len: usize,
@@ -304,6 +309,7 @@ fn get_context_grapheme_lengths_start_or_end(
 /// # Returns
 ///
 /// A tuple of context lengths in graphemes `(before, after)`.
+#[must_use]
 fn get_context_grapheme_lengths_middle(
     separator_grapheme_len: usize,
     max_grapheme_len: usize,
@@ -322,6 +328,7 @@ fn get_context_grapheme_lengths_middle(
 //
 // Allow panics for arithmetic overflows because most strings are not gigabytes in length.
 #[allow(clippy::panic)]
+#[must_use]
 fn convert_grapheme_len_to_f64(grapheme_len: usize) -> f64 {
     match grapheme_len.to_f64() {
         Some(value) => {
@@ -343,6 +350,7 @@ fn convert_grapheme_len_to_f64(grapheme_len: usize) -> f64 {
 //
 // Allow panics for arithmetic overflows because most strings are not gigabytes in length.
 #[allow(clippy::panic)]
+#[must_use]
 fn convert_f64_to_grapheme_len(value: f64) -> usize {
     match value.to_usize() {
         Some(value) => value,

@@ -47,6 +47,7 @@ use std::{collections::HashMap, hash::Hash};
 ///
 /// * `Some((first_key, first_value))` if there is at least one key in the hash map
 /// * `None` if the hash map is empty
+#[must_use]
 fn take_first_key_and_value<KeyType: Clone + Eq + Hash, ValueType>(
     hash_map: &mut HashMap<KeyType, ValueType>,
 ) -> Option<(KeyType, ValueType)> {
@@ -58,6 +59,7 @@ fn take_first_key_and_value<KeyType: Clone + Eq + Hash, ValueType>(
 }
 
 /// Helper method that actually does the recursion
+#[must_use]
 fn permute_map_of_vectors_helper<
     KeyType: 'static + Clone + Eq + Hash,
     ValueType: 'static + Clone,
@@ -125,6 +127,7 @@ fn permute_map_of_vectors_helper<
 /// * Because the size of the resulting array is the product of the sizes of all non-empty vectors,
 ///   the result can become quite large.
 #[allow(clippy::module_name_repetitions)]
+#[must_use]
 pub fn permute_map_of_vectors<KeyType: 'static + Clone + Eq + Hash, ValueType: 'static + Clone>(
     map_of_vectors: HashMap<KeyType, Vec<ValueType>>,
 ) -> Vec<HashMap<KeyType, ValueType>> {

@@ -37,11 +37,13 @@ use syn::{Attribute, Expr, Ident, ItemFn, Type};
 /// # Returns
 ///
 /// The identifier to be used for the parameter function.
+#[must_use]
 pub fn get_parameter_function_ident(item: &ItemFn) -> Ident {
     format_ident!("_test_ur_code_xd_{}_parameter_function", item.sig.ident)
 }
 
 /// Generates the parameter function for a given test function.
+#[must_use]
 pub fn generate_parameter_function(mut item: ItemFn) -> proc_macro2::TokenStream {
     item.sig.ident = get_parameter_function_ident(&item);
 
@@ -57,6 +59,7 @@ pub fn generate_parameter_function(mut item: ItemFn) -> proc_macro2::TokenStream
 /// * `item` - The test case's original function.
 /// * `parameterization` - The parameterization to use for the permutation function.
 /// * `index` - An integer index used to differentiate the permutations.
+#[must_use]
 pub fn generate_permutation_function(
     attributes: &[Attribute],
     item: &ItemFn,

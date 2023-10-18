@@ -63,6 +63,7 @@ pub fn format_diff(lhs: &str, rhs: &str, indent: usize) -> String {
 }
 
 /// Takes a string and converts it to a diffable string.
+#[must_use]
 fn convert_str_to_diffable_string(string: &str) -> String {
     format!("{string:?}")
 }
@@ -76,6 +77,7 @@ fn convert_str_to_diffable_string(string: &str) -> String {
 /// # Returns
 ///
 /// * The formatted text line.
+#[must_use]
 fn format_diff_text_line(diffs: &[diff::Result<String>]) -> String {
     let mut result = String::new();
 
@@ -129,6 +131,7 @@ fn format_diff_text_line(diffs: &[diff::Result<String>]) -> String {
 /// # Returns
 ///
 /// * The formatted marker line.
+#[must_use]
 fn format_diff_marker_line(diffs: &[diff::Result<String>]) -> String {
     let mut result = String::new();
 
@@ -178,6 +181,7 @@ fn convert_char_diff_to_string_diff(diff: &diff::Result<char>) -> diff::Result<S
 }
 
 /// Checks if two diffs with different value types contain the same variant.
+#[must_use]
 fn are_diffs_same_variant<T, U>(lhs: &diff::Result<T>, rhs: &diff::Result<U>) -> bool {
     matches!(
         (lhs, rhs),
@@ -193,6 +197,7 @@ fn are_diffs_same_variant<T, U>(lhs: &diff::Result<T>, rhs: &diff::Result<U>) ->
 ///
 /// * `Some(appended_string_diff)` if the two diffs are of the same variant.
 /// * `None` if the two diffs are not of the same variant.
+#[must_use]
 fn append_char_diff_to_string_diff(
     mut string_diff: diff::Result<String>,
     char_diff: &diff::Result<char>,
@@ -219,6 +224,7 @@ fn append_char_diff_to_string_diff(
 //
 // Expects are allowed because the diffs are guaranteed to be of the same variant in that branch.
 #[allow(clippy::expect_used)]
+#[must_use]
 fn merge_char_diffs(diffs: &[diff::Result<char>]) -> Vec<diff::Result<String>> {
     let mut result: Vec<diff::Result<String>> = Vec::new();
 

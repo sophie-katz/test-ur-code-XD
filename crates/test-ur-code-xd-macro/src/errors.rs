@@ -123,6 +123,7 @@ pub enum TestUrCodeXDMacroError {
 impl TestUrCodeXDMacroError {
     /// Converts the error into a [`proc_macro2::TokenStream`] that can be used with
     /// [`compile_error`].
+    #[must_use]
     pub fn to_compile_error(&self) -> proc_macro2::TokenStream {
         match self {
             Self::SelfArgumentInTest(receiver) => {
@@ -149,6 +150,7 @@ impl TestUrCodeXDMacroError {
 
     /// Converts the error into a [`proc_macro2::TokenStream`] that can be used with
     /// [`compile_error`].
+    #[must_use]
     pub fn into_compile_error(self) -> proc_macro2::TokenStream {
         self.to_compile_error()
     }

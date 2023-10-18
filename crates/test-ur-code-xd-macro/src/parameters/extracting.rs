@@ -39,6 +39,7 @@ use crate::errors::TestUrCodeXDMacroError;
 //
 // Expect used because expression is guaranteed to have at least one segment in the branch.
 #[allow(clippy::expect_used)]
+#[must_use]
 fn get_identifier_name_from_expr(expr: &Expr) -> Option<String> {
     // We intentionally ignore any other arms
     #[allow(clippy::wildcard_enum_match_arm)]
@@ -70,6 +71,7 @@ fn get_identifier_name_from_expr(expr: &Expr) -> Option<String> {
 ///
 /// * `Some(identifier)` if the expression is an identifier.
 /// * `None` otherwise.
+#[must_use]
 pub fn get_identifier_name_from_pat(pat: &Pat) -> Option<String> {
     // We intentionally ignore any other arms
     #[allow(clippy::wildcard_enum_match_arm)]
@@ -98,6 +100,7 @@ pub fn get_identifier_name_from_pat(pat: &Pat) -> Option<String> {
 ///
 /// * `Some(expressions)` if the expression is an array literal.
 /// * `None` otherwise.
+#[must_use]
 fn iter_expr_literal_array(expr: &Expr) -> Option<impl Iterator<Item = &Expr>> {
     // We intentionally ignore any other arms
     #[allow(clippy::wildcard_enum_match_arm)]

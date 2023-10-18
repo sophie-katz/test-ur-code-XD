@@ -25,6 +25,7 @@ use regex::Regex;
 // Assertion implementations need to be public for the macros to use them, but should not appear in
 // documentation.
 #[doc(hidden)]
+#[must_use]
 pub fn assert_str_eq_impl(lhs: impl AsRef<str>, rhs: impl AsRef<str>) -> bool {
     lhs.as_ref().eq(rhs.as_ref())
 }
@@ -76,6 +77,7 @@ macro_rules! assert_str_eq {
 // Assertion implementations need to be public for the macros to use them, but should not appear in
 // documentation.
 #[doc(hidden)]
+#[must_use]
 pub fn assert_str_contains_impl(value: impl AsRef<str>, substring: impl AsRef<str>) -> bool {
     value.as_ref().contains(substring.as_ref())
 }
@@ -119,6 +121,7 @@ macro_rules! assert_str_contains {
 // Assertion implementations need to be public for the macros to use them, but should not appear in
 // documentation.
 #[doc(hidden)]
+#[must_use]
 pub fn assert_str_starts_with_impl(value: impl AsRef<str>, prefix: impl AsRef<str>) -> bool {
     value.as_ref().starts_with(prefix.as_ref())
 }
@@ -162,6 +165,7 @@ macro_rules! assert_str_starts_with {
 // Assertion implementations need to be public for the macros to use them, but should not appear in
 // documentation.
 #[doc(hidden)]
+#[must_use]
 pub fn assert_str_ends_with_impl(value: impl AsRef<str>, suffix: impl AsRef<str>) -> bool {
     value.as_ref().ends_with(suffix.as_ref())
 }
@@ -206,6 +210,7 @@ macro_rules! assert_str_ends_with {
 // documentation.
 #[doc(hidden)]
 #[cfg(feature = "regex")]
+#[must_use]
 pub fn assert_str_matches_impl(value: impl AsRef<str>, pattern: impl AsRef<str>) -> bool {
     use std::panic::Location;
 

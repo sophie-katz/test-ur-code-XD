@@ -95,6 +95,7 @@ impl PanicMessageBuilder {
     /// # use test_ur_code_xd::utilities::panic_message_builder::PanicMessageBuilder;
     /// PanicMessageBuilder::new("lhs == rhs", Location::caller());
     /// ```
+    #[must_use]
     pub fn new(predicate_description: impl Display, location: &'static Location<'static>) -> Self {
         Self {
             panic_message: format!("{predicate_description}"),
@@ -265,6 +266,7 @@ impl PanicMessageBuilder {
     }
 
     /// Formats a value description
+    #[must_use]
     fn format_value_description(value_description: impl Display) -> String {
         format!("{value_description}").to_truncated(
             VALUE_DESCRIPTION_SEPARATOR,
@@ -332,6 +334,7 @@ impl PanicMessageBuilder {
     ///
     /// * If the backtrace was captured, the formatted backtrace.
     /// * Otherwise, a message telling the user how to enable backtrace capturing.
+    #[must_use]
     fn format_backtrace() -> String {
         let backtrace = Backtrace::capture();
 
@@ -343,11 +346,13 @@ impl PanicMessageBuilder {
     }
 
     /// Format a captured backtrace
+    #[must_use]
     fn format_backtrace_captured(backtrace: Backtrace) -> String {
         style(backtrace).dim().to_string()
     }
 
     /// Format a message telling the user how to enable backtrace capturing
+    #[must_use]
     fn format_backtrace_message() -> String {
         style("note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace")
             .dim()

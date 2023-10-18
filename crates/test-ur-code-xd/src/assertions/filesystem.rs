@@ -32,6 +32,7 @@ use crate::utilities::panic_message_builder::PanicMessageBuilder;
 // Assertion implementations need to be public for the macros to use them, but should not appear in
 // documentation.
 #[doc(hidden)]
+#[must_use]
 pub fn assert_path_exists_impl(path: impl AsRef<Path>) -> bool {
     path.as_ref().exists()
 }
@@ -81,6 +82,7 @@ macro_rules! assert_path_exists {
 // Assertion implementations need to be public for the macros to use them, but should not appear in
 // documentation.
 #[doc(hidden)]
+#[must_use]
 pub fn assert_path_is_file_impl(path: impl AsRef<Path>) -> bool {
     path.as_ref().is_file()
 }
@@ -130,6 +132,7 @@ macro_rules! assert_path_is_file {
 // Assertion implementations need to be public for the macros to use them, but should not appear in
 // documentation.
 #[doc(hidden)]
+#[must_use]
 pub fn assert_path_is_symlink_impl(path: impl AsRef<Path>) -> bool {
     path.as_ref().is_symlink()
 }
@@ -187,6 +190,7 @@ macro_rules! assert_path_is_symlink {
 // Assertion implementations need to be public for the macros to use them, but should not appear in
 // documentation.
 #[doc(hidden)]
+#[must_use]
 pub fn assert_path_is_dir_impl(path: impl AsRef<Path>) -> bool {
     path.as_ref().is_dir()
 }
@@ -236,6 +240,7 @@ macro_rules! assert_path_is_dir {
 // Assertion implementations need to be public for the macros to use them, but should not appear in
 // documentation.
 #[doc(hidden)]
+#[must_use]
 pub fn assert_path_is_relative_impl(path: impl AsRef<Path>) -> bool {
     path.as_ref().is_relative()
 }
@@ -278,6 +283,7 @@ macro_rules! assert_path_is_relative {
 // Assertion implementations need to be public for the macros to use them, but should not appear in
 // documentation.
 #[doc(hidden)]
+#[must_use]
 pub fn assert_path_is_absolute_impl(path: impl AsRef<Path>) -> bool {
     path.as_ref().is_absolute()
 }
@@ -321,6 +327,7 @@ macro_rules! assert_path_is_absolute {
 // Assertion implementations need to be public for the macros to use them, but should not appear in
 // documentation.
 #[doc(hidden)]
+#[must_use]
 pub fn assert_path_starts_with_impl(path: impl AsRef<Path>, base: impl AsRef<Path>) -> bool {
     path.as_ref().starts_with(base.as_ref())
 }
@@ -374,6 +381,7 @@ macro_rules! assert_path_starts_with {
 // Assertion implementations need to be public for the macros to use them, but should not appear in
 // documentation.
 #[doc(hidden)]
+#[must_use]
 pub fn assert_path_ends_with_impl(path: impl AsRef<Path>, child: impl AsRef<Path>) -> bool {
     path.as_ref().ends_with(child.as_ref())
 }

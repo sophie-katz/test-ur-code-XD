@@ -27,6 +27,7 @@ use crate::utilities::{
 };
 
 /// Helper function to unwrap captured output wrapped in an error and panic.
+#[must_use]
 fn unwrap_captured_outputs<OutputType>(
     result: Result<CapturedOutputs<OutputType>, OutputCapturingError>,
 ) -> CapturedOutputs<OutputType> {

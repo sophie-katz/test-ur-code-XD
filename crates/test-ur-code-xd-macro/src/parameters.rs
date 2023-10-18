@@ -167,6 +167,7 @@ pub fn generate_permuted_test_function(
 }
 
 /// Gets the maximum number of permutations allows for parameterized tests.
+#[must_use]
 pub fn get_max_permutation_count() -> usize {
     env::var("TEST_UR_CODE_XD_MAX_PERMUTATION_COUNT")
         .ok()

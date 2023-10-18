@@ -41,6 +41,7 @@ use crate::utilities::panic_message_builder::PanicMessageBuilder;
 ///     * If they are equal, return `Some(true)`
 ///     * If they are unequal, return `Some(false)`
 /// * Otherwise, return `None`
+#[must_use]
 fn is_float_eq_non_finite<FloatType: Float>(lhs: FloatType, rhs: FloatType) -> Option<bool> {
     if lhs.is_infinite() != rhs.is_infinite() {
         // One is infinite and the other is not: unequal
@@ -72,6 +73,7 @@ fn is_float_eq_non_finite<FloatType: Float>(lhs: FloatType, rhs: FloatType) -> O
 ///                          each other.
 /// * `relative_tolerance` - The epsilon to use for tolerance relative to the magnitude of the
 ///                          largest operand.
+#[must_use]
 fn is_float_eq_relative<FloatType: Float>(
     lhs: FloatType,
     rhs: FloatType,
@@ -117,6 +119,7 @@ fn is_float_eq_relative<FloatType: Float>(
 /// * `absolute_tolerance` - The absolute tolerance to use when `lhs` and `rhs` are very close to
 ///                          each other.
 /// * `ulps_tolerance` - The number of ULPs to use for tolerance.
+#[must_use]
 fn is_float_eq_ulps_f32(lhs: f32, rhs: f32, absolute_tolerance: f32, ulps_tolerance: i32) -> bool {
     // Check for non-finite cases
     if let Some(equal) = is_float_eq_non_finite(lhs, rhs) {
@@ -156,6 +159,7 @@ fn is_float_eq_ulps_f32(lhs: f32, rhs: f32, absolute_tolerance: f32, ulps_tolera
 /// * `absolute_tolerance` - The absolute tolerance to use when `lhs` and `rhs` are very close to
 ///                          each other.
 /// * `ulps_tolerance` - The number of ULPs to use for tolerance.
+#[must_use]
 fn is_float_eq_ulps_f64(lhs: f64, rhs: f64, absolute_tolerance: f64, ulps_tolerance: i64) -> bool {
     // Check for non-finite cases
     if let Some(equal) = is_float_eq_non_finite(lhs, rhs) {
@@ -195,6 +199,7 @@ fn is_float_eq_ulps_f64(lhs: f64, rhs: f64, absolute_tolerance: f64, ulps_tolera
 // Assertion implementations need to be public for the macros to use them, but should not appear in
 // documentation.
 #[doc(hidden)]
+#[must_use]
 pub fn format_float_predicate_description_ulps<
     UlpsType: Display + PartialEq<i32>,
     FloatType: Debug + Float,
@@ -229,6 +234,7 @@ pub fn format_float_predicate_description_ulps<
 // Assertion implementations need to be public for the macros to use them, but should not appear in
 // documentation.
 #[doc(hidden)]
+#[must_use]
 pub fn format_float_predicate_description_relative<FloatType: Debug + Float>(
     operator: &str,
     relative_epsilon: FloatType,
@@ -259,6 +265,7 @@ pub fn format_float_predicate_description_relative<FloatType: Debug + Float>(
 // Assertion implementations need to be public for the macros to use them, but should not appear in
 // documentation.
 #[doc(hidden)]
+#[must_use]
 pub fn configure_float_panic_message_ulps<
     UlpsType: Debug,
     FloatType: Float + Debug + Ulps<U = UlpsType>,
@@ -299,6 +306,7 @@ pub fn configure_float_panic_message_ulps<
 // Assertion implementations need to be public for the macros to use them, but should not appear in
 // documentation.
 #[doc(hidden)]
+#[must_use]
 pub fn configure_float_panic_message_relative<FloatType: Float + Debug>(
     panic_message_builder: PanicMessageBuilder,
     lhs_description: &str,
