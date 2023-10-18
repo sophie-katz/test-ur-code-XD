@@ -29,6 +29,7 @@ pub fn assert_panics_impl<
     MessageCallbackType: FnOnce(String),
 >(
     action: ActionType,
+    location: &'static Location<'static>,
     on_message: Option<MessageCallbackType>,
 ) {
     if let Err(error) = panic::catch_unwind(AssertUnwindSafe(action)) {
@@ -36,7 +37,7 @@ pub fn assert_panics_impl<
             on_message(panic_message::panic_message(&error).to_owned());
         }
     } else {
-        PanicMessageBuilder::new("action panics", Location::caller()).panic();
+        PanicMessageBuilder::new("action panics", location).panic();
     }
 }
 
@@ -72,6 +73,7 @@ macro_rules! assert_panics {
     ($action:expr, on_message = $on_message:expr) => {
         $crate::assertions::panic::assert_panics_impl(
             $action,
+            ::std::panic::Location::caller(),
             ::std::option::Option::Some($on_message),
         )
     };
@@ -79,6 +81,7 @@ macro_rules! assert_panics {
     ($action:expr) => {
         $crate::assertions::panic::assert_panics_impl(
             $action,
+            ::std::panic::Location::caller(),
             ::std::option::Option::<fn(String)>::None,
         )
     };
@@ -98,7 +101,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "action panics")]
     fn assert_panics_failing_no_panic() {
         assert_panics!(|| {});
     }
@@ -116,7 +119,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs")]
     fn assert_panics_failing_no_message_text_message_assertion() {
         assert_panics!(
             || {
@@ -148,7 +151,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs")]
     fn assert_panics_failing_with_message_text_message_assertion() {
         assert_panics!(
             || {
@@ -248,7 +251,7 @@ mod tests {
                 assert_eq!(1, 2);
             },
             on_message = |message| {
-                assert_eq!(message, "explicit panic");
+                assert_eq!(message, "lhs == rhs");
             }
         );
     }
@@ -261,7 +264,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "action panics")]
     fn assert_panics_failing_nested() {
         assert_panics!(|| {
             assert_panics!(|| {

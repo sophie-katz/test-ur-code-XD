@@ -39,7 +39,6 @@ default = [
     "regex",
     "string-diff",
 ]
-faster-asserts = []
 filesystem = []
 float = ["dep:float-cmp", "dep:num-traits"]
 macros = ["dep:test-ur-code-xd-macro"]

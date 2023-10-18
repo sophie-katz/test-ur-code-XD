@@ -38,7 +38,9 @@ pub trait Truncate {
     /// # Example
     ///
     /// ```
-    /// let truncated = "This is a string that is long enough to be truncated.".to_truncated(" ... ", TruncationMode::Middle, 12);
+    /// # use test_ur_code_xd::utilities::truncate::{Truncate, TruncationMode};
+    /// #
+    /// let truncated = "This is a string that is long enough to be truncated.".to_truncated(" ... ", TruncationMode::Middle, 18);
     ///
     /// assert_eq!(truncated, "This is ... cated.");
     /// ```
@@ -80,7 +82,7 @@ impl Truncate for str {
         let separator_graphemes: Vec<&str> = separator.as_ref().graphemes(true).collect();
 
         // If the string is already short enough, return it as is
-        if self_graphemes.len() <= max_grapheme_len {
+        if self_graphemes.len() <= max_grapheme_len && !self_graphemes.contains(&"\n") {
             return self.to_owned();
         }
 
@@ -91,6 +93,12 @@ impl Truncate for str {
                 let context_after_grapheme_len = get_context_grapheme_lengths_start_or_end(
                     separator_graphemes.len(),
                     max_grapheme_len,
+                );
+
+                // Make sure there are no newlines in the context
+                let context_after_grapheme_len = get_context_grapheme_length_or_after_last_newline(
+                    &self_graphemes,
+                    context_after_grapheme_len,
                 );
 
                 // Slice the graphemes
@@ -116,6 +124,18 @@ impl Truncate for str {
                         max_grapheme_len,
                     );
 
+                // Make sure there are no newlines in the contexts
+                let (context_before_grapheme_len, context_after_grapheme_len) = (
+                    get_context_grapheme_length_or_before_first_newline(
+                        &self_graphemes,
+                        context_before_grapheme_len,
+                    ),
+                    get_context_grapheme_length_or_after_last_newline(
+                        &self_graphemes,
+                        context_after_grapheme_len,
+                    ),
+                );
+
                 // Slice the graphemes before the separator
                 let context_before_graphemes: &[&str] =
                     self_graphemes.get(..context_before_grapheme_len).unwrap_or_else(|| panic!("unable to truncate in middle starting at index {context_before_grapheme_len}"));
@@ -138,6 +158,13 @@ impl Truncate for str {
                     separator_graphemes.len(),
                     max_grapheme_len,
                 );
+
+                // Make sure there are no newlines in the context
+                let context_before_grapheme_len =
+                    get_context_grapheme_length_or_before_first_newline(
+                        &self_graphemes,
+                        context_before_grapheme_len,
+                    );
 
                 // Slice the graphemes
                 let context_before_graphemes: &[&str] = self_graphemes
@@ -194,16 +221,16 @@ fn get_context_grapheme_length_or_before_first_newline(
 ///
 /// * `context_grapheme` if there are no newlines after `context_grapheme`
 /// * or the index just before the first newline if there is one before `context_grapheme`.
-fn get_context_grapheme_length_or_before_first_newline(
+fn get_context_grapheme_length_or_after_last_newline(
     graphemes: &[&str],
     context_grapheme_len: usize,
 ) -> usize {
     graphemes
         .iter()
-        .take(context_grapheme_len)
+        .skip(graphemes.len() - context_grapheme_len - 1)
         .copied()
-        .position(|value| value == "\n" || value == "\r\n")
-        .unwrap_or(context_grapheme_len)
+        .rposition(|value| value == "\n" || value == "\r\n")
+        .unwrap_or(graphemes.len() - context_grapheme_len - 1)
 }
 
 /// Gets the context length for truncating a string from the start or the end.
@@ -212,7 +239,7 @@ fn get_context_grapheme_length_or_before_first_newline(
 ///
 /// To get the context length for truncating a string at the start:
 ///
-/// ```
+/// ```ignore
 /// // The separator is " ... "
 /// let separator_grapheme_len = 5;
 ///
@@ -250,7 +277,7 @@ fn get_context_grapheme_lengths_start_or_end(
 ///
 /// To get the context length for truncating a string:
 ///
-/// ```
+/// ```ignore
 /// // The separator is " ... "
 /// let separator_grapheme_len = 5;
 ///
@@ -280,12 +307,13 @@ fn get_context_grapheme_lengths_middle(
     separator_grapheme_len: usize,
     max_grapheme_len: usize,
 ) -> (usize, usize) {
-    let unrounded = convert_grapheme_len_to_f64(max_grapheme_len) / 2.0
-        - convert_grapheme_len_to_f64(separator_grapheme_len);
+    let unrounded = convert_grapheme_len_to_f64(max_grapheme_len - separator_grapheme_len) / 2.0;
+
+    let context_grapheme_len_before = convert_f64_to_grapheme_len(unrounded.ceil());
 
     (
-        convert_f64_to_grapheme_len(unrounded.ceil()),
-        convert_f64_to_grapheme_len(unrounded.floor()),
+        context_grapheme_len_before,
+        max_grapheme_len - context_grapheme_len_before - separator_grapheme_len - 1,
     )
 }
 

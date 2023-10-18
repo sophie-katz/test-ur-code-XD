@@ -200,7 +200,7 @@
 //!     ($value:expr, $substring:expr $(, $keys:ident = $values:expr)* $(,)?) => {
 //!         ::test_ur_code_xd::assert_custom!(
 //!             "value contains substring",
-//!             ::test_ur_code_xd::assertions::string_assertions::assert_str_contains_impl(
+//!             ::test_ur_code_xd::assertions::string::assert_str_contains_impl(
 //!                 $value,
 //!                 $substring
 //!             ),

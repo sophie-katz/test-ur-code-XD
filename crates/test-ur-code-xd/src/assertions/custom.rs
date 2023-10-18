@@ -89,7 +89,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "value is true")]
     fn assert_custom_failing() {
         assert_custom!("value is true", false, |panic_message_builder| {
             panic_message_builder.with_argument("value", "value", &true)
@@ -109,7 +109,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "value is true")]
     fn assert_failing_negated() {
         assert_custom!(
             "value is true",

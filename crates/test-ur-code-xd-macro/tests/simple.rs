@@ -39,7 +39,7 @@ fn example(x: i32, y: i32) {
     y = [1, 2]
 )]
 #[allow(clippy::arithmetic_side_effects)]
-#[should_panic(expected = "asdf")]
+#[should_panic(expected = "assertion failed: z < 0")]
 fn failure(x: i32, y: i32) {
     #[allow(clippy::arithmetic_side_effects)]
     let z = x + y;

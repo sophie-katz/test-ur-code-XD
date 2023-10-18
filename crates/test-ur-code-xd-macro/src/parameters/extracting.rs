@@ -453,7 +453,7 @@ mod tests {
 
         assert_eq!(inputs.len(), 1);
         assert_eq!(inputs[0].0, "a");
-        assert_eq!(inputs[0].1.to_token_stream().to_string(), "i32");
+        assert_eq!(inputs[0].1.to_token_stream().to_string(), "a : i32");
     }
 
     #[test]
@@ -472,9 +472,9 @@ mod tests {
 
         assert_eq!(inputs.len(), 2);
         assert_eq!(inputs[0].0, "a");
-        assert_eq!(inputs[0].1.to_token_stream().to_string(), "i32");
+        assert_eq!(inputs[0].1.to_token_stream().to_string(), "a : i32");
         assert_eq!(inputs[1].0, "b");
-        assert_eq!(inputs[1].1.to_token_stream().to_string(), "String");
+        assert_eq!(inputs[1].1.to_token_stream().to_string(), "b : String");
     }
 
     #[test]
@@ -504,7 +504,7 @@ mod tests {
         assert_eq!(inputs[1].as_ref().unwrap().0, "a");
         assert_eq!(
             inputs[1].as_ref().unwrap().1.to_token_stream().to_string(),
-            "i32"
+            "a : i32"
         );
     }
 

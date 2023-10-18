@@ -286,7 +286,7 @@ mod tests {
             "a".repeat(DIFF_MAX_GRAPHEME_LEN + 100),
         )]);
 
-        assert_eq!(formatted, "aaaaa ... aaaaa");
+        assert_eq!(formatted, "aaaaaaaa ... aaaaaaa");
     }
 
     #[test]
@@ -296,7 +296,7 @@ mod tests {
         let formatted =
             format_diff_text_line(&[diff::Result::Left("a".repeat(DIFF_MAX_GRAPHEME_LEN + 100))]);
 
-        assert_eq!(formatted, "aaaaa ... aaaaa");
+        assert_eq!(formatted, "aaaaaaaa ... aaaaaaa");
     }
 
     #[test]
@@ -306,7 +306,7 @@ mod tests {
         let formatted =
             format_diff_text_line(&[diff::Result::Right("a".repeat(DIFF_MAX_GRAPHEME_LEN + 100))]);
 
-        assert_eq!(formatted, "aaaaa ... aaaaa");
+        assert_eq!(formatted, "aaaaaaaa ... aaaaaaa");
     }
 
     #[test]
@@ -359,7 +359,7 @@ mod tests {
             "a".repeat(DIFF_MAX_GRAPHEME_LEN + 100),
         )]);
 
-        assert_eq!(formatted, "               ");
+        assert_eq!(formatted, "                    ");
     }
 
     #[test]
@@ -369,7 +369,7 @@ mod tests {
         let formatted =
             format_diff_marker_line(&[diff::Result::Left("a".repeat(DIFF_MAX_GRAPHEME_LEN + 100))]);
 
-        assert_eq!(formatted, "<<<<<<<<<<<<<<<");
+        assert_eq!(formatted, "<<<<<<<<<<<<<<<<<<<<");
     }
 
     #[test]
@@ -380,7 +380,7 @@ mod tests {
             "a".repeat(DIFF_MAX_GRAPHEME_LEN + 100),
         )]);
 
-        assert_eq!(formatted, ">>>>>>>>>>>>>>>");
+        assert_eq!(formatted, ">>>>>>>>>>>>>>>>>>>>");
     }
 
     #[test]

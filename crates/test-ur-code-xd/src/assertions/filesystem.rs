@@ -345,7 +345,7 @@ pub fn assert_path_starts_with_impl(path: impl AsRef<Path>, base: impl AsRef<Pat
 macro_rules! assert_path_starts_with {
     ($path:expr, $base:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
-            "path is starts with base",
+            "path starts with base",
             $crate::assertions::filesystem::assert_path_starts_with_impl(&$path, &$base),
             |panic_message_builder| {
                 panic_message_builder
@@ -396,7 +396,7 @@ pub fn assert_path_ends_with_impl(path: impl AsRef<Path>, child: impl AsRef<Path
 macro_rules! assert_path_ends_with {
     ($path:expr, $child:expr $(, $keys:ident = $values:expr)* $(,)?) => {
         $crate::assert_custom!(
-            "path is ends with child",
+            "path ends with child",
             $crate::assertions::filesystem::assert_path_ends_with_impl(&$path, &$child),
             |panic_message_builder| {
                 panic_message_builder
@@ -652,14 +652,14 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path exists")]
     fn assert_path_exists_failing_bad_name() {
         assert_path_exists!("a_file_that_does_not_exist");
     }
 
     #[test]
     #[allow(clippy::unwrap_used)]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path exists")]
     fn assert_path_exists_failing_bad_nest() {
         let temp_dir = tempdir().unwrap();
         env::set_current_dir(temp_dir.path()).unwrap();
@@ -690,7 +690,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path is file")]
     #[allow(clippy::unwrap_used)]
     fn assert_path_is_file_failing_symlink_to_dir() {
         let temp_dir = tempdir().unwrap();
@@ -702,7 +702,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path is file")]
     #[allow(clippy::unwrap_used)]
     fn assert_path_is_file_failing_directory() {
         let temp_dir = tempdir().unwrap();
@@ -711,13 +711,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path is file")]
     fn assert_path_is_file_failing_bad_name() {
         assert_path_is_file!("a_file_that_does_not_exist");
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path is file")]
     #[allow(clippy::unwrap_used)]
     fn assert_path_is_file_failing_bad_nest() {
         let temp_dir = tempdir().unwrap();
@@ -750,7 +750,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path is symlink")]
     #[allow(clippy::unwrap_used)]
     fn assert_path_is_symlink_failing_file() {
         let temp_dir = tempdir().unwrap();
@@ -761,7 +761,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path is symlink")]
     #[allow(clippy::unwrap_used)]
     fn assert_path_is_symlink_failing_directory() {
         let temp_dir = tempdir().unwrap();
@@ -770,13 +770,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path is symlink")]
     fn assert_path_is_symlink_failing_bad_name() {
         assert_path_is_symlink!("a_file_that_does_not_exist");
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path is symlink")]
     #[allow(clippy::unwrap_used)]
     fn assert_path_is_symlink_failing_bad_nest() {
         let temp_dir = tempdir().unwrap();
@@ -795,7 +795,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path is dir")]
     #[allow(clippy::unwrap_used)]
     fn assert_path_is_dir_failing_symlink_to_file() {
         let temp_dir = tempdir().unwrap();
@@ -818,7 +818,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path is dir")]
     #[allow(clippy::unwrap_used)]
     fn assert_path_is_dir_failing_file() {
         let temp_dir = tempdir().unwrap();
@@ -829,13 +829,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path is dir")]
     fn assert_path_is_dir_failing_bad_name() {
         assert_path_is_dir!("a_file_that_does_not_exist");
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path is dir")]
     #[allow(clippy::unwrap_used)]
     fn assert_path_is_dir_failing_bad_nest() {
         let temp_dir = tempdir().unwrap();
@@ -857,7 +857,7 @@ mod tests {
 
     #[cfg(target_family = "unix")]
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path is relative")]
     fn assert_path_is_relative_failing() {
         assert_path_is_relative!("/etc");
     }
@@ -871,7 +871,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path is absolute")]
     #[allow(clippy::unwrap_used)]
     fn assert_path_is_absolute_failing() {
         let temp_dir = tempdir().unwrap();
@@ -889,7 +889,7 @@ mod tests {
 
     #[cfg(target_family = "unix")]
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path is absolute")]
     #[allow(clippy::unwrap_used)]
     fn assert_path_is_absolute_failing_at_root() {
         env::set_current_dir("/").unwrap();
@@ -941,7 +941,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path starts with base")]
     #[allow(clippy::unwrap_used)]
     fn assert_path_starts_with_failing_flat() {
         let temp_dir = tempdir().unwrap();
@@ -953,7 +953,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path starts with base")]
     #[allow(clippy::unwrap_used)]
     fn assert_path_starts_with_failing_nested() {
         let temp_dir = tempdir().unwrap();
@@ -965,7 +965,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path starts with base")]
     #[allow(clippy::unwrap_used)]
     fn assert_path_starts_with_failing_full() {
         let temp_dir = tempdir().unwrap();
@@ -977,7 +977,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path starts with base")]
     #[allow(clippy::unwrap_used)]
     fn assert_path_starts_with_failing_wrong_prefix() {
         let temp_dir = tempdir().unwrap();
@@ -1033,7 +1033,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path ends with child")]
     #[allow(clippy::unwrap_used)]
     fn assert_path_ends_with_failing_flat() {
         let temp_dir = tempdir().unwrap();
@@ -1045,7 +1045,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path ends with child")]
     #[allow(clippy::unwrap_used)]
     fn assert_path_ends_with_failing_nested() {
         let temp_dir = tempdir().unwrap();
@@ -1057,7 +1057,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path ends with child")]
     #[allow(clippy::unwrap_used)]
     fn assert_path_ends_with_failing_full() {
         let temp_dir = tempdir().unwrap();
@@ -1069,7 +1069,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path ends with child")]
     #[allow(clippy::unwrap_used)]
     fn assert_path_ends_with_failing_wrong_suffix() {
         let temp_dir = tempdir().unwrap();
@@ -1098,7 +1098,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs")]
     #[allow(clippy::unwrap_used)]
     fn assert_file_text_failing_assertion() {
         let temp_dir = tempdir().unwrap();
@@ -1116,7 +1116,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path is file")]
     #[allow(clippy::unwrap_used)]
     fn assert_file_text_failing_bad_path() {
         let temp_dir = tempdir().unwrap();
@@ -1151,7 +1151,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs")]
     #[allow(clippy::unwrap_used)]
     fn assert_file_text_raw_failing_assertion() {
         let temp_dir = tempdir().unwrap();
@@ -1169,7 +1169,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "path is file")]
     #[allow(clippy::unwrap_used)]
     fn assert_file_text_raw_failing_bad_path() {
         let temp_dir = tempdir().unwrap();

@@ -67,6 +67,5 @@ There are a number of crate features you can enable or disable.
 | `panic`          | Enables panic assertions                                               | Yes           |
 | `regex`          | Enables the use of the [`regex`](https://crates.io/crates/regex) crate | Yes           |
 | `string-diff`    | Enables the use of string diffing assertions (`assert_str_eq!(...)`)   | Yes           |
-| `faster-asserts` | Disables a bit of functionality to make asserts ~50% faster            | No            |
 
 See test ur code XD's [`Cargo.toml`](https://github.com/sophie-katz/test-ur-code-XD/blob/main/crates/test-ur-code-xd/Cargo.toml) to see what dependencies are used for each feature.

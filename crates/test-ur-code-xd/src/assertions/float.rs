@@ -190,7 +190,7 @@ fn is_float_eq_ulps_f64(lhs: f64, rhs: f64, absolute_tolerance: f64, ulps_tolera
 #[doc(hidden)]
 pub fn format_float_predicate_description_ulps<
     UlpsType: Display + PartialEq<i32>,
-    FloatType: Debug,
+    FloatType: Debug + Float,
 >(
     operator: &str,
     ulps_tolerance: &UlpsType,
@@ -198,12 +198,16 @@ pub fn format_float_predicate_description_ulps<
     epsilon_near_zero: FloatType,
 ) -> String {
     format!(
-        "lhs {} rhs (within {} {}-bit float ulp{} or {:?} near zero)",
+        "lhs {} rhs (within {} {}-bit float ulp{}{})",
         operator,
         ulps_tolerance,
         bit_width,
         if *ulps_tolerance == 1 { "" } else { "s" },
-        epsilon_near_zero
+        if epsilon_near_zero.is_zero() {
+            String::new()
+        } else {
+            format!(" or {epsilon_near_zero:?} near zero")
+        }
     )
 }
 
@@ -215,13 +219,20 @@ pub fn format_float_predicate_description_ulps<
 /// * `relative_epsilon` - The relative epsilon tolerance
 /// * `epsilon_near_zero` - The epsilon to use when comparing values near zero
 #[doc(hidden)]
-pub fn format_float_predicate_description_relative<FloatType: Debug>(
+pub fn format_float_predicate_description_relative<FloatType: Debug + Float>(
     operator: &str,
     relative_epsilon: FloatType,
     epsilon_near_zero: FloatType,
 ) -> String {
     format!(
-        "lhs {operator} rhs (within {relative_epsilon:?} relative to magnitude or {epsilon_near_zero:?} near zero)"
+        "lhs {} rhs (within {:?} relative to magnitude{})",
+        operator,
+        relative_epsilon,
+        if epsilon_near_zero.is_zero() {
+            String::new()
+        } else {
+            format!(" or {epsilon_near_zero:?} near zero")
+        }
     )
 }
 
@@ -1420,7 +1431,7 @@ mod tests {
     fn format_float_predicate_description_ulps_simple() {
         assert_eq!(
             format_float_predicate_description_ulps("==", &0, 32, 0.0),
-            "lhs == rhs (within 0 32-bit float ulps or 0.0 near zero)"
+            "lhs == rhs (within 0 32-bit float ulps)"
         );
     }
 
@@ -1428,7 +1439,7 @@ mod tests {
     fn format_float_predicate_description_ulps_operator() {
         assert_eq!(
             format_float_predicate_description_ulps("!=", &0, 32, 0.0),
-            "lhs != rhs (within 0 32-bit float ulps or 0.0 near zero)"
+            "lhs != rhs (within 0 32-bit float ulps)"
         );
     }
 
@@ -1436,7 +1447,7 @@ mod tests {
     fn format_float_predicate_description_ulps_ulps_tolerance_1() {
         assert_eq!(
             format_float_predicate_description_ulps("==", &1, 32, 0.0),
-            "lhs == rhs (within 1 32-bit float ulp or 0.0 near zero)"
+            "lhs == rhs (within 1 32-bit float ulp)"
         );
     }
 
@@ -1444,7 +1455,7 @@ mod tests {
     fn format_float_predicate_description_ulps_ulps_tolerance_2() {
         assert_eq!(
             format_float_predicate_description_ulps("==", &2, 32, 0.0),
-            "lhs == rhs (within 2 32-bit float ulps or 0.0 near zero)"
+            "lhs == rhs (within 2 32-bit float ulps)"
         );
     }
 
@@ -1452,7 +1463,7 @@ mod tests {
     fn format_float_predicate_description_ulps_bit_width() {
         assert_eq!(
             format_float_predicate_description_ulps("==", &0, 64, 0.0),
-            "lhs == rhs (within 0 64-bit float ulps or 0.0 near zero)"
+            "lhs == rhs (within 0 64-bit float ulps)"
         );
     }
 
@@ -1476,7 +1487,7 @@ mod tests {
     fn format_float_predicate_description_relative_simple() {
         assert_eq!(
             format_float_predicate_description_relative("==", 0.0, 0.0),
-            "lhs == rhs (within 0.0 relative to magnitude or 0.0 near zero)"
+            "lhs == rhs (within 0.0 relative to magnitude)"
         );
     }
 
@@ -1484,7 +1495,7 @@ mod tests {
     fn format_float_predicate_description_relative_operator() {
         assert_eq!(
             format_float_predicate_description_relative("!=", 0.0, 0.0),
-            "lhs != rhs (within 0.0 relative to magnitude or 0.0 near zero)"
+            "lhs != rhs (within 0.0 relative to magnitude)"
         );
     }
 
@@ -1492,7 +1503,7 @@ mod tests {
     fn format_float_predicate_description_relative_relative_epsilon_e_neg_30() {
         assert_eq!(
             format_float_predicate_description_relative("==", 1e-30, 0.0),
-            "lhs == rhs (within 1e-30 relative to magnitude or 0.0 near zero)"
+            "lhs == rhs (within 1e-30 relative to magnitude)"
         );
     }
 
@@ -1500,7 +1511,7 @@ mod tests {
     fn format_float_predicate_description_relative_relative_epsilon_1() {
         assert_eq!(
             format_float_predicate_description_relative("==", 1.0, 0.0),
-            "lhs == rhs (within 1.0 relative to magnitude or 0.0 near zero)"
+            "lhs == rhs (within 1.0 relative to magnitude)"
         );
     }
 
@@ -1531,7 +1542,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 1 32-bit float ulp)")]
     fn assert_f32_eq_failing_ulps_1_ulps() {
         assert_f32_eq!(1.0, 1.000_000_2, ulps = 1, epsilon_near_zero = 0.0);
     }
@@ -1542,7 +1553,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 2 32-bit float ulps)")]
     fn assert_f32_eq_failing_ulps_2_ulps() {
         assert_f32_eq!(1.0, 1.000_000_3, ulps = 2, epsilon_near_zero = 0.0);
     }
@@ -1553,7 +1564,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_exact() {
         assert_f32_eq!(
             1.0,
@@ -1579,7 +1590,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.5 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_1_ulp_above_epsilon() {
         assert_f32_eq!(
             0.5,
@@ -1610,7 +1621,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 1 32-bit float ulp)")]
     fn assert_f32_eq_failing_ulps_1_ulps_large() {
         assert_f32_eq!(
             1_000_000_000.0,
@@ -1631,7 +1642,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 2 32-bit float ulps)")]
     fn assert_f32_eq_failing_ulps_2_ulps_large() {
         assert_f32_eq!(
             1_000_000_000.0,
@@ -1652,7 +1663,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_exact_large() {
         assert_f32_eq!(
             1_000_000_000.0,
@@ -1683,7 +1694,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.5 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_1_ulp_above_epsilon_large() {
         assert_f32_eq!(
             500_000_000.0,
@@ -1704,7 +1715,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 1 32-bit float ulp)")]
     fn assert_f32_eq_failing_ulps_1_ulps_near_zero() {
         assert_f32_eq!(0.0, 3e-45, ulps = 1, epsilon_near_zero = 0.0);
     }
@@ -1715,7 +1726,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 2 32-bit float ulps)")]
     fn assert_f32_eq_failing_ulps_2_ulps_near_zero() {
         assert_f32_eq!(0.0, 4e-45, ulps = 2, epsilon_near_zero = 0.0);
     }
@@ -1726,7 +1737,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_exact_near_zero() {
         assert_f32_eq!(0.0, 1e-45, relative_epsilon = 0.0, epsilon_near_zero = 0.0);
     }
@@ -1742,7 +1753,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.5 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_1_ulp_above_epsilon_near_zero() {
         assert_f32_eq!(0.0, 1e-45, relative_epsilon = 0.5, epsilon_near_zero = 0.0);
     }
@@ -1758,7 +1769,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 32-bit float ulps or 1e-45 near zero)")]
     fn assert_f32_eq_failing_ulps_0_ulps_absolute_epsilon_1_ulp_above() {
         assert_f32_eq!(0.0, 3e-45, ulps = 0, epsilon_near_zero = 1e-45);
     }
@@ -1779,7 +1790,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 1 32-bit float ulp)")]
     fn assert_f32_eq_failing_ulps_1_ulps_negative() {
         assert_f32_eq!(-1.0, -1.000_000_2, ulps = 1, epsilon_near_zero = 0.0);
     }
@@ -1790,7 +1801,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 2 32-bit float ulps)")]
     fn assert_f32_eq_failing_ulps_2_ulps_negative() {
         assert_f32_eq!(-1.0, -1.000_000_3, ulps = 2, epsilon_near_zero = 0.0);
     }
@@ -1801,7 +1812,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_exact_negative() {
         assert_f32_eq!(
             -1.0,
@@ -1827,7 +1838,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.5 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_1_ulp_above_epsilon_negative() {
         assert_f32_eq!(
             -0.5,
@@ -1858,7 +1869,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 1 32-bit float ulp)")]
     fn assert_f32_eq_failing_ulps_1_ulps_large_negative() {
         assert_f32_eq!(
             -1_000_000_000.0,
@@ -1879,7 +1890,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 2 32-bit float ulps)")]
     fn assert_f32_eq_failing_ulps_2_ulps_large_negative() {
         assert_f32_eq!(
             -1_000_000_000.0,
@@ -1900,7 +1911,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_exact_large_negative() {
         assert_f32_eq!(
             -1_000_000_000.0,
@@ -1931,7 +1942,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.5 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_1_ulp_above_epsilon_large_negative() {
         assert_f32_eq!(
             -500_000_000.0,
@@ -1947,13 +1958,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 1 32-bit float ulp)")]
     fn assert_f32_eq_failing_ulps_1_ulps_near_zero_negative() {
         assert_f32_eq!(0.0, -1e-45, ulps = 1, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 2 32-bit float ulps)")]
     fn assert_f32_eq_failing_ulps_2_ulps_near_zero_negative() {
         assert_f32_eq!(0.0, -3e-45, ulps = 2, epsilon_near_zero = 0.0);
     }
@@ -1964,7 +1975,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_exact_near_zero_negative() {
         assert_f32_eq!(0.0, -1e-45, relative_epsilon = 0.0, epsilon_near_zero = 0.0);
     }
@@ -1980,7 +1991,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.5 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_1_ulp_above_epsilon_near_zero_negative() {
         assert_f32_eq!(0.0, -1e-45, relative_epsilon = 0.5, epsilon_near_zero = 0.0);
     }
@@ -1996,7 +2007,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 32-bit float ulps or 1e-45 near zero)")]
     fn assert_f32_eq_failing_ulps_0_ulps_absolute_epsilon_1_ulp_above_negative() {
         assert_f32_eq!(0.0, -3e-45, ulps = 0, epsilon_near_zero = 1e-45);
     }
@@ -2022,7 +2033,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 1 64-bit float ulp)")]
     fn assert_f64_eq_failing_ulps_1_ulps() {
         assert_f64_eq!(
             1.0,
@@ -2043,7 +2054,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 2 64-bit float ulps)")]
     fn assert_f64_eq_failing_ulps_2_ulps() {
         assert_f64_eq!(
             1.0,
@@ -2059,7 +2070,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_exact() {
         assert_f64_eq!(
             1.0,
@@ -2085,7 +2096,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.5 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_1_ulp_above_epsilon() {
         assert_f64_eq!(
             0.5,
@@ -2116,7 +2127,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 1 64-bit float ulp)")]
     fn assert_f64_eq_failing_ulps_1_ulps_large() {
         assert_f64_eq!(
             1_000_000_000.0,
@@ -2137,7 +2148,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 2 64-bit float ulps)")]
     fn assert_f64_eq_failing_ulps_2_ulps_large() {
         assert_f64_eq!(
             1_000_000_000.0,
@@ -2158,7 +2169,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_exact_large() {
         assert_f64_eq!(
             1_000_000_000.0,
@@ -2189,7 +2200,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.5 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_1_ulp_above_epsilon_large() {
         assert_f64_eq!(
             500_000_000.0,
@@ -2210,7 +2221,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 1 64-bit float ulp)")]
     fn assert_f64_eq_failing_ulps_1_ulps_near_zero() {
         assert_f64_eq!(0.0, 1e-323, ulps = 1, epsilon_near_zero = 0.0);
     }
@@ -2221,7 +2232,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 2 64-bit float ulps)")]
     fn assert_f64_eq_failing_ulps_2_ulps_near_zero() {
         assert_f64_eq!(0.0, 1.5e-323, ulps = 2, epsilon_near_zero = 0.0);
     }
@@ -2232,7 +2243,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_exact_near_zero() {
         assert_f64_eq!(0.0, 5e-324, relative_epsilon = 0.0, epsilon_near_zero = 0.0);
     }
@@ -2248,7 +2259,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.5 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_1_ulp_above_epsilon_near_zero() {
         assert_f64_eq!(0.0, 5e-324, relative_epsilon = 0.5, epsilon_near_zero = 0.0);
     }
@@ -2264,7 +2275,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 64-bit float ulps or 5e-324 near zero)")]
     fn assert_f64_eq_failing_ulps_0_ulps_absolute_epsilon_1_ulp_above() {
         assert_f64_eq!(0.0, 1e-323, ulps = 0, epsilon_near_zero = 5e-324);
     }
@@ -2290,7 +2301,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 1 64-bit float ulp)")]
     fn assert_f64_eq_failing_ulps_1_ulps_negative() {
         assert_f64_eq!(
             -1.0,
@@ -2311,7 +2322,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 2 64-bit float ulps)")]
     fn assert_f64_eq_failing_ulps_2_ulps_negative() {
         assert_f64_eq!(
             -1.0,
@@ -2327,7 +2338,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_exact_negative() {
         assert_f64_eq!(
             -1.0,
@@ -2353,7 +2364,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.5 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_1_ulp_above_epsilon_negative() {
         assert_f64_eq!(
             -0.5,
@@ -2384,7 +2395,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 1 64-bit float ulp)")]
     fn assert_f64_eq_failing_ulps_1_ulps_large_negative() {
         assert_f64_eq!(
             -1_000_000_000.0,
@@ -2405,7 +2416,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 2 64-bit float ulps)")]
     fn assert_f64_eq_failing_ulps_2_ulps_large_negative() {
         assert_f64_eq!(
             -1_000_000_000.0,
@@ -2426,7 +2437,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_exact_large_negative() {
         assert_f64_eq!(
             -1_000_000_000.0,
@@ -2457,7 +2468,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.5 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_1_ulp_above_epsilon_large_negative() {
         assert_f64_eq!(
             -500_000_000.0,
@@ -2473,13 +2484,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 1 64-bit float ulp)")]
     fn assert_f64_eq_failing_ulps_1_ulps_near_zero_negative() {
         assert_f64_eq!(0.0, -5e-324, ulps = 1, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 2 64-bit float ulps)")]
     fn assert_f64_eq_failing_ulps_2_ulps_near_zero_negative() {
         assert_f64_eq!(0.0, -1e-323, ulps = 2, epsilon_near_zero = 0.0);
     }
@@ -2490,7 +2501,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_exact_near_zero_negative() {
         assert_f64_eq!(
             0.0,
@@ -2521,7 +2532,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.5 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_1_ulp_above_epsilon_near_zero_negative() {
         assert_f64_eq!(
             0.0,
@@ -2542,7 +2553,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 64-bit float ulps or 5e-324 near zero)")]
     fn assert_f64_eq_failing_ulps_0_ulps_absolute_epsilon_1_ulp_above_negative() {
         assert_f64_eq!(0.0, -1e-323, ulps = 0, epsilon_near_zero = 5e-324);
     }
@@ -2558,7 +2569,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 32-bit float ulps)")]
     fn assert_f32_eq_failing_simple() {
         assert_f32_eq!(0.0, 1.0, ulps = 0, epsilon_near_zero = 0.0);
     }
@@ -2569,7 +2580,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs != rhs (within 0 32-bit float ulps)")]
     fn assert_f32_ne_failing_simple() {
         assert_f32_ne!(0.0, 0.0, ulps = 0, epsilon_near_zero = 0.0);
     }
@@ -2585,7 +2596,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs <= rhs (within 0 32-bit float ulps)")]
     fn assert_f32_le_failing_simple() {
         assert_f32_le!(1.0, 0.0, ulps = 0, epsilon_near_zero = 0.0);
     }
@@ -2601,7 +2612,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs >= rhs (within 0 32-bit float ulps)")]
     fn assert_f32_ge_failing_simple() {
         assert_f32_ge!(0.0, 1.0, ulps = 0, epsilon_near_zero = 0.0);
     }
@@ -2612,7 +2623,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 32-bit float ulps)")]
     fn assert_f32_eq_failing_simple_negate() {
         assert_f32_eq!(0.0, 0.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
@@ -2623,19 +2634,19 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs != rhs (within 0 32-bit float ulps)")]
     fn assert_f32_ne_failing_simple_negate() {
         assert_f32_ne!(0.0, 1.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs <= rhs (within 0 32-bit float ulps)")]
     fn assert_f32_le_failing_simple_lt_negate() {
         assert_f32_le!(0.0, 1.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs <= rhs (within 0 32-bit float ulps)")]
     fn assert_f32_le_failing_simple_eq_negate() {
         assert_f32_le!(0.0, 0.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
@@ -2646,13 +2657,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs >= rhs (within 0 32-bit float ulps)")]
     fn assert_f32_ge_failing_simple_gt_negate() {
         assert_f32_ge!(1.0, 0.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs >= rhs (within 0 32-bit float ulps)")]
     fn assert_f32_ge_failing_simple_eq_negate() {
         assert_f32_ge!(0.0, 0.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
@@ -2668,7 +2679,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 64-bit float ulps)")]
     fn assert_f64_eq_failing_simple() {
         assert_f64_eq!(0.0, 1.0, ulps = 0, epsilon_near_zero = 0.0);
     }
@@ -2679,7 +2690,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs != rhs (within 0 64-bit float ulps)")]
     fn assert_f64_ne_failing_simple() {
         assert_f64_ne!(0.0, 0.0, ulps = 0, epsilon_near_zero = 0.0);
     }
@@ -2695,7 +2706,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs <= rhs (within 0 64-bit float ulps)")]
     fn assert_f64_le_failing_simple() {
         assert_f64_le!(1.0, 0.0, ulps = 0, epsilon_near_zero = 0.0);
     }
@@ -2711,7 +2722,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs >= rhs (within 0 64-bit float ulps)")]
     fn assert_f64_ge_failing_simple() {
         assert_f64_ge!(0.0, 1.0, ulps = 0, epsilon_near_zero = 0.0);
     }
@@ -2722,7 +2733,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 64-bit float ulps)")]
     fn assert_f64_eq_failing_simple_negate() {
         assert_f64_eq!(0.0, 0.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
@@ -2733,19 +2744,19 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs != rhs (within 0 64-bit float ulps)")]
     fn assert_f64_ne_failing_simple_negate() {
         assert_f64_ne!(0.0, 1.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs <= rhs (within 0 64-bit float ulps)")]
     fn assert_f64_le_failing_simple_lt_negate() {
         assert_f64_le!(0.0, 1.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs <= rhs (within 0 64-bit float ulps)")]
     fn assert_f64_le_failing_simple_eq_negate() {
         assert_f64_le!(0.0, 0.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
@@ -2756,13 +2767,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs >= rhs (within 0 64-bit float ulps)")]
     fn assert_f64_ge_failing_simple_gt_negate() {
         assert_f64_ge!(1.0, 0.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs >= rhs (within 0 64-bit float ulps)")]
     fn assert_f64_ge_failing_simple_eq_negate() {
         assert_f64_ge!(0.0, 0.0, ulps = 0, epsilon_near_zero = 0.0, negate = true);
     }
@@ -2793,7 +2804,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 32-bit float ulps)")]
     fn assert_f32_eq_failing_ulps_infinity_neg_infinity() {
         assert_f32_eq!(
             f32::INFINITY,
@@ -2804,7 +2815,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_infinity_neg_infinity() {
         assert_f32_eq!(
             f32::INFINITY,
@@ -2815,13 +2826,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 32-bit float ulps)")]
     fn assert_f32_eq_failing_ulps_infinity_nan() {
         assert_f32_eq!(f32::INFINITY, f32::NAN, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_infinity_nan() {
         assert_f32_eq!(
             f32::INFINITY,
@@ -2832,13 +2843,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 32-bit float ulps)")]
     fn assert_f32_eq_failing_ulps_infinity_five() {
         assert_f32_eq!(f32::INFINITY, 5.0, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_infinity_five() {
         assert_f32_eq!(
             f32::INFINITY,
@@ -2849,7 +2860,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 32-bit float ulps)")]
     fn assert_f32_eq_failing_ulps_neg_infinity_infinity() {
         assert_f32_eq!(
             -f32::INFINITY,
@@ -2860,7 +2871,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_neg_infinity_infinity() {
         assert_f32_eq!(
             -f32::INFINITY,
@@ -2891,13 +2902,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 32-bit float ulps)")]
     fn assert_f32_eq_failing_ulps_neg_infinity_nan() {
         assert_f32_eq!(-f32::INFINITY, f32::NAN, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_neg_infinity_nan() {
         assert_f32_eq!(
             -f32::INFINITY,
@@ -2908,13 +2919,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 32-bit float ulps)")]
     fn assert_f32_eq_failing_ulps_neg_infinity_five() {
         assert_f32_eq!(-f32::INFINITY, 5.0, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_neg_infinity_five() {
         assert_f32_eq!(
             -f32::INFINITY,
@@ -2925,7 +2936,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 32-bit float ulps)")]
     fn assert_f32_eq_failing_ulps_nan_infinity() {
         assert_f32_eq!(
             -f32::INFINITY,
@@ -2936,7 +2947,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_nan_infinity() {
         assert_f32_eq!(
             f32::NAN,
@@ -2947,13 +2958,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 32-bit float ulps)")]
     fn assert_f32_eq_failing_ulps_nan_neg_infinity() {
         assert_f32_eq!(f32::NAN, -f32::INFINITY, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_nan_neg_infinity() {
         assert_f32_eq!(
             f32::NAN,
@@ -2979,13 +2990,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 32-bit float ulps)")]
     fn assert_f32_eq_failing_ulps_nan_five() {
         assert_f32_eq!(f32::NAN, 5.0, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f32_eq_failing_relative_nan_five() {
         assert_f32_eq!(
             f32::NAN,
@@ -3016,7 +3027,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 64-bit float ulps)")]
     fn assert_f64_eq_failing_ulps_infinity_neg_infinity() {
         assert_f64_eq!(
             f64::INFINITY,
@@ -3027,7 +3038,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_infinity_neg_infinity() {
         assert_f64_eq!(
             f64::INFINITY,
@@ -3038,13 +3049,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 64-bit float ulps)")]
     fn assert_f64_eq_failing_ulps_infinity_nan() {
         assert_f64_eq!(f64::INFINITY, f64::NAN, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_infinity_nan() {
         assert_f64_eq!(
             f64::INFINITY,
@@ -3055,13 +3066,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 64-bit float ulps)")]
     fn assert_f64_eq_failing_ulps_infinity_five() {
         assert_f64_eq!(f64::INFINITY, 5.0, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_infinity_five() {
         assert_f64_eq!(
             f64::INFINITY,
@@ -3072,7 +3083,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 64-bit float ulps)")]
     fn assert_f64_eq_failing_ulps_neg_infinity_infinity() {
         assert_f64_eq!(
             -f64::INFINITY,
@@ -3083,7 +3094,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_neg_infinity_infinity() {
         assert_f64_eq!(
             -f64::INFINITY,
@@ -3114,13 +3125,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 64-bit float ulps)")]
     fn assert_f64_eq_failing_ulps_neg_infinity_nan() {
         assert_f64_eq!(-f64::INFINITY, f64::NAN, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_neg_infinity_nan() {
         assert_f64_eq!(
             -f64::INFINITY,
@@ -3131,13 +3142,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 64-bit float ulps)")]
     fn assert_f64_eq_failing_ulps_neg_infinity_five() {
         assert_f64_eq!(-f64::INFINITY, 5.0, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_neg_infinity_five() {
         assert_f64_eq!(
             -f64::INFINITY,
@@ -3148,7 +3159,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 64-bit float ulps)")]
     fn assert_f64_eq_failing_ulps_nan_infinity() {
         assert_f64_eq!(
             -f64::INFINITY,
@@ -3159,7 +3170,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_nan_infinity() {
         assert_f64_eq!(
             f64::NAN,
@@ -3170,13 +3181,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 64-bit float ulps)")]
     fn assert_f64_eq_failing_ulps_nan_neg_infinity() {
         assert_f64_eq!(f64::NAN, -f64::INFINITY, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_nan_neg_infinity() {
         assert_f64_eq!(
             f64::NAN,
@@ -3202,13 +3213,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0 64-bit float ulps)")]
     fn assert_f64_eq_failing_ulps_nan_five() {
         assert_f64_eq!(f64::NAN, 5.0, ulps = 0, epsilon_near_zero = 0.0);
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs (within 0.0 relative to magnitude)")]
     fn assert_f64_eq_failing_relative_nan_five() {
         assert_f64_eq!(
             f64::NAN,

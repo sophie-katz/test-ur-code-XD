@@ -25,16 +25,17 @@ pub enum TestUrCodeXDError {
     ///
     /// # Example
     ///
-    /// ```
-    /// // Either two of the same call
+    /// ```should_panic
+    /// # use std::panic::Location;
+    /// # use test_ur_code_xd::utilities::panic_message_builder::PanicMessageBuilder;
+    /// #
+    /// # fn main() -> Result<(), test_ur_code_xd::errors::TestUrCodeXDError> {
     /// PanicMessageBuilder::new("panic", Location::caller())
-    ///     .with_description("some description")
-    ///     .with_description("some other description");
-    ///
-    /// // Or two different calls
-    /// PanicMessageBuilder::new("panic", Location::caller())
-    ///     .with_description("some description")
-    ///     .with_description_owned("some other description".to_owned());
+    ///     .with_description("some description")?
+    ///     .with_description("some other description")?;
+    /// #
+    /// #    Ok(())
+    /// # }
     /// ```
     #[error("cannot add multiple descriptions to a panic message")]
     PanicMessageMultipleDescriptions,

@@ -262,7 +262,6 @@ impl PanicMessageBuilder {
 
     /// Formats a value description
     fn format_value_description(value_description: impl Display) -> String {
-        // truncate::truncate_end(format!("{value_description}"), VALUE_DESCRIPTION_CONTEXT)
         format!("{value_description}").to_truncated(
             VALUE_DESCRIPTION_SEPARATOR,
             TruncationMode::End,

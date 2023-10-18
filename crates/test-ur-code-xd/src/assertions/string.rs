@@ -264,42 +264,42 @@ mod tests {
 
     #[cfg(feature = "string-diff")]
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs")]
     fn assert_str_eq_failing_empty_some() {
         assert_str_eq!("", "asdf");
     }
 
     #[cfg(feature = "string-diff")]
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs")]
     fn assert_str_eq_failing_some_empty() {
         assert_str_eq!("asdf", "");
     }
 
     #[cfg(feature = "string-diff")]
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs")]
     fn assert_str_eq_failing_totally_different() {
         assert_str_eq!("hello, world", "asdf");
     }
 
     #[cfg(feature = "string-diff")]
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs")]
     fn assert_str_eq_failing_slightly_different() {
         assert_str_eq!("hello, world", "hello! world");
     }
 
     #[cfg(feature = "string-diff")]
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs")]
     fn assert_str_eq_failing_long() {
         assert_str_eq!("a".repeat(100), "b".repeat(100));
     }
 
     #[cfg(feature = "string-diff")]
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs")]
     fn assert_str_eq_failing_multiline() {
         assert_str_eq!("asdf\nasdf", "asdf\nfdsa");
     }
@@ -320,13 +320,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "value contains substring")]
     fn assert_str_contains_failing() {
         assert_str_contains!("hello, world", "asdf");
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "value contains substring")]
     fn assert_str_contains_failing_empty() {
         assert_str_contains!("", "asdf");
     }
@@ -347,13 +347,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "value starts with prefix")]
     fn assert_str_starts_with_failing() {
         assert_str_starts_with!("hello, world", "world");
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "value starts with prefix")]
     fn assert_str_starts_with_failing_empty() {
         assert_str_starts_with!("", "hello");
     }
@@ -374,13 +374,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "value ends with suffix")]
     fn assert_str_ends_with_failing() {
         assert_str_ends_with!("hello, world", "hello");
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "value ends with suffix")]
     fn assert_str_ends_with_failing_empty() {
         assert_str_ends_with!("", "hello");
     }
@@ -393,21 +393,21 @@ mod tests {
 
     #[cfg(feature = "regex")]
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "value matches pattern")]
     fn assert_str_matches_failing_partial() {
         assert_str_matches!("hello, world", "[A-Z]+");
     }
 
     #[cfg(feature = "regex")]
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "value matches pattern")]
     fn assert_str_matches_failing_whole() {
         assert_str_matches!("hello, world", "^[a-z]+$");
     }
 
     #[cfg(feature = "regex")]
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "error while parsing regex")]
     fn assert_str_matches_failing_bad_regex() {
         assert_str_matches!("hello, world", "[a-z, ");
     }

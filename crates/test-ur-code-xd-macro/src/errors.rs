@@ -34,8 +34,10 @@ pub enum TestUrCodeXDMacroError {
     ///
     /// # Example
     ///
-    /// ```
-    /// #[test_ur_code_xd::test_with_parameters(
+    /// ```compile_fail
+    /// # use test_ur_code_xd_macro as test_ur_code_xd;
+    /// #
+    /// #[test_ur_code_xd::test_with_parameter_values(
     ///     x = [1, 2]
     /// )]
     /// fn example(y: i32) {
@@ -50,8 +52,10 @@ pub enum TestUrCodeXDMacroError {
     ///
     /// # Example
     ///
-    /// ```
-    /// #[test_ur_code_xd::test_with_parameters(
+    /// ```compile_fail
+    /// # use test_ur_code_xd_macro as test_ur_code_xd;
+    /// #
+    /// #[test_ur_code_xd::test_with_parameter_values(
     ///     (x, y) = [1, 2]
     /// )]
     /// fn example(x: i32, y: i32) {
@@ -65,8 +69,10 @@ pub enum TestUrCodeXDMacroError {
     ///
     /// # Example
     ///
-    /// ```
-    /// #[test_ur_code_xd::test_with_parameters(
+    /// ```compile_fail
+    /// # use test_ur_code_xd_macro as test_ur_code_xd;
+    /// #
+    /// #[test_ur_code_xd::test_with_parameter_values(
     ///     (x, y) = [1, 2]
     /// )]
     /// fn example(x: i32, y: i32) {
@@ -80,8 +86,10 @@ pub enum TestUrCodeXDMacroError {
     ///
     /// # Example
     ///
-    /// ```
-    /// #[test_ur_code_xd::test_with_parameters(
+    /// ```compile_fail
+    /// # use test_ur_code_xd_macro as test_ur_code_xd;
+    /// #
+    /// #[test_ur_code_xd::test_with_parameter_values(
     ///     x = [1, 2]
     /// )]
     /// fn example((x, _): (i32, i32)) {

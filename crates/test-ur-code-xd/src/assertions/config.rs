@@ -86,7 +86,6 @@ pub struct Config {
     /// #     true
     /// # }
     /// #
-    /// # #[cfg(not(feature = "faster-asserts"))]
     /// assert!(
     ///     some_function(),
     ///     description = "...",
@@ -139,7 +138,6 @@ pub struct Config {
     ///                                          // fails
     /// );
     /// ```
-    #[cfg(not(feature = "faster-asserts"))]
     pub description_owned: String,
 }
 
@@ -232,7 +230,6 @@ impl Config {
         let panic_message_builder = PanicMessageBuilder::new(predicate_description, location)
             .with_description(self.description)?;
 
-        #[cfg(not(feature = "faster-asserts"))]
         let panic_message_builder =
             panic_message_builder.with_description(self.description_owned)?;
 
@@ -268,7 +265,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "value is true")]
     fn using_struct_does_panic() {
         Config {
             ..Config::default()
@@ -286,7 +283,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "value is true")]
     fn using_struct_does_panic_negated() {
         Config {
             negate: true,
@@ -296,7 +293,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "predicate description")]
     fn panic_message_no_description() {
         Config {
             ..Config::default()

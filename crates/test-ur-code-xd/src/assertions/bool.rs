@@ -105,7 +105,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "value is true")]
     fn assert_failing() {
         assert!(false);
     }
@@ -116,7 +116,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "value is true")]
     fn assert_failing_negate() {
         assert!(true, negate = true);
     }
@@ -127,7 +127,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "value is false")]
     fn assert_not_failing() {
         assert_not!(true);
     }
@@ -138,7 +138,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "value is false")]
     fn assert_not_failing_negate() {
         assert_not!(false, negate = true);
     }

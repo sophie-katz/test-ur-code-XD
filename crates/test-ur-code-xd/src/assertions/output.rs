@@ -296,7 +296,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs")]
     fn assert_outputs_failing_stdout_assertion() {
         println!("this is NOT captured");
         eprintln!("this is NOT captured");
@@ -316,7 +316,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs")]
     fn assert_outputs_failing_stderr_assertion() {
         println!("this is NOT captured");
         eprintln!("this is NOT captured");
@@ -455,7 +455,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs")]
     fn assert_outputs_raw_failing_stdout_assertion() {
         println!("this is NOT captured");
         eprintln!("this is NOT captured");
@@ -475,7 +475,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "lhs == rhs")]
     fn assert_outputs_raw_failing_stderr_assertion() {
         println!("this is NOT captured");
         eprintln!("this is NOT captured");

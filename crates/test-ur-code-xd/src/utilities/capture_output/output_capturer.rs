@@ -210,7 +210,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "called `Result::unwrap()` on an `Err` value: StopCalledBeforeStart")]
     fn capture_stop_without_start() {
         let mut output_capturer = OutputCapturer::default();
 
@@ -257,7 +257,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "explicit panic")]
+    #[should_panic(expected = "called `Result::unwrap()` on an `Err` value: StopCalledBeforeStart")]
     fn capture_stop_without_start_raw() {
         let mut output_capturer = OutputCapturer::default();
 
