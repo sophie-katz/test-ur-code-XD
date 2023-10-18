@@ -1,0 +1,7 @@
+error: no parameters provided
+  --> tests/test_with_parameter_values_compile_failures/no_args_no_parens.rs:18:1
+   |
+18 | #[test_with_parameter_values]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `test_with_parameter_values` (in Nightly builds, run with -Z macro-backtrace for more info)

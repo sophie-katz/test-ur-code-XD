@@ -1,0 +1,5 @@
+error: argument must be a single identifier, not a pattern
+  --> tests/test_with_parameter_values_compile_failures/one_arg_not_identifier_pattern.rs:19:9
+   |
+19 | fn test((a, b): (i32, i32)) {}
+   |         ^^^^^^^^^^^^^^^^^^

@@ -1,0 +1,5 @@
+error: parameter's right-hand side must be an array literal
+  --> tests/test_with_parameter_values_compile_failures/one_arg_not_array.rs:18:34
+   |
+18 | #[test_with_parameter_values(a = 5)]
+   |                                  ^

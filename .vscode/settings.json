@@ -57,6 +57,7 @@
         "mathjax",
         "cated",
         "rposition",
-        "Rustc"
+        "Rustc",
+        "trybuild"
     ],
 }

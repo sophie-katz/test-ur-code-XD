@@ -1,0 +1,5 @@
+error: parameter's left-hand side must be an identifier
+  --> tests/test_with_parameter_values_compile_failures/one_arg_not_identifier.rs:18:30
+   |
+18 | #[test_with_parameter_values((a, b) = 5)]
+   |                              ^^^^^^

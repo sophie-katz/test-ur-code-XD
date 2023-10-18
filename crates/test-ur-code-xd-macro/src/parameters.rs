@@ -96,6 +96,10 @@ pub fn get_permuted_parameter_map_iter(
     let map_of_parameter_vectors =
         get_map_of_parameter_vectors_from_expr_assign_iter(parse_expr_assign_iter(tokens)?)?;
 
+    if map_of_parameter_vectors.is_empty() {
+        return Err(TestUrCodeXDMacroError::NoParameters(span));
+    }
+
     let actual_permutation_count: usize = map_of_parameter_vectors.values().map(Vec::len).product();
 
     if actual_permutation_count > max_permutation_count {
@@ -188,12 +192,7 @@ mod tests {
 
     #[test]
     fn get_permuted_parameter_map_iter_empty() {
-        let vec_of_maps: Vec<HashMap<String, Expr>> =
-            get_permuted_parameter_map_iter(quote! {}, 10)
-                .unwrap()
-                .collect();
-
-        assert!(vec_of_maps.is_empty());
+        assert!(get_permuted_parameter_map_iter(quote! {}, 10).is_err());
     }
 
     #[test]

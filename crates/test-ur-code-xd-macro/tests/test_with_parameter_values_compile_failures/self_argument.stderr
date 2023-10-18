@@ -1,0 +1,5 @@
+error: test functions cannot have `self` as an argument
+  --> tests/test_with_parameter_values_compile_failures/self_argument.rs:19:9
+   |
+19 | fn test(self, a: i32) {}
+   |         ^^^^

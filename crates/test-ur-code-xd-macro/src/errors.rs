@@ -118,6 +118,10 @@ pub enum TestUrCodeXDMacroError {
         /// The actual number of permutations generated
         actual: usize,
     },
+
+    /// Emitted when no parameters are provided to a parameterized test.
+    #[error("no parameters provided")]
+    NoParameters(Span),
 }
 
 impl TestUrCodeXDMacroError {
@@ -127,23 +131,26 @@ impl TestUrCodeXDMacroError {
     pub fn to_compile_error(&self) -> proc_macro2::TokenStream {
         match self {
             Self::SelfArgumentInTest(receiver) => {
-                quote_spanned!(receiver.span() => compile_error!("test functions cannot have `self` as an argument"))
+                quote_spanned! { receiver.span() => compile_error!("test functions cannot have `self` as an argument"); }
             }
             Self::ArgumentHasNoParameter(argument_pattern) => {
-                quote_spanned!(argument_pattern.span() => compile_error!("no parameterization exists for argument"))
+                quote_spanned! { argument_pattern.span() => compile_error!("no parameterization exists for argument"); }
             }
             Self::ParameterAssignmentLeftHandSideIsNotIdentifier(expr) => {
-                quote_spanned!(expr.span() => compile_error!("parameter's left-hand side must be an identifier"))
+                quote_spanned! { expr.span() => compile_error!("parameter's left-hand side must be an identifier"); }
             }
             Self::ParameterAssignmentRightHandSideIsNotArrayLiteral(expr) => {
-                quote_spanned!(expr.span() => compile_error!("parameter's right-hand side must be an array literal"))
+                quote_spanned! { expr.span() => compile_error!("parameter's right-hand side must be an array literal"); }
             }
             Self::ArgumentPatternIsNotSingleIdentifier(fn_arg) => {
-                quote_spanned!(fn_arg.span() => compile_error!("argument must be a single identifier, not a pattern"))
+                quote_spanned! { fn_arg.span() => compile_error!("argument must be a single identifier, not a pattern"); }
             }
             Self::ParsingError(error) => error.to_compile_error(),
             Self::TooManyPermutations { span, .. } => {
-                quote_spanned!(*span => compile_error!("too many permutations generated for parameterized test"))
+                quote_spanned! { *span => compile_error!("too many permutations generated for parameterized test"); }
+            }
+            Self::NoParameters(span) => {
+                quote_spanned! { *span => compile_error!("no parameters provided"); }
             }
         }
     }

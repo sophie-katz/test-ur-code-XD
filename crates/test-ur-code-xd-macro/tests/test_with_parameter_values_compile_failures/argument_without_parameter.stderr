@@ -1,0 +1,5 @@
+error: no parameterization exists for argument
+  --> tests/test_with_parameter_values_compile_failures/argument_without_parameter.rs:19:17
+   |
+19 | fn test(a: i32, b: i32) {}
+   |                 ^^^^^^
