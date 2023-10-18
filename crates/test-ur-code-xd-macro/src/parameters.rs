@@ -175,7 +175,12 @@ pub fn get_max_permutation_count() -> usize {
 }
 
 #[cfg(test)]
-#[allow(clippy::unwrap_used)]
+// Unwrap allowed to reduce length of test code.
+//
+// Indexing and slicing allowed to reduce length of test code.
+//
+// Panic allowed to help with if-then-else expressions.
+#[allow(clippy::unwrap_used, clippy::indexing_slicing, clippy::panic)]
 mod tests {
     use super::*;
     use quote::{quote, ToTokens};
@@ -201,7 +206,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::indexing_slicing)]
     fn get_permuted_parameter_map_iter_one_full() {
         let vec_of_maps: Vec<HashMap<String, Expr>> =
             get_permuted_parameter_map_iter(quote! {a = [1, 2]}, 10)
@@ -216,7 +220,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::indexing_slicing)]
     fn get_permuted_parameter_map_iter_two_full() {
         let vec_of_maps: Vec<HashMap<String, Expr>> =
             get_permuted_parameter_map_iter(quote! {a = [1, 2], b = [3, 4]}, 10)
@@ -231,17 +234,19 @@ mod tests {
     }
 
     #[test]
-    #[allow(unused_must_use)]
     fn get_permuted_parameter_map_iter_at_limit() {
-        get_permuted_parameter_map_iter(
-            quote! {a = [0, 1, 2, 3, 4, 5, 6, 7], b = [0, 1, 2, 3, 4, 5, 6, 7]},
-            64,
-        )
-        .unwrap();
+        assert_eq!(
+            get_permuted_parameter_map_iter(
+                quote! {a = [0, 1, 2, 3, 4, 5, 6, 7], b = [0, 1, 2, 3, 4, 5, 6, 7]},
+                64,
+            )
+            .unwrap()
+            .count(),
+            64
+        );
     }
 
     #[test]
-    #[allow(unused_must_use, clippy::panic)]
     fn get_permuted_parameter_map_iter_above_limit() {
         match get_permuted_parameter_map_iter(
             quote! {a = [0, 1, 2, 3, 4, 5, 6, 7], b = [0, 1, 2, 3, 4, 5, 6, 7]},

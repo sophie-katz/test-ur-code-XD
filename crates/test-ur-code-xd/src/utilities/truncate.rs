@@ -20,6 +20,7 @@ use unicode_segmentation::UnicodeSegmentation;
 
 /// Different modes of truncation
 #[derive(Clone, Copy)]
+// Making the enum non-exhaustive as future-proofing.
 #[non_exhaustive]
 pub enum TruncationMode {
     /// Truncate text at the start so that the end of the string is guaranteed to be present.
@@ -67,10 +68,10 @@ pub trait Truncate {
     ) -> String;
 }
 
-#[allow(clippy::missing_trait_methods)]
 impl Truncate for str {
-    #[allow(clippy::expect_used, clippy::panic)]
-    #[warn(clippy::cognitive_complexity)]
+    // Allow panic because of issues with truncation that shouldn't occur between grapheme
+    // boundaries.
+    #[allow(clippy::panic)]
     fn to_truncated(
         &self,
         separator: impl AsRef<str>,
@@ -318,6 +319,8 @@ fn get_context_grapheme_lengths_middle(
 }
 
 /// Safely converts a grapheme length to a `f64`.
+//
+// Allow panics for arithmetic overflows because most strings are not gigabytes in length.
 #[allow(clippy::panic)]
 fn convert_grapheme_len_to_f64(grapheme_len: usize) -> f64 {
     match grapheme_len.to_f64() {
@@ -337,6 +340,8 @@ fn convert_grapheme_len_to_f64(grapheme_len: usize) -> f64 {
 }
 
 /// Safely converts an `f64` to a grapheme length.
+//
+// Allow panics for arithmetic overflows because most strings are not gigabytes in length.
 #[allow(clippy::panic)]
 fn convert_f64_to_grapheme_len(value: f64) -> usize {
     match value.to_usize() {

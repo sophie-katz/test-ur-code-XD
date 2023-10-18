@@ -36,8 +36,11 @@ use crate::errors::TestUrCodeXDMacroError;
 ///
 /// * `Some(identifier)` if the expression is an identifier.
 /// * `None` otherwise.
+//
+// Expect used because expression is guaranteed to have at least one segment in the branch.
 #[allow(clippy::expect_used)]
 fn get_identifier_name_from_expr(expr: &Expr) -> Option<String> {
+    // We intentionally ignore any other arms
     #[allow(clippy::wildcard_enum_match_arm)]
     match expr {
         Expr::Path(path) => (path.path.segments.len() == 1).then(|| {
@@ -68,6 +71,7 @@ fn get_identifier_name_from_expr(expr: &Expr) -> Option<String> {
 /// * `Some(identifier)` if the expression is an identifier.
 /// * `None` otherwise.
 pub fn get_identifier_name_from_pat(pat: &Pat) -> Option<String> {
+    // We intentionally ignore any other arms
     #[allow(clippy::wildcard_enum_match_arm)]
     match pat {
         Pat::Ident(ident) => Some(ident.ident.to_string()),
@@ -95,6 +99,7 @@ pub fn get_identifier_name_from_pat(pat: &Pat) -> Option<String> {
 /// * `Some(expressions)` if the expression is an array literal.
 /// * `None` otherwise.
 fn iter_expr_literal_array(expr: &Expr) -> Option<impl Iterator<Item = &Expr>> {
+    // We intentionally ignore any other arms
     #[allow(clippy::wildcard_enum_match_arm)]
     match expr {
         Expr::Array(array) => Some(array.elems.iter()),
@@ -276,6 +281,7 @@ pub fn filter_fn_attrs_without_this_macro(
     attributes: impl Iterator<Item = Attribute>,
 ) -> impl Iterator<Item = Attribute> {
     attributes.filter(|attribute| {
+        // We intentionally ignore any other arms
         #[allow(clippy::wildcard_enum_match_arm)]
         match &attribute.meta {
             Meta::List(meta_list) => !meta_list
@@ -287,7 +293,12 @@ pub fn filter_fn_attrs_without_this_macro(
 }
 
 #[cfg(test)]
-#[allow(clippy::panic)]
+// Panic allowed to help with match expressions.
+//
+// Unwrap allowed to reduce length of test code.
+//
+// Indexing and slicing allowed to reduce length of test code.
+#[allow(clippy::panic, clippy::unwrap_used, clippy::indexing_slicing)]
 mod tests {
     use std::iter;
 
@@ -297,7 +308,6 @@ mod tests {
     use super::*;
 
     #[test]
-    #[allow(clippy::unwrap_used)]
     fn get_identifier_name_from_expr_path() {
         assert_eq!(
             get_identifier_name_from_expr(&parse_quote! { a }).unwrap(),
@@ -316,7 +326,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::unwrap_used)]
     fn get_identifier_name_from_pat_pat() {
         assert_eq!(
             get_identifier_name_from_pat(&parse_quote! { a }).unwrap(),
@@ -330,8 +339,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::unwrap_used)]
-    #[allow(clippy::indexing_slicing)]
     fn get_expr_vec_from_array_array_full() {
         let expressions: Vec<Expr> = iter_expr_literal_array(&parse_quote! { [1, 2, 3] })
             .unwrap()
@@ -345,7 +352,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::unwrap_used)]
     fn get_expr_vec_from_array_array_empty() {
         assert_eq!(
             iter_expr_literal_array(&parse_quote! { [] })
@@ -361,7 +367,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::unwrap_used)]
     fn get_map_of_parameter_vectors_from_expr_assign_iter_empty() {
         let map = get_map_of_parameter_vectors_from_expr_assign_iter(vec![].into_iter()).unwrap();
 
@@ -369,8 +374,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::unwrap_used)]
-    #[allow(clippy::indexing_slicing)]
     fn get_map_of_parameter_vectors_from_expr_assign_iter_one_empty() {
         let map = get_map_of_parameter_vectors_from_expr_assign_iter(
             vec![parse_quote! { a = [] }].into_iter(),
@@ -382,8 +385,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::unwrap_used)]
-    #[allow(clippy::indexing_slicing)]
     fn get_map_of_parameter_vectors_from_expr_assign_iter_one_full() {
         let map = get_map_of_parameter_vectors_from_expr_assign_iter(
             vec![parse_quote! { a = [1, 2, 3] }].into_iter(),
@@ -398,8 +399,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::unwrap_used)]
-    #[allow(clippy::indexing_slicing)]
     fn get_map_of_parameter_vectors_from_expr_assign_iter_two_full() {
         let map = get_map_of_parameter_vectors_from_expr_assign_iter(
             vec![
@@ -438,7 +437,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::indexing_slicing)]
     fn iter_fn_inputs_one() {
         let item = parse_quote! {
             fn test(a: i32) {}
@@ -457,7 +455,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::indexing_slicing)]
     fn iter_fn_inputs_two() {
         let item = parse_quote! {
             fn test(a: i32, b: String) {}
@@ -478,8 +475,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::unwrap_used)]
-    #[allow(clippy::indexing_slicing)]
     fn iter_fn_inputs_self() {
         let item = parse_quote! {
             fn test(self, a: i32) {}
@@ -527,7 +522,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::indexing_slicing)]
     fn iter_parameterized_fn_inputs_one() {
         let item = parse_quote! {
             fn test(a: i32) {}
@@ -549,7 +543,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::indexing_slicing)]
     fn iter_parameterized_fn_inputs_two() {
         let item = parse_quote! {
             fn test(a: i32, b: String) {}
@@ -580,8 +573,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::unwrap_used)]
-    #[allow(clippy::indexing_slicing)]
     fn iter_parameterized_fn_inputs_self() {
         let item = parse_quote! {
             fn test(self, a: i32) {}
@@ -595,8 +586,8 @@ mod tests {
         assert_eq!(inputs.len(), 2);
         match &inputs[0] {
             Ok(_) => panic!("expected error in iter_fn_inputs"),
-            Err(error) =>
-            {
+            Err(error) => {
+                // Intentionally ignoring other arms
                 #[allow(clippy::wildcard_enum_match_arm)]
                 match error {
                     TestUrCodeXDMacroError::SelfArgumentInTest(_) => {}
@@ -617,7 +608,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::indexing_slicing)]
     fn iter_parameterized_fn_inputs_missing() {
         let item = parse_quote! {
             fn test(a: i32) {}
@@ -631,8 +621,8 @@ mod tests {
         assert_eq!(inputs.len(), 1);
         match &inputs[0] {
             Ok(_) => panic!("expected error in iter_fn_inputs"),
-            Err(error) =>
-            {
+            Err(error) => {
+                // Intentionally ignoring other arms
                 #[allow(clippy::wildcard_enum_match_arm)]
                 match error {
                     TestUrCodeXDMacroError::ArgumentHasNoParameter(_) => {}
@@ -656,7 +646,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::indexing_slicing)]
     fn take_fn_attrs_one() {
         let mut item = parse_quote! {
             #[doc(hidden)]
@@ -675,7 +664,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::indexing_slicing)]
     fn take_fn_attrs_two() {
         let mut item = parse_quote! {
             #[doc(hidden)]
@@ -721,7 +709,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::indexing_slicing)]
     fn filter_fn_attrs_without_this_macro_two_with_this_macro() {
         let attributes: Vec<Attribute> = filter_fn_attrs_without_this_macro(
             vec![

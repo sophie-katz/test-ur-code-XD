@@ -19,6 +19,8 @@
 //! [sophie-katz.github.io/test-ur-code-XD/assertions/arithmetic](https://sophie-katz.github.io/test-ur-code-XD/assertions/arithmetic/)
 //! for a usage guide.
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 pub fn assert_eq_impl<LhsType: PartialEq<RhsType>, RhsType>(lhs: &LhsType, rhs: &RhsType) -> bool {
     lhs.eq(rhs)
@@ -61,6 +63,8 @@ macro_rules! assert_eq {
     };
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 pub fn assert_ne_impl<LhsType: PartialEq<RhsType>, RhsType>(lhs: &LhsType, rhs: &RhsType) -> bool {
     !lhs.eq(rhs)
@@ -103,6 +107,8 @@ macro_rules! assert_ne {
     };
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 pub fn assert_lt_impl<LhsType: PartialOrd<RhsType>, RhsType>(lhs: &LhsType, rhs: &RhsType) -> bool {
     lhs.lt(rhs)
@@ -145,6 +151,8 @@ macro_rules! assert_lt {
     };
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 pub fn assert_le_impl<LhsType: PartialOrd<RhsType>, RhsType>(lhs: &LhsType, rhs: &RhsType) -> bool {
     lhs.le(rhs)
@@ -187,6 +195,8 @@ macro_rules! assert_le {
     };
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 pub fn assert_gt_impl<LhsType: PartialOrd<RhsType>, RhsType>(lhs: &LhsType, rhs: &RhsType) -> bool {
     lhs.gt(rhs)
@@ -229,6 +239,8 @@ macro_rules! assert_gt {
     };
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 pub fn assert_ge_impl<LhsType: PartialOrd<RhsType>, RhsType>(lhs: &LhsType, rhs: &RhsType) -> bool {
     lhs.ge(rhs)

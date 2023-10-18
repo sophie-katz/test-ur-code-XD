@@ -84,6 +84,8 @@ fn is_float_eq_relative<FloatType: Float>(
     }
 
     // Calculate absolute difference
+    //
+    // Neither `f32` or `f64` implement `num_traits::CheckedSub`, so we just ignore the warning.
     #[allow(clippy::arithmetic_side_effects)]
     let diff = (lhs - rhs).abs();
 
@@ -93,6 +95,8 @@ fn is_float_eq_relative<FloatType: Float>(
     }
 
     // Check for relative tolerance
+    //
+    // Neither `f32` or `f64` implement `num_traits::CheckedMul`, so we just ignore the warning.
     #[allow(clippy::arithmetic_side_effects)]
     if diff <= lhs.abs().max(rhs.abs()) * relative_tolerance {
         return true;
@@ -187,6 +191,9 @@ fn is_float_eq_ulps_f64(lhs: f64, rhs: f64, absolute_tolerance: f64, ulps_tolera
 /// * `ulps_tolerance` - The ULPs tolerance
 /// * `bit_width` - The bit width of the float (either 32 or 64)
 /// * `epsilon_near_zero` - The epsilon to use when comparing values near zero
+//
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 pub fn format_float_predicate_description_ulps<
     UlpsType: Display + PartialEq<i32>,
@@ -218,6 +225,9 @@ pub fn format_float_predicate_description_ulps<
 /// * `operator` - The comparison operator (for example `==` or `<`)
 /// * `relative_epsilon` - The relative epsilon tolerance
 /// * `epsilon_near_zero` - The epsilon to use when comparing values near zero
+//
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 pub fn format_float_predicate_description_relative<FloatType: Debug + Float>(
     operator: &str,
@@ -245,6 +255,9 @@ pub fn format_float_predicate_description_relative<FloatType: Debug + Float>(
 /// * `lhs_value` - The left-hand side of the comparison
 /// * `rhs_description` - The description of the right-hand side of the comparison
 /// * `rhs_value` - The right-hand side of the comparison
+//
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 pub fn configure_float_panic_message_ulps<
     UlpsType: Debug,
@@ -256,6 +269,7 @@ pub fn configure_float_panic_message_ulps<
     rhs_description: &str,
     rhs_value: FloatType,
 ) -> PanicMessageBuilder {
+    // Neither `f32` or `f64` implement `num_traits::CheckedSub`, so we just ignore the warning.
     #[allow(clippy::arithmetic_side_effects)]
     panic_message_builder
         .with_argument("lhs", lhs_description, &lhs_value)
@@ -281,6 +295,9 @@ pub fn configure_float_panic_message_ulps<
 /// * `lhs_value` - The left-hand side of the comparison
 /// * `rhs_description` - The description of the right-hand side of the comparison
 /// * `rhs_value` - The right-hand side of the comparison
+//
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 pub fn configure_float_panic_message_relative<FloatType: Float + Debug>(
     panic_message_builder: PanicMessageBuilder,
@@ -289,6 +306,7 @@ pub fn configure_float_panic_message_relative<FloatType: Float + Debug>(
     rhs_description: &str,
     rhs_value: FloatType,
 ) -> PanicMessageBuilder {
+    // Neither `f32` or `f64` implement `num_traits::CheckedSub`, so we just ignore the warning.
     #[allow(clippy::arithmetic_side_effects)]
     panic_message_builder
         .with_argument("lhs", lhs_description, &lhs_value)
@@ -296,12 +314,16 @@ pub fn configure_float_panic_message_relative<FloatType: Float + Debug>(
         .with_argument("absolute difference", "--", &(lhs_value - rhs_value).abs())
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 #[must_use]
 pub fn assert_f32_eq_impl_ulps(lhs: f32, rhs: f32, epsilon_near_zero: f32, ulps: i32) -> bool {
     is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps)
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 #[must_use]
 pub fn assert_f32_eq_impl_relative(
@@ -412,12 +434,16 @@ macro_rules! assert_f32_eq {
     };
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 #[must_use]
 pub fn assert_f32_ne_impl_ulps(lhs: f32, rhs: f32, epsilon_near_zero: f32, ulps: i32) -> bool {
     !is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps)
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 #[must_use]
 pub fn assert_f32_ne_impl_relative(
@@ -528,12 +554,16 @@ macro_rules! assert_f32_ne {
     };
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 #[must_use]
 pub fn assert_f32_le_impl_ulps(lhs: f32, rhs: f32, epsilon_near_zero: f32, ulps: i32) -> bool {
     lhs <= rhs || is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps)
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 #[must_use]
 pub fn assert_f32_le_impl_relative(
@@ -644,12 +674,16 @@ macro_rules! assert_f32_le {
     };
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 #[must_use]
 pub fn assert_f32_ge_impl_ulps(lhs: f32, rhs: f32, epsilon_near_zero: f32, ulps: i32) -> bool {
     lhs >= rhs || is_float_eq_ulps_f32(lhs, rhs, epsilon_near_zero, ulps)
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 #[must_use]
 pub fn assert_f32_ge_impl_relative(
@@ -760,12 +794,16 @@ macro_rules! assert_f32_ge {
     };
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 #[must_use]
 pub fn assert_f64_eq_impl_ulps(lhs: f64, rhs: f64, epsilon_near_zero: f64, ulps: i64) -> bool {
     is_float_eq_ulps_f64(lhs, rhs, epsilon_near_zero, ulps)
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 #[must_use]
 pub fn assert_f64_eq_impl_relative(
@@ -876,12 +914,16 @@ macro_rules! assert_f64_eq {
     };
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 #[must_use]
 pub fn assert_f64_ne_impl_ulps(lhs: f64, rhs: f64, epsilon_near_zero: f64, ulps: i64) -> bool {
     !is_float_eq_ulps_f64(lhs, rhs, epsilon_near_zero, ulps)
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 #[must_use]
 pub fn assert_f64_ne_impl_relative(
@@ -992,12 +1034,16 @@ macro_rules! assert_f64_ne {
     };
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 #[must_use]
 pub fn assert_f64_le_impl_ulps(lhs: f64, rhs: f64, epsilon_near_zero: f64, ulps: i64) -> bool {
     lhs <= rhs || is_float_eq_ulps_f64(lhs, rhs, epsilon_near_zero, ulps)
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 #[must_use]
 pub fn assert_f64_le_impl_relative(
@@ -1108,12 +1154,16 @@ macro_rules! assert_f64_le {
     };
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 #[must_use]
 pub fn assert_f64_ge_impl_ulps(lhs: f64, rhs: f64, epsilon_near_zero: f64, ulps: i64) -> bool {
     lhs >= rhs || is_float_eq_ulps_f64(lhs, rhs, epsilon_near_zero, ulps)
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 #[must_use]
 pub fn assert_f64_ge_impl_relative(

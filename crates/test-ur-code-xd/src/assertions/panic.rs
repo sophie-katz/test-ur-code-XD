@@ -23,6 +23,8 @@ use std::panic::{self, AssertUnwindSafe, Location, UnwindSafe};
 
 use crate::utilities::panic_message_builder::PanicMessageBuilder;
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 pub fn assert_panics_impl<
     ActionType: FnOnce() + UnwindSafe,
@@ -88,6 +90,9 @@ macro_rules! assert_panics {
 }
 
 #[cfg(test)]
+// Stdout and stderr printing are allowed to show that hooks do not impact the panic message.
+//
+// Panics are allowed to generate panics for testing.
 #[allow(clippy::print_stdout, clippy::print_stderr, clippy::panic)]
 mod tests {
     use crate::assert_eq;

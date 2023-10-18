@@ -13,10 +13,11 @@
 // You should have received a copy of the GNU General Public License along with test ur code XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
-#![allow(clippy::missing_docs_in_private_items)]
+//! A simple structure for storing the captured outputs from `stdout` and `stderr`.
 
 /// A simple structure for storing the captured outputs from `stdout` and `stderr`.
 #[derive(Debug, PartialEq)]
+// Making the struct non-exhaustive as future-proofing.
 #[non_exhaustive]
 pub struct CapturedOutputs<OutputType> {
     pub stdout: OutputType,

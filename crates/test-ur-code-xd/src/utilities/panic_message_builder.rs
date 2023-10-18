@@ -144,6 +144,8 @@ impl PanicMessageBuilder {
     /// .with_argument("lhs", lhs_description, &lhs_value);
     /// ```
     #[must_use]
+    // If the argument description is long enough that arithmetic overflows, there's probably other
+    // issues.
     #[allow(clippy::arithmetic_side_effects)]
     pub fn with_argument(
         mut self,
@@ -222,6 +224,8 @@ impl PanicMessageBuilder {
     /// .with_argument_formatted("lhs", lhs_description, "5");
     /// ```
     #[must_use]
+    // If the argument description is long enough that arithmetic overflows, there's probably other
+    // issues.
     #[allow(clippy::arithmetic_side_effects)]
     pub fn with_argument_formatted(
         mut self,
@@ -357,6 +361,12 @@ impl PanicMessageBuilder {
     /// # Returns
     ///
     /// This function never returns. It always panics.
+    //
+    // We do not need to document the panic in a function called `panic`.
+    //
+    // Stderr printing is allowed for use in the panic hook.
+    //
+    // Panics being allowed is obvious.
     #[allow(clippy::missing_panics_doc, clippy::print_stderr, clippy::panic)]
     pub fn panic(mut self) -> ! {
         let panic_message = mem::take(&mut self.panic_message);
@@ -372,6 +382,7 @@ impl PanicMessageBuilder {
 }
 
 #[cfg(test)]
+// Unwrap allowed to reduce length of test code.
 #[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
@@ -381,6 +392,7 @@ mod tests {
     use crate::assert_str_matches;
 
     #[derive(Debug)]
+    // Not sure why Rustc detects this as dead code since it's used below, but yeah we can ignore.
     #[allow(dead_code)]
     struct SomeStruct {
         a: i32,
@@ -492,6 +504,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
     fn format_assertion_description_string() {
         console::set_colors_enabled(false);
 
+        // The whole point of this test is to pass in a `String`
         #[allow(clippy::unnecessary_to_owned)]
         let message = PanicMessageBuilder::new("", Location::caller())
             .with_description("assertion description".to_owned())

@@ -13,7 +13,18 @@
 // You should have received a copy of the GNU General Public License along with test ur code XD. If
 // not, see <https://www.gnu.org/licenses/>.
 
-#![allow(clippy::unwrap_used)]
+#![allow(
+    // Unwrap allowed to reduce length of test code.
+    clippy::unwrap_used,
+    // Makes test code easier to read.
+    clippy::shadow_unrelated,
+    // Panic used to generate panics for testing.
+    clippy::panic,
+    // Allow stdout printing to generate output.
+    clippy::print_stdout,
+    // Allow arithmetic side effects to reduce length of test code.
+    clippy::arithmetic_side_effects
+)]
 
 #[cfg(test)]
 #[macro_use]
@@ -29,6 +40,7 @@ mod home {
         y = [1, 2]
     )]
     fn example(x: i32, y: i32) {
+        // Ignore the arithmetic side effects to simplify the test code.
         #[allow(clippy::arithmetic_side_effects)]
         let z = x + y;
 
@@ -60,7 +72,6 @@ mod assertions {
             // Ensure that value is true
             assert!(value);
 
-            #[allow(clippy::shadow_unrelated)]
             let value = false;
 
             // Ensure that value is false
@@ -77,7 +88,6 @@ mod assertions {
             // Ensure that the values are equal
             assert_eq!(x, y);
 
-            #[allow(clippy::shadow_unrelated)]
             let y = 6;
 
             // Ensure that the values are unequal
@@ -95,9 +105,7 @@ mod assertions {
             // Ensure that x is less than or equal to y
             assert_le!(x, y);
 
-            #[allow(clippy::shadow_unrelated)]
             let x = 5;
-            #[allow(clippy::shadow_unrelated)]
             let y = 4;
 
             // Ensure that x is greater than y
@@ -243,7 +251,6 @@ mod assertions {
 
     mod panic {
         #[test]
-        #[allow(clippy::panic)]
         fn example() {
             // Ensure that the code panics
             assert_panics!(|| {
@@ -263,7 +270,6 @@ mod assertions {
 
         #[test]
         #[should_panic(expected = "explicit panic")]
-        #[allow(clippy::panic)]
         fn example_should_panic() {
             panic!();
 
@@ -271,7 +277,6 @@ mod assertions {
         }
 
         #[test]
-        #[allow(clippy::panic)]
         fn example_panic_assertion() {
             assert_panics!(|| {
                 panic!();
@@ -281,7 +286,6 @@ mod assertions {
         }
     }
 
-    #[allow(clippy::print_stdout)]
     mod output {
         #[test]
         fn example() {
@@ -373,7 +377,6 @@ mod tests {
             y = [1, 2])
         ]
         fn example(x: i32, y: i32) {
-            #[allow(clippy::arithmetic_side_effects)]
             let z = x + y;
 
             assert!(z > 0);
@@ -389,7 +392,6 @@ mod tests {
         ]
         #[should_panic(expected = "value is true")]
         fn example_attributes(x: i32, y: i32) {
-            #[allow(clippy::arithmetic_side_effects)]
             let z = x + y;
 
             assert!(z < 0);

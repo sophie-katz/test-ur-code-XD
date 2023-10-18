@@ -37,6 +37,8 @@ use std::{fmt::Display, panic::Location};
 //
 //   Make sure to put <br /> tags after all field doc comments except for the last one. This is to
 //   work around Rustdoc's formatting with examples for fields. It just makes it more readable.
+//
+// Struct must be exhaustive for `{ ..default::Default() }` syntax to work.
 #[allow(clippy::exhaustive_structs)]
 #[derive(Clone, Default)]
 pub struct Config {

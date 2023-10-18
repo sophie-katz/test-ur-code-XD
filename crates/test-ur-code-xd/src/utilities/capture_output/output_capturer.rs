@@ -18,6 +18,7 @@
 use gag::BufferRedirect;
 use std::io::{self, Read, Write};
 
+// Used for doc comments below.
 #[allow(unused_imports)]
 use std::io::{stderr, stdout};
 
@@ -185,8 +186,10 @@ impl OutputCapturer {
 }
 
 #[cfg(test)]
-#[allow(clippy::print_stdout, clippy::print_stderr)]
-#[allow(clippy::unwrap_used)]
+// Stdout and stderr printing are allowed in order to generate output for tests.
+//
+// Unwrap allowed to reduce length of test code.
+#[allow(clippy::print_stdout, clippy::print_stderr, clippy::unwrap_used)]
 mod tests {
     use super::*;
     use crate::{assert, assert_eq};

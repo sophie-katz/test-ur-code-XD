@@ -24,6 +24,7 @@ use test_ur_code_xd_macro::test_with_parameter_values;
     y = [1, 2]
 )]
 fn example(x: i32, y: i32) {
+    // Allow arithmetic side effects to reduce length of test code.
     #[allow(clippy::arithmetic_side_effects)]
     let z = x + y;
 
@@ -38,9 +39,9 @@ fn example(x: i32, y: i32) {
     x = [5, 6, 7],
     y = [1, 2]
 )]
-#[allow(clippy::arithmetic_side_effects)]
 #[should_panic(expected = "assertion failed: z < 0")]
 fn failure(x: i32, y: i32) {
+    // Allow arithmetic side effects to reduce length of test code.
     #[allow(clippy::arithmetic_side_effects)]
     let z = x + y;
 

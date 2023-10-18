@@ -42,13 +42,17 @@ pub fn parse_expr_assign_iter(
 }
 
 #[cfg(test)]
+// Unwrap allowed to reduce length of test code.
+//
+// Indexing and slicing allowed to reduce length of test code.
+#[allow(clippy::unwrap_used, clippy::indexing_slicing)]
+
 mod tests {
     use quote::{quote, ToTokens};
 
     use super::*;
 
     #[test]
-    #[allow(clippy::unwrap_used)]
     fn parse_expr_assign_iter_empty() {
         let expressions: Vec<ExprAssign> = parse_expr_assign_iter(quote! {}).unwrap().collect();
 
@@ -56,8 +60,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::unwrap_used)]
-    #[allow(clippy::indexing_slicing)]
     fn parse_expr_assign_iter_one_empty() {
         let expressions: Vec<ExprAssign> =
             parse_expr_assign_iter(quote! { a = [] }).unwrap().collect();
@@ -68,8 +70,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::unwrap_used)]
-    #[allow(clippy::indexing_slicing)]
     fn parse_expr_assign_iter_one_full() {
         let expressions: Vec<ExprAssign> = parse_expr_assign_iter(quote! { a = [1, 2, 3] })
             .unwrap()
@@ -84,8 +84,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::unwrap_used)]
-    #[allow(clippy::indexing_slicing)]
     fn parse_expr_assign_iter_two_full() {
         let expressions: Vec<ExprAssign> =
             parse_expr_assign_iter(quote! { a = [1, 2, 3], b = [4, 5, 6] })
@@ -106,8 +104,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::unwrap_used)]
-    #[allow(clippy::indexing_slicing)]
     fn parse_expr_assign_iter_comma_after() {
         let expressions: Vec<ExprAssign> =
             parse_expr_assign_iter(quote! { a = [1, 2, 3], b = [4, 5, 6], })

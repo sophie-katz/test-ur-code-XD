@@ -198,6 +198,9 @@ pub fn capture_output_raw<ActionType: FnOnce()>(
 }
 
 #[cfg(test)]
+// Stdout and stderr printing are allowed in order to generate output for tests.
+//
+// Unwrap allowed to reduce length of test code.
 #[allow(clippy::print_stdout, clippy::print_stderr, clippy::unwrap_used)]
 mod tests {
     use super::*;

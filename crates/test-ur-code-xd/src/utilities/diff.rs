@@ -216,6 +216,8 @@ fn append_char_diff_to_string_diff(
 }
 
 /// Merges a sequence of character diffs into a sequence of string diffs.
+//
+// Expects are allowed because the diffs are guaranteed to be of the same variant in that branch.
 #[allow(clippy::expect_used)]
 fn merge_char_diffs(diffs: &[diff::Result<char>]) -> Vec<diff::Result<String>> {
     let mut result: Vec<diff::Result<String>> = Vec::new();

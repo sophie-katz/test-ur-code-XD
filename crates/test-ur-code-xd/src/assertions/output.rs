@@ -38,6 +38,8 @@ fn unwrap_captured_outputs<OutputType>(
     }
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 pub fn assert_outputs_impl<ActionType: FnOnce()>(
     action: ActionType,
@@ -115,7 +117,11 @@ macro_rules! assert_outputs {
     };
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
+// The `on_stdout` and `on_stderr` type is warned to be too complex, but it would be less readable
+// to break it up.
 #[allow(clippy::type_complexity)]
 pub fn assert_outputs_raw_impl<ActionType: FnOnce()>(
     action: ActionType,
@@ -194,6 +200,7 @@ macro_rules! assert_outputs_raw {
 }
 
 #[cfg(test)]
+// Stdout and stderr printing are allowed in order to generate output for tests.
 #[allow(clippy::print_stdout, clippy::print_stderr)]
 mod tests {
     use crate::assert_eq;

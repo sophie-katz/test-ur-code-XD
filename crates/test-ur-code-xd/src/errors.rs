@@ -19,6 +19,7 @@ use thiserror::Error;
 
 /// A general error type for test ur code XD.
 #[derive(Error, Debug)]
+// Making the enum non-exhaustive as future-proofing.
 #[non_exhaustive]
 pub enum TestUrCodeXDError {
     /// An error that happens when multiple descriptions are added to a panic message builder.

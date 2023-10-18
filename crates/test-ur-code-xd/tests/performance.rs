@@ -75,6 +75,8 @@ fn benchmark_assert_if() {
     let start = Instant::now();
 
     for _ in 0..SAMPLE_SIZE {
+        // Ignore warnings because we are trying to simulate an assertion with an if statement
+        // intentionally.
         #[allow(clippy::manual_assert, clippy::panic)]
         if !id(true) {
             panic!();
@@ -111,6 +113,8 @@ fn benchmark_assert_eq_if() {
     let start = Instant::now();
 
     for _ in 0..SAMPLE_SIZE {
+        // Ignore warnings because we are trying to simulate an assertion with an if statement
+        // intentionally.
         #[allow(clippy::manual_assert, clippy::panic)]
         if !id(3).eq(&id(3)) {
             panic!();

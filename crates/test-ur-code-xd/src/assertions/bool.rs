@@ -19,6 +19,8 @@
 //! [sophie-katz.github.io/test-ur-code-XD/assertions/boolean](https://sophie-katz.github.io/test-ur-code-XD/assertions/boolean/)
 //! for a usage guide.
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 #[must_use]
 pub fn assert_impl(value: bool) -> bool {
@@ -58,6 +60,8 @@ macro_rules! assert {
     };
 }
 
+// Assertion implementations need to be public for the macros to use them, but should not appear in
+// documentation.
 #[doc(hidden)]
 #[must_use]
 pub fn assert_not_impl(value: bool) -> bool {

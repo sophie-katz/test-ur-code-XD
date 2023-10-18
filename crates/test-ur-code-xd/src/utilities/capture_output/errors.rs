@@ -25,7 +25,9 @@ use super::output_capturer::OutputCapturer;
 
 /// Differentiator between output streams.
 #[derive(Debug, PartialEq)]
+// We don't really need `Stdout` and `Stderr` to be documented.
 #[allow(clippy::missing_docs_in_private_items)]
+// Making the enum non-exhaustive as future-proofing.
 #[non_exhaustive]
 pub enum OutputStream {
     Stdout,
@@ -34,6 +36,7 @@ pub enum OutputStream {
 
 /// An error that can occur when capturing output.
 #[derive(Error, Debug)]
+// Making the enum non-exhaustive as future-proofing.
 #[non_exhaustive]
 pub enum OutputCapturingError {
     #[error("error while flushing {0:?}: {1}")]

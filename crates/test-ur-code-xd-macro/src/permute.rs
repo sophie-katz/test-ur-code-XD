@@ -137,6 +137,12 @@ pub fn permute_map_of_vectors<KeyType: 'static + Clone + Eq + Hash, ValueType: '
 }
 
 #[cfg(test)]
+// Unwrap allowed to reduce length of test code.
+//
+// Indexing and slicing allowed to reduce length of test code.
+//
+// Panics allowed to help with if-then-else expressions.
+#[allow(clippy::unwrap_used, clippy::indexing_slicing, clippy::panic)]
 mod tests {
     use super::*;
 
@@ -167,7 +173,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::unwrap_used, clippy::indexing_slicing, clippy::panic)]
     fn take_first_key_and_value_two() {
         let mut hash_map: HashMap<String, String> = HashMap::from([
             ("k0".to_owned(), "v0".to_owned()),
@@ -213,7 +218,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::indexing_slicing)]
     fn one_key_one_value() {
         let map_of_vectors: HashMap<String, Vec<String>> =
             HashMap::from([("k0".to_owned(), vec!["v0".to_owned()])]);
@@ -226,7 +230,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::indexing_slicing)]
     fn one_key_two_values() {
         let map_of_vectors: HashMap<String, Vec<String>> =
             HashMap::from([("k0".to_owned(), vec!["v0".to_owned(), "v1".to_owned()])]);
@@ -241,7 +244,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::indexing_slicing)]
     fn two_keys_one_value_and_one_empty() {
         let map_of_vectors: HashMap<String, Vec<String>> = HashMap::from([
             ("k0".to_owned(), vec!["v0".to_owned()]),
@@ -256,7 +258,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::indexing_slicing)]
     fn two_keys_one_with_two_values_and_one_empty() {
         let map_of_vectors: HashMap<String, Vec<String>> = HashMap::from([
             ("k0".to_owned(), vec!["v0".to_owned(), "v1".to_owned()]),
@@ -273,7 +274,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::indexing_slicing)]
     fn two_keys_one_value_and_one_value() {
         let map_of_vectors: HashMap<String, Vec<String>> = HashMap::from([
             ("k0".to_owned(), vec!["v0".to_owned()]),
@@ -289,7 +289,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::indexing_slicing)]
     fn two_keys_one_with_two_values_and_one_value() {
         let map_of_vectors: HashMap<String, Vec<String>> = HashMap::from([
             ("k0".to_owned(), vec!["v0".to_owned(), "v1".to_owned()]),
@@ -308,7 +307,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::indexing_slicing)]
     fn two_keys_one_with_two_values_and_one_with_two_values() {
         let map_of_vectors: HashMap<String, Vec<String>> = HashMap::from([
             ("k0".to_owned(), vec!["v0".to_owned(), "v1".to_owned()]),
