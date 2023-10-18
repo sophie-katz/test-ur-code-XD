@@ -184,6 +184,7 @@ impl PanicMessageBuilder {
         value_description: impl Display,
         value: &impl Debug,
     ) -> Self {
+        // Format the components
         let value_description_string =
             PanicMessageBuilder::format_value_description(value_description);
 
@@ -191,6 +192,7 @@ impl PanicMessageBuilder {
 
         let argument_description_string = format!("{argument_description}:");
 
+        // Format and push the components to the buffer
         self.buffer.push_str(
             format!(
                 "\n  {} {}",
@@ -204,6 +206,7 @@ impl PanicMessageBuilder {
             .as_str(),
         );
 
+        // If the value description is different from the value, format and push the value
         if value_description_string != value_string {
             let indent = " ".repeat(3 + argument_description_string.len());
 
@@ -264,8 +267,10 @@ impl PanicMessageBuilder {
         value_description: impl Display,
         value: impl AsRef<str>,
     ) -> Self {
+        // Format the components
         let argument_description_string = format!("{argument_description}:");
 
+        // Format and push the components to the buffer
         self.buffer.push_str(
             format!(
                 "\n  {} {}",
@@ -278,6 +283,7 @@ impl PanicMessageBuilder {
             .as_str(),
         );
 
+        // Format and push the value itself
         let indent = " ".repeat(3 + argument_description_string.len());
 
         let mut indented = IndentWriter::new(indent.as_str(), String::new());
