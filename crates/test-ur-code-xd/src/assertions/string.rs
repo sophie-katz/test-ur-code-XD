@@ -65,7 +65,7 @@ macro_rules! assert_str_eq {
                         $crate::utilities::diff::format_diff(
                             &$lhs,
                             &$rhs,
-                            $crate::utilities::panic_message_builder::DEBUGGED_VALUE_PREFIX.len()
+                            $crate::utilities::panic_message_builder::get_debugged_value_prefix_grapheme_len()
                         )
                     )
             }

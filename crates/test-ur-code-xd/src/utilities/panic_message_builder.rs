@@ -24,6 +24,7 @@ use std::{
     panic::{self, Location},
 };
 use std::{fmt::Write, mem};
+use unicode_segmentation::UnicodeSegmentation;
 
 use super::truncate::TruncationMode;
 
@@ -35,6 +36,12 @@ const VALUE_DESCRIPTION_MAX_GRAPHEME_LEN: usize = 50;
 
 /// The prefix to use before a debug representation of a value
 pub const DEBUGGED_VALUE_PREFIX: &str = "== ";
+
+/// Gets the number of graphemes in the debugged value prefix.
+#[must_use]
+pub fn get_debugged_value_prefix_grapheme_len() -> usize {
+    DEBUGGED_VALUE_PREFIX.graphemes(true).count()
+}
 
 /// A builder for a formatted panic message.
 ///
@@ -208,7 +215,7 @@ impl PanicMessageBuilder {
 
         // If the value description is different from the value, format and push the value
         if value_description_string != value_string {
-            let indent = " ".repeat(3 + argument_description_string.len());
+            let indent = " ".repeat(3 + argument_description_string.graphemes(true).count());
 
             let mut indented = IndentWriter::new(indent.as_str(), String::new());
 
@@ -284,7 +291,7 @@ impl PanicMessageBuilder {
         );
 
         // Format and push the value itself
-        let indent = " ".repeat(3 + argument_description_string.len());
+        let indent = " ".repeat(3 + argument_description_string.graphemes(true).count());
 
         let mut indented = IndentWriter::new(indent.as_str(), String::new());
 
