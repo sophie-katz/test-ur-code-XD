@@ -19,6 +19,7 @@ use console::{style, Color};
 use indent_write::fmt::IndentWriter;
 use std::{
     backtrace::{Backtrace, BacktraceStatus},
+    error::Error,
     fmt::{Debug, Display},
     panic::{self, Location},
 };
@@ -93,6 +94,7 @@ impl PanicMessageBuilder {
     /// ```
     /// use std::panic::Location;
     /// # use test_ur_code_xd::utilities::panic_message_builder::PanicMessageBuilder;
+    ///
     /// PanicMessageBuilder::new("lhs == rhs", Location::caller());
     /// ```
     #[must_use]
@@ -110,6 +112,34 @@ impl PanicMessageBuilder {
             ),
             has_assertion_description: false,
         }
+    }
+
+    /// Creates a new panic message builder to wrap an error.
+    ///
+    /// # Arguments
+    ///
+    /// * `error_description` - A description of what the error means.
+    /// * `location` - The location of the error. This should always be `Location::caller()`.
+    /// * `error` - The error to wrap.
+    ///
+    /// # Example
+    ///
+    /// ```should_panic
+    /// use std::{io, panic::Location};
+    /// # use test_ur_code_xd::utilities::panic_message_builder::PanicMessageBuilder;
+    ///
+    /// let error = io::Error::new(io::ErrorKind::Other, "some error");
+    ///
+    /// PanicMessageBuilder::new_from_error("unable to read file", Location::caller(), &error)
+    ///     .panic();
+    /// ```
+    #[must_use]
+    pub fn new_from_error(
+        error_description: &str,
+        location: &'static Location<'static>,
+        error: &impl Error,
+    ) -> Self {
+        Self::new(error_description, location).with_argument("error", "--", error)
     }
 
     /// Adds an argument to the panic message.

@@ -23,7 +23,7 @@
 //! for a usage guide.
 
 use crate::{errors::TestUrCodeXDError, utilities::panic_message_builder::PanicMessageBuilder};
-use std::{fmt::Display, panic::Location};
+use std::{error::Error, fmt::Display, panic::Location};
 
 /// The configuration for an assertion.
 ///
@@ -240,14 +240,15 @@ impl Config {
 
     /// Helper method to unwrap a panic message builder result
     #[must_use]
-    fn unwrap_panic_message_builder_result<ErrorType: Display>(
+    fn unwrap_panic_message_builder_result<ErrorType: Error>(
         result: Result<PanicMessageBuilder, ErrorType>,
     ) -> PanicMessageBuilder {
         match result {
             Ok(panic_message_builder) => panic_message_builder,
-            Err(error) => PanicMessageBuilder::new(
-                format!("internal error while creating panic message: {error}"),
+            Err(error) => PanicMessageBuilder::new_from_error(
+                "internal error while creating panic message",
                 Location::caller(),
+                &error,
             )
             .panic(),
         }

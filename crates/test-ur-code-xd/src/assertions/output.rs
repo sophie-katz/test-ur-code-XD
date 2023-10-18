@@ -33,9 +33,12 @@ fn unwrap_captured_outputs<OutputType>(
 ) -> CapturedOutputs<OutputType> {
     match result {
         Ok(value) => value,
-        Err(error) => PanicMessageBuilder::new("failed to capture output", Location::caller())
-            .with_argument("error", "--", &error.to_string())
-            .panic(),
+        Err(error) => PanicMessageBuilder::new_from_error(
+            "failed to capture output",
+            Location::caller(),
+            &error,
+        )
+        .panic(),
     }
 }
 

@@ -20,7 +20,7 @@
 //! for a usage guide.
 
 use std::{
-    fmt::Display,
+    error::Error,
     fs::File,
     io::{BufReader, Read},
     panic::Location,
@@ -442,14 +442,14 @@ fn ensure_is_file(path: &impl AsRef<Path>) {
 }
 
 /// Helper method that tries to read a file and panics if there are any errors.
-fn unwrap_file_read<ValueType, ErrorType: Display>(
+fn unwrap_file_read<ValueType, ErrorType: Error>(
     path: &impl AsRef<Path>,
     result: Result<ValueType, ErrorType>,
 ) -> ValueType {
     match result {
         Ok(file_text) => file_text,
         Err(error) => {
-            PanicMessageBuilder::new(format!("error reading file: {error}"), Location::caller())
+            PanicMessageBuilder::new_from_error("error reading file", Location::caller(), &error)
                 .with_argument("path", "--", &path.as_ref())
                 .panic()
         }

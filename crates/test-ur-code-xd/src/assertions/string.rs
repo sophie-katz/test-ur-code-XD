@@ -218,9 +218,10 @@ pub fn assert_str_matches_impl(value: impl AsRef<str>, pattern: impl AsRef<str>)
 
     let pattern = match Regex::new(pattern.as_ref()) {
         Ok(pattern_value) => pattern_value,
-        Err(error) => PanicMessageBuilder::new("error while parsing regex", Location::caller())
-            .with_argument("error", "--", &error.to_string())
-            .panic(),
+        Err(error) => {
+            PanicMessageBuilder::new_from_error("invalid regex pattern", Location::caller(), &error)
+                .panic()
+        }
     };
 
     pattern.is_match(value.as_ref())
@@ -422,7 +423,7 @@ mod tests {
 
     #[cfg(feature = "regex")]
     #[test]
-    #[should_panic(expected = "error while parsing regex")]
+    #[should_panic(expected = "invalid regex pattern")]
     fn assert_str_matches_failing_bad_regex() {
         assert_str_matches!("hello, world", "[a-z, ");
     }
