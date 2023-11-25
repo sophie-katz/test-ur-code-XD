@@ -17,6 +17,8 @@
 
 #![allow(clippy::absolute_paths)]
 
+use std::fmt::{self, Write};
+
 use crate::utilities::truncate::Truncate;
 use console::{style, Color};
 use unicode_segmentation::UnicodeSegmentation;
@@ -40,9 +42,13 @@ const DIFF_MAX_GRAPHEME_LEN: usize = 20;
 /// # Returns
 ///
 /// * The formatted diff.
-#[must_use]
+///
+/// # Panics
+///
+/// * If there are any errors with formatting.
 #[allow(clippy::module_name_repetitions)]
-pub fn format_diff(lhs: &str, rhs: &str, indent: usize) -> String {
+#[must_use]
+pub fn format_diff(lhs: &str, rhs: &str) -> String {
     // Make strings diffable
     let lhs_diffable = convert_str_to_diffable_string(lhs);
     let rhs_diffable = convert_str_to_diffable_string(rhs);
@@ -54,12 +60,13 @@ pub fn format_diff(lhs: &str, rhs: &str, indent: usize) -> String {
     let string_diffs = merge_char_diffs(&char_diffs);
 
     // Format string-by-string diffs
-    format!(
-        "{}\n{}{}",
-        format_diff_text_line(&string_diffs),
-        " ".repeat(indent),
-        format_diff_marker_line(&string_diffs)
-    )
+    let mut result = String::new();
+
+    format_diff_text_line(&mut result, &string_diffs);
+    result.push('\n');
+    format_diff_marker_line(&mut result, &string_diffs);
+
+    result
 }
 
 /// Takes a string and converts it to a diffable string.
@@ -77,49 +84,55 @@ fn convert_str_to_diffable_string(string: &str) -> String {
 /// # Returns
 ///
 /// * The formatted text line.
-#[must_use]
-fn format_diff_text_line(diffs: &[diff::Result<String>]) -> String {
-    let mut result = String::new();
-
+#[allow(
+    // To ignore .write_str(...) errors - see .expect(...) messages below for details
+    clippy::expect_used
+)]
+fn format_diff_text_line(writer: &mut impl Write, diffs: &[diff::Result<String>]) {
     for diff in diffs {
         match diff {
             diff::Result::Left(left) => {
-                result.push_str(
-                    style(left.to_truncated(
-                        DIFF_TRUNCATION_SEPARATOR,
-                        TruncationMode::Middle,
-                        DIFF_MAX_GRAPHEME_LEN,
-                    ))
-                    .fg(Color::Green)
-                    .to_string()
-                    .as_str(),
-                );
+                writer
+                    .write_str(
+                        style(left.to_truncated(
+                            DIFF_TRUNCATION_SEPARATOR,
+                            TruncationMode::Middle,
+                            DIFF_MAX_GRAPHEME_LEN,
+                        ))
+                        .fg(Color::Green)
+                        .to_string()
+                        .as_str(),
+                    )
+                    .expect("String::write_str should not fail under normal circumstances");
             }
             diff::Result::Right(right) => {
-                result.push_str(
-                    style(right.to_truncated(
-                        DIFF_TRUNCATION_SEPARATOR,
-                        TruncationMode::Middle,
-                        DIFF_MAX_GRAPHEME_LEN,
-                    ))
-                    .fg(Color::Red)
-                    .to_string()
-                    .as_str(),
-                );
+                writer
+                    .write_str(
+                        style(right.to_truncated(
+                            DIFF_TRUNCATION_SEPARATOR,
+                            TruncationMode::Middle,
+                            DIFF_MAX_GRAPHEME_LEN,
+                        ))
+                        .fg(Color::Red)
+                        .to_string()
+                        .as_str(),
+                    )
+                    .expect("String::write_str should not fail under normal circumstances");
             }
             diff::Result::Both(both, _) => {
-                result.push_str(
-                    both.to_truncated(
-                        DIFF_TRUNCATION_SEPARATOR,
-                        TruncationMode::Middle,
-                        DIFF_MAX_GRAPHEME_LEN,
+                writer
+                    .write_str(
+                        both.to_truncated(
+                            DIFF_TRUNCATION_SEPARATOR,
+                            TruncationMode::Middle,
+                            DIFF_MAX_GRAPHEME_LEN,
+                        )
+                        .as_str(),
                     )
-                    .as_str(),
-                );
+                    .expect("String::write_str should not fail under normal circumstances");
             }
         }
     }
-    result
 }
 
 /// Formats the second line of the diff, where the difference markers are displayed.
@@ -131,47 +144,53 @@ fn format_diff_text_line(diffs: &[diff::Result<String>]) -> String {
 /// # Returns
 ///
 /// * The formatted marker line.
-#[must_use]
-fn format_diff_marker_line(diffs: &[diff::Result<String>]) -> String {
-    let mut result = String::new();
-
+#[allow(
+    // To ignore .write_str(...) errors - see .expect(...) messages below for details
+    clippy::expect_used
+)]
+fn format_diff_marker_line(writer: &mut impl Write, diffs: &[diff::Result<String>]) {
     for diff in diffs {
         match diff {
             diff::Result::Left(left) => {
                 let left_graphemes_len = left.graphemes(true).count();
 
-                result.push_str(
-                    style("<".repeat(left_graphemes_len.min(DIFF_MAX_GRAPHEME_LEN)))
-                        .fg(Color::Green)
-                        .to_string()
-                        .as_str(),
-                );
+                writer
+                    .write_str(
+                        style("<".repeat(left_graphemes_len.min(DIFF_MAX_GRAPHEME_LEN)))
+                            .fg(Color::Green)
+                            .to_string()
+                            .as_str(),
+                    )
+                    .expect("String::write_str should not fail under normal circumstances");
             }
             diff::Result::Right(right) => {
                 let right_graphemes_len = right.graphemes(true).count();
 
-                result.push_str(
-                    style(">".repeat(right_graphemes_len.min(DIFF_MAX_GRAPHEME_LEN)))
-                        .fg(Color::Red)
-                        .to_string()
-                        .as_str(),
-                );
+                writer
+                    .write_str(
+                        style(">".repeat(right_graphemes_len.min(DIFF_MAX_GRAPHEME_LEN)))
+                            .fg(Color::Red)
+                            .to_string()
+                            .as_str(),
+                    )
+                    .expect("String::write_str should not fail under normal circumstances");
             }
             diff::Result::Both(both, _) => {
                 let both_graphemes_len = both.graphemes(true).count();
 
-                result.push_str(
-                    " ".repeat(both_graphemes_len.min(DIFF_MAX_GRAPHEME_LEN))
-                        .as_str(),
-                );
+                writer
+                    .write_str(
+                        " ".repeat(both_graphemes_len.min(DIFF_MAX_GRAPHEME_LEN))
+                            .as_str(),
+                    )
+                    .expect("String::write_str should not fail under normal circumstances");
             }
         }
     }
-
-    result
 }
 
 /// Converts a character diff to a string diff containing just that one character.
+#[must_use]
 fn convert_char_diff_to_string_diff(diff: &diff::Result<char>) -> diff::Result<String> {
     match diff {
         diff::Result::Left(left) => diff::Result::Left(left.to_string()),
@@ -254,6 +273,8 @@ fn merge_char_diffs(diffs: &[diff::Result<char>]) -> Vec<diff::Result<String>> {
 }
 
 #[cfg(test)]
+// Unwrap allowed to reduce length of test code.
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
 
@@ -261,8 +282,12 @@ mod tests {
     fn format_diff_text_line_all_both() {
         console::set_colors_enabled(false);
 
-        let formatted =
-            format_diff_text_line(&[diff::Result::Both("hello".to_owned(), "hello".to_owned())]);
+        let mut formatted = String::new();
+
+        format_diff_text_line(
+            &mut formatted,
+            &[diff::Result::Both("hello".to_owned(), "hello".to_owned())],
+        );
 
         assert_eq!(formatted, "hello");
     }
@@ -271,7 +296,9 @@ mod tests {
     fn format_diff_text_line_all_left() {
         console::set_colors_enabled(false);
 
-        let formatted = format_diff_text_line(&[diff::Result::Left("hello".to_owned())]);
+        let mut formatted = String::new();
+
+        format_diff_text_line(&mut formatted, &[diff::Result::Left("hello".to_owned())]);
 
         assert_eq!(formatted, "hello");
     }
@@ -280,7 +307,9 @@ mod tests {
     fn format_diff_text_line_all_right() {
         console::set_colors_enabled(false);
 
-        let formatted = format_diff_text_line(&[diff::Result::Right("hello".to_owned())]);
+        let mut formatted = String::new();
+
+        format_diff_text_line(&mut formatted, &[diff::Result::Right("hello".to_owned())]);
 
         assert_eq!(formatted, "hello");
     }
@@ -289,10 +318,15 @@ mod tests {
     fn format_diff_text_line_long_both() {
         console::set_colors_enabled(false);
 
-        let formatted = format_diff_text_line(&[diff::Result::Both(
-            "a".repeat(DIFF_MAX_GRAPHEME_LEN + 100),
-            "a".repeat(DIFF_MAX_GRAPHEME_LEN + 100),
-        )]);
+        let mut formatted = String::new();
+
+        format_diff_text_line(
+            &mut formatted,
+            &[diff::Result::Both(
+                "a".repeat(DIFF_MAX_GRAPHEME_LEN + 100),
+                "a".repeat(DIFF_MAX_GRAPHEME_LEN + 100),
+            )],
+        );
 
         assert_eq!(formatted, "aaaaaaaa ... aaaaaaa");
     }
@@ -301,8 +335,12 @@ mod tests {
     fn format_diff_text_line_long_left() {
         console::set_colors_enabled(false);
 
-        let formatted =
-            format_diff_text_line(&[diff::Result::Left("a".repeat(DIFF_MAX_GRAPHEME_LEN + 100))]);
+        let mut formatted = String::new();
+
+        format_diff_text_line(
+            &mut formatted,
+            &[diff::Result::Left("a".repeat(DIFF_MAX_GRAPHEME_LEN + 100))],
+        );
 
         assert_eq!(formatted, "aaaaaaaa ... aaaaaaa");
     }
@@ -311,8 +349,12 @@ mod tests {
     fn format_diff_text_line_long_right() {
         console::set_colors_enabled(false);
 
-        let formatted =
-            format_diff_text_line(&[diff::Result::Right("a".repeat(DIFF_MAX_GRAPHEME_LEN + 100))]);
+        let mut formatted = String::new();
+
+        format_diff_text_line(
+            &mut formatted,
+            &[diff::Result::Right("a".repeat(DIFF_MAX_GRAPHEME_LEN + 100))],
+        );
 
         assert_eq!(formatted, "aaaaaaaa ... aaaaaaa");
     }
@@ -321,11 +363,16 @@ mod tests {
     fn format_diff_text_line_mixed() {
         console::set_colors_enabled(false);
 
-        let formatted = format_diff_text_line(&[
-            diff::Result::Both("hello".to_owned(), "hello".to_owned()),
-            diff::Result::Left(", ".to_owned()),
-            diff::Result::Right("world".to_owned()),
-        ]);
+        let mut formatted = String::new();
+
+        format_diff_text_line(
+            &mut formatted,
+            &[
+                diff::Result::Both("hello".to_owned(), "hello".to_owned()),
+                diff::Result::Left(", ".to_owned()),
+                diff::Result::Right("world".to_owned()),
+            ],
+        );
 
         assert_eq!(formatted, "hello, world");
     }
@@ -334,8 +381,12 @@ mod tests {
     fn format_diff_marker_line_all_both() {
         console::set_colors_enabled(false);
 
-        let formatted =
-            format_diff_marker_line(&[diff::Result::Both("hello".to_owned(), "hello".to_owned())]);
+        let mut formatted = String::new();
+
+        format_diff_marker_line(
+            &mut formatted,
+            &[diff::Result::Both("hello".to_owned(), "hello".to_owned())],
+        );
 
         assert_eq!(formatted, "     ");
     }
@@ -344,7 +395,9 @@ mod tests {
     fn format_diff_marker_line_all_left() {
         console::set_colors_enabled(false);
 
-        let formatted = format_diff_marker_line(&[diff::Result::Left("hello".to_owned())]);
+        let mut formatted = String::new();
+
+        format_diff_marker_line(&mut formatted, &[diff::Result::Left("hello".to_owned())]);
 
         assert_eq!(formatted, "<<<<<");
     }
@@ -353,7 +406,9 @@ mod tests {
     fn format_diff_marker_line_all_right() {
         console::set_colors_enabled(false);
 
-        let formatted = format_diff_marker_line(&[diff::Result::Right("hello".to_owned())]);
+        let mut formatted = String::new();
+
+        format_diff_marker_line(&mut formatted, &[diff::Result::Right("hello".to_owned())]);
 
         assert_eq!(formatted, ">>>>>");
     }
@@ -362,10 +417,15 @@ mod tests {
     fn format_diff_marker_line_long_both() {
         console::set_colors_enabled(false);
 
-        let formatted = format_diff_marker_line(&[diff::Result::Both(
-            "a".repeat(DIFF_MAX_GRAPHEME_LEN + 100),
-            "a".repeat(DIFF_MAX_GRAPHEME_LEN + 100),
-        )]);
+        let mut formatted = String::new();
+
+        format_diff_marker_line(
+            &mut formatted,
+            &[diff::Result::Both(
+                "a".repeat(DIFF_MAX_GRAPHEME_LEN + 100),
+                "a".repeat(DIFF_MAX_GRAPHEME_LEN + 100),
+            )],
+        );
 
         assert_eq!(formatted, "                    ");
     }
@@ -374,8 +434,12 @@ mod tests {
     fn format_diff_marker_line_long_left() {
         console::set_colors_enabled(false);
 
-        let formatted =
-            format_diff_marker_line(&[diff::Result::Left("a".repeat(DIFF_MAX_GRAPHEME_LEN + 100))]);
+        let mut formatted = String::new();
+
+        format_diff_marker_line(
+            &mut formatted,
+            &[diff::Result::Left("a".repeat(DIFF_MAX_GRAPHEME_LEN + 100))],
+        );
 
         assert_eq!(formatted, "<<<<<<<<<<<<<<<<<<<<");
     }
@@ -384,9 +448,12 @@ mod tests {
     fn format_diff_marker_line_long_right() {
         console::set_colors_enabled(false);
 
-        let formatted = format_diff_marker_line(&[diff::Result::Right(
-            "a".repeat(DIFF_MAX_GRAPHEME_LEN + 100),
-        )]);
+        let mut formatted = String::new();
+
+        format_diff_marker_line(
+            &mut formatted,
+            &[diff::Result::Right("a".repeat(DIFF_MAX_GRAPHEME_LEN + 100))],
+        );
 
         assert_eq!(formatted, ">>>>>>>>>>>>>>>>>>>>");
     }
@@ -395,11 +462,16 @@ mod tests {
     fn format_diff_marker_line_mixed() {
         console::set_colors_enabled(false);
 
-        let formatted = format_diff_marker_line(&[
-            diff::Result::Both("hello".to_owned(), "hello".to_owned()),
-            diff::Result::Left(", ".to_owned()),
-            diff::Result::Right("world".to_owned()),
-        ]);
+        let mut formatted = String::new();
+
+        format_diff_marker_line(
+            &mut formatted,
+            &[
+                diff::Result::Both("hello".to_owned(), "hello".to_owned()),
+                diff::Result::Left(", ".to_owned()),
+                diff::Result::Right("world".to_owned()),
+            ],
+        );
 
         assert_eq!(formatted, "     <<>>>>>");
     }
@@ -408,8 +480,8 @@ mod tests {
     fn format_diff_simple() {
         console::set_colors_enabled(false);
 
-        let formatted = format_diff("hello, ", "helloworld", 3);
+        let formatted = format_diff("hello, ", "helloworld");
 
-        assert_eq!(formatted, "\"hello, world\"\n         <<>>>>> ");
+        assert_eq!(formatted, "\"hello, world\"\n      <<>>>>> ");
     }
 }

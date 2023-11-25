@@ -22,8 +22,11 @@
 //! [sophie-katz.github.io/test-ur-code-XD/assertions/configuring-assertions](https://sophie-katz.github.io/test-ur-code-XD/assertions/configuring-assertions/)
 //! for a usage guide.
 
-use crate::{errors::TestUrCodeXDError, utilities::panic_message_builder::PanicMessageBuilder};
-use std::{error::Error, fmt::Display, panic::Location};
+use crate::{
+    errors::TestUrCodeXDError,
+    utilities::panic_message_builder::{MessageType, PanicMessageBuilder},
+};
+use std::{convert, error::Error, fmt::Display, panic::Location};
 
 /// The configuration for an assertion.
 ///
@@ -184,8 +187,16 @@ impl Config {
     ///     }
     /// );
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// * If there are issues creating or configuring the [`PanicMessageBuilder`].
+    #[allow(
+        // Errors should be handled here so that assert_custom!(...) doesn't have to.
+        clippy::expect_used
+    )]
     pub fn execute_assertion<
-        ConfigurePanicMessageType: FnOnce(PanicMessageBuilder) -> PanicMessageBuilder,
+        ConfigurePanicMessageType: FnOnce(PanicMessageBuilder) -> Result<PanicMessageBuilder, TestUrCodeXDError>,
     >(
         self,
         predicate_description: impl Display,
@@ -208,15 +219,20 @@ impl Config {
         // below. It's hard to read, but efficient!
         if self.negate == predicate_value {
             // Create panic message builder
-            let panic_message_builder_result =
-                self.create_panic_message_builder(predicate_description, location);
-
-            // Unwrap the panic message builder from potential errors
-            let panic_message_builder =
-                Config::unwrap_panic_message_builder_result(panic_message_builder_result);
+            let panic_message_builder = PanicMessageBuilder::unwrap_error_with(
+                self.create_panic_message_builder(predicate_description, location),
+                MessageType::InternalError,
+                "unable to create panic message builder for assertion",
+                PanicMessageBuilder::no_configuration,
+            );
 
             // Further configure the panic message builder
-            let panic_message_builder = configure_panic_message(panic_message_builder);
+            let panic_message_builder = PanicMessageBuilder::unwrap_error_with(
+                configure_panic_message(panic_message_builder),
+                MessageType::InternalError,
+                "error while configuring panic message builder - check the configuration closure in the assertion definition",
+                PanicMessageBuilder::no_configuration
+            );
 
             // Trigger the actual panic
             panic_message_builder.panic();
@@ -229,43 +245,30 @@ impl Config {
         predicate_description: impl Display,
         location: &'static Location,
     ) -> Result<PanicMessageBuilder, TestUrCodeXDError> {
-        let panic_message_builder = PanicMessageBuilder::new(predicate_description, location)
-            .with_description(self.description)?;
+        let panic_message_builder = PanicMessageBuilder::new(
+            MessageType::AssertionFailure,
+            predicate_description,
+            location,
+        )
+        .with_description(self.description)?;
 
         let panic_message_builder =
             panic_message_builder.with_description(self.description_owned)?;
 
         Ok(panic_message_builder)
     }
-
-    /// Helper method to unwrap a panic message builder result
-    #[must_use]
-    fn unwrap_panic_message_builder_result<ErrorType: Error>(
-        result: Result<PanicMessageBuilder, ErrorType>,
-    ) -> PanicMessageBuilder {
-        match result {
-            Ok(panic_message_builder) => panic_message_builder,
-            Err(error) => PanicMessageBuilder::new_from_error(
-                "internal error while creating panic message",
-                Location::caller(),
-                &error,
-            )
-            .panic(),
-        }
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::convert::identity;
 
     #[test]
     fn using_struct_no_panic() {
         Config {
             ..Config::default()
         }
-        .execute_assertion("value is true", true, Location::caller(), identity);
+        .execute_assertion("value is true", true, Location::caller(), Ok);
     }
 
     #[test]
@@ -274,7 +277,7 @@ mod tests {
         Config {
             ..Config::default()
         }
-        .execute_assertion("value is true", false, Location::caller(), identity);
+        .execute_assertion("value is true", false, Location::caller(), Ok);
     }
 
     #[test]
@@ -283,7 +286,7 @@ mod tests {
             negate: true,
             ..Config::default()
         }
-        .execute_assertion("value is true", false, Location::caller(), identity);
+        .execute_assertion("value is true", false, Location::caller(), Ok);
     }
 
     #[test]
@@ -293,7 +296,7 @@ mod tests {
             negate: true,
             ..Config::default()
         }
-        .execute_assertion("value is true", true, Location::caller(), identity);
+        .execute_assertion("value is true", true, Location::caller(), Ok);
     }
 
     #[test]

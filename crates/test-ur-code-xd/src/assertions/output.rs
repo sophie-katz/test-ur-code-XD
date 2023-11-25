@@ -26,21 +26,21 @@ use crate::utilities::{
     panic_message_builder::PanicMessageBuilder,
 };
 
-/// Helper function to unwrap captured output wrapped in an error and panic.
-#[must_use]
-fn unwrap_captured_outputs<OutputType>(
-    result: Result<CapturedOutputs<OutputType>, OutputCapturingError>,
-) -> CapturedOutputs<OutputType> {
-    match result {
-        Ok(value) => value,
-        Err(error) => PanicMessageBuilder::new_from_error(
-            "failed to capture output",
-            Location::caller(),
-            &error,
-        )
-        .panic(),
-    }
-}
+// /// Helper function to unwrap captured output wrapped in an error and panic.
+// #[must_use]
+// fn unwrap_captured_outputs<OutputType>(
+//     result: Result<CapturedOutputs<OutputType>, OutputCapturingError>,
+// ) -> CapturedOutputs<OutputType> {
+//     match result {
+//         Ok(value) => value,
+//         Err(error) => PanicMessageBuilder::new_from_error(
+//             "failed to capture output",
+//             Location::caller(),
+//             &error,
+//         )
+//         .panic(),
+//     }
+// }
 
 // Assertion implementations need to be public for the macros to use them, but should not appear in
 // documentation.
@@ -50,7 +50,7 @@ pub fn assert_outputs_impl<ActionType: FnOnce()>(
     on_stdout: Option<Box<dyn FnOnce(String)>>,
     on_stderr: Option<Box<dyn FnOnce(String)>>,
 ) {
-    let captured_outputs = unwrap_captured_outputs(capture_output(action));
+    let captured_outputs = capture_output(action).expect("unable to capture output");
 
     if let Some(on_stdout) = on_stdout {
         on_stdout(captured_outputs.stdout);
@@ -132,7 +132,7 @@ pub fn assert_outputs_raw_impl<ActionType: FnOnce()>(
     on_stdout: Option<Box<dyn FnOnce(&[u8])>>,
     on_stderr: Option<Box<dyn FnOnce(&[u8])>>,
 ) {
-    let captured_outputs = unwrap_captured_outputs(capture_output_raw(action));
+    let captured_outputs = capture_output_raw(action).expect("unable to capture output");
 
     if let Some(on_stdout) = on_stdout {
         on_stdout(&captured_outputs.stdout);

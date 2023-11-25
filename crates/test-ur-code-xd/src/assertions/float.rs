@@ -26,7 +26,7 @@ use float_cmp::{approx_eq, Ulps};
 use num_traits::Float;
 use std::fmt::{Debug, Display};
 
-use crate::utilities::panic_message_builder::PanicMessageBuilder;
+use crate::{errors::TestUrCodeXDError, utilities::panic_message_builder::PanicMessageBuilder};
 
 /// Checks if two numbers are non-finite and equal
 ///
@@ -275,13 +275,13 @@ pub fn configure_float_panic_message_ulps<
     lhs_value: FloatType,
     rhs_description: &str,
     rhs_value: FloatType,
-) -> PanicMessageBuilder {
+) -> Result<PanicMessageBuilder, TestUrCodeXDError> {
     // Neither `f32` or `f64` implement `num_traits::CheckedSub`, so we just ignore the warning.
     #[allow(clippy::arithmetic_side_effects)]
     panic_message_builder
-        .with_argument("lhs", lhs_description, &lhs_value)
-        .with_argument("rhs", rhs_description, &rhs_value)
-        .with_argument("absolute difference", "--", &(lhs_value - rhs_value).abs())
+        .with_argument("lhs", lhs_description, &lhs_value)?
+        .with_argument("rhs", rhs_description, &rhs_value)?
+        .with_argument("absolute difference", "--", &(lhs_value - rhs_value).abs())?
         .with_argument(
             "absolute difference (ulps)",
             "--",
@@ -313,12 +313,12 @@ pub fn configure_float_panic_message_relative<FloatType: Float + Debug>(
     lhs_value: FloatType,
     rhs_description: &str,
     rhs_value: FloatType,
-) -> PanicMessageBuilder {
+) -> Result<PanicMessageBuilder, TestUrCodeXDError> {
     // Neither `f32` or `f64` implement `num_traits::CheckedSub`, so we just ignore the warning.
     #[allow(clippy::arithmetic_side_effects)]
     panic_message_builder
-        .with_argument("lhs", lhs_description, &lhs_value)
-        .with_argument("rhs", rhs_description, &rhs_value)
+        .with_argument("lhs", lhs_description, &lhs_value)?
+        .with_argument("rhs", rhs_description, &rhs_value)?
         .with_argument("absolute difference", "--", &(lhs_value - rhs_value).abs())
 }
 

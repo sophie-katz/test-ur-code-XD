@@ -27,8 +27,8 @@ This crate tries to improve testing in Rust with a more full-featured framework.
 
 * [Usage](#usage)
 * [Features](#features)
-    * [More assertions](#more-assertions)
-    * [Parameterized tests](#parameterized-tests)
+  * [More assertions](#more-assertions)
+  * [Parameterized tests](#parameterized-tests)
 * [Contributing](#contributing)
 
 ## Usage
@@ -69,7 +69,7 @@ fn example(x: i32, y: i32) {
 
 ## Contributing
 
-See [for developers](docs/for-developers.md) for guides on how to contribute to test ur code XD.
+See the [contributing guide](docs/for-developers/contributing.md).
 
 <br />
 

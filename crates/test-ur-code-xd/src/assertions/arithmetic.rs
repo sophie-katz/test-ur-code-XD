@@ -56,7 +56,7 @@ macro_rules! assert_eq {
             $crate::assertions::arithmetic::assert_eq_impl(&$lhs, &$rhs),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("lhs", stringify!($lhs), &$lhs)
+                    .with_argument("lhs", stringify!($lhs), &$lhs)?
                     .with_argument("rhs", stringify!($rhs), &$rhs)
             }
             $(, $keys = $values)*
@@ -101,7 +101,7 @@ macro_rules! assert_ne {
             $crate::assertions::arithmetic::assert_ne_impl(&$lhs, &$rhs),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("lhs", stringify!($lhs), &$lhs)
+                    .with_argument("lhs", stringify!($lhs), &$lhs)?
                     .with_argument("rhs", stringify!($rhs), &$rhs)
             }
             $(, $keys = $values)*
@@ -146,7 +146,7 @@ macro_rules! assert_lt {
             $crate::assertions::arithmetic::assert_lt_impl(&$lhs, &$rhs),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("lhs", stringify!($lhs), &$lhs)
+                    .with_argument("lhs", stringify!($lhs), &$lhs)?
                     .with_argument("rhs", stringify!($rhs), &$rhs)
             }
             $(, $keys = $values)*
@@ -191,7 +191,7 @@ macro_rules! assert_le {
             $crate::assertions::arithmetic::assert_le_impl(&$lhs, &$rhs),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("lhs", stringify!($lhs), &$lhs)
+                    .with_argument("lhs", stringify!($lhs), &$lhs)?
                     .with_argument("rhs", stringify!($rhs), &$rhs)
             }
             $(, $keys = $values)*
@@ -236,7 +236,7 @@ macro_rules! assert_gt {
             $crate::assertions::arithmetic::assert_gt_impl(&$lhs, &$rhs),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("lhs", stringify!($lhs), &$lhs)
+                    .with_argument("lhs", stringify!($lhs), &$lhs)?
                     .with_argument("rhs", stringify!($rhs), &$rhs)
             }
             $(, $keys = $values)*
@@ -281,7 +281,7 @@ macro_rules! assert_ge {
             $crate::assertions::arithmetic::assert_ge_impl(&$lhs, &$rhs),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("lhs", stringify!($lhs), &$lhs)
+                    .with_argument("lhs", stringify!($lhs), &$lhs)?
                     .with_argument("rhs", stringify!($rhs), &$rhs)
             }
             $(, $keys = $values)*

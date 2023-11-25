@@ -43,6 +43,31 @@ pub fn get_debugged_value_prefix_grapheme_len() -> usize {
     DEBUGGED_VALUE_PREFIX.graphemes(true).count()
 }
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum MessageType {
+    AssertionFailure,
+    ErrorWhileCheckingAssertion,
+    InternalError,
+}
+
+impl MessageType {
+    pub fn symbol_color(self) -> Color {
+        match self {
+            Self::AssertionFailure => Color::Red,
+            Self::ErrorWhileCheckingAssertion => Color::Magenta,
+            Self::InternalError => Color::Cyan,
+        }
+    }
+
+    pub fn message_prefix(self) -> &'static str {
+        match self {
+            Self::AssertionFailure => "assertion failure",
+            Self::ErrorWhileCheckingAssertion => "error while checking assertion",
+            Self::InternalError => "internal error",
+        }
+    }
+}
+
 /// A builder for a formatted panic message.
 ///
 /// # Example
@@ -87,6 +112,56 @@ pub struct PanicMessageBuilder {
 }
 
 impl PanicMessageBuilder {
+    pub fn unwrap_error_with<
+        ValueType,
+        ErrorType: Error,
+        ConfigurePanicMessageType: FnOnce(PanicMessageBuilder) -> Result<PanicMessageBuilder, TestUrCodeXDError>,
+    >(
+        result: Result<ValueType, ErrorType>,
+        message_type: MessageType,
+        error_description: &str,
+        configure_panic_message: ConfigurePanicMessageType,
+    ) -> ValueType {
+        match result {
+            // If the result is Ok(...) do nothing and just return the value
+            Ok(value) => value,
+            // If the result is an Err(...), handle it:
+            Err(error) => {
+                // Try to create the panic message builder for the error
+                let panic_message_builder = Self::new_from_error(
+                    message_type,
+                    error_description,
+                    Location::caller(),
+                    &error,
+                );
+
+                // Try to configure the panic message builder
+                let panic_message_builder = panic_message_builder.and_then(configure_panic_message);
+
+                // If there is an error with creating the panic message builder, report that instead of the actual error
+                let panic_message_builder = panic_message_builder.unwrap_or_else(|error| {
+                    Self::new_from_error(
+                        MessageType::InternalError,
+                        "unable to format unwrapped error",
+                        Location::caller(),
+                        &error,
+                    )
+                    // If even the internal error can't be formatted, use .expect(...) to panic as a fallback
+                    .expect(
+                        "unable to create 'unable to format unwrapped error' panic message builder",
+                    )
+                    .panic()
+                });
+
+                panic_message_builder.panic()
+            }
+        }
+    }
+
+    pub fn no_configuration(self) -> Result<Self, TestUrCodeXDError> {
+        Ok(self)
+    }
+
     /// Creates a new panic message builder.
     ///
     /// # Arguments
@@ -105,12 +180,20 @@ impl PanicMessageBuilder {
     /// PanicMessageBuilder::new("lhs == rhs", Location::caller());
     /// ```
     #[must_use]
-    pub fn new(predicate_description: impl Display, location: &'static Location<'static>) -> Self {
+    pub fn new(
+        message_type: MessageType,
+        predicate_description: impl Display,
+        location: &'static Location<'static>,
+    ) -> Self {
         Self {
             panic_message: format!("{predicate_description}"),
             buffer: format!(
-                "{} assertion failed {}: {}",
-                style("\u{26CC}").fg(Color::Red).bright().bold(),
+                "{} {} {}: {}",
+                style("\u{26CC}")
+                    .fg(message_type.symbol_color())
+                    .bright()
+                    .bold(),
+                message_type.message_prefix(),
                 style(format!("at {}:{}", location.file(), location.line(),)).dim(),
                 style(predicate_description)
                     .fg(Color::White)
@@ -121,7 +204,7 @@ impl PanicMessageBuilder {
         }
     }
 
-    /// Creates a new panic message builder to wrap an error.
+    /// Creates a new panic message builder to wrap an inner error.
     ///
     /// # Arguments
     ///
@@ -140,13 +223,21 @@ impl PanicMessageBuilder {
     /// PanicMessageBuilder::new_from_error("unable to read file", Location::caller(), &error)
     ///     .panic();
     /// ```
-    #[must_use]
+    ///
+    /// # Errors
+    ///
+    /// * Returns any errors with formatting.
     pub fn new_from_error(
+        message_type: MessageType,
         error_description: &str,
         location: &'static Location<'static>,
         error: &impl Error,
-    ) -> Self {
-        Self::new(error_description, location).with_argument("error", "--", error)
+    ) -> Result<Self, TestUrCodeXDError> {
+        if message_type == MessageType::AssertionFailure {
+            return Err(TestUrCodeXDError::ImproperUseOfAssertionFailureMessage);
+        }
+
+        Self::new(message_type, error_description, location).with_argument("error", "--", error)
     }
 
     /// Adds an argument to the panic message.
@@ -181,16 +272,21 @@ impl PanicMessageBuilder {
     /// # PanicMessageBuilder::new("lhs == rhs", Location::caller())
     /// .with_argument("lhs", lhs_description, &lhs_value);
     /// ```
-    #[must_use]
-    // If the argument description is long enough that arithmetic overflows, there's probably other
-    // issues.
-    #[allow(clippy::arithmetic_side_effects)]
+    ///
+    /// # Errors
+    ///
+    /// * Returns any errors with formatting.
+    #[allow(
+        // If the argument description is long enough that arithmetic overflows, there's probably
+        // other issues.
+        clippy::arithmetic_side_effects
+    )]
     pub fn with_argument(
         mut self,
         argument_description: impl Display,
         value_description: impl Display,
         value: &impl Debug,
-    ) -> Self {
+    ) -> Result<Self, TestUrCodeXDError> {
         // Format the components
         let value_description_string =
             PanicMessageBuilder::format_value_description(value_description);
@@ -200,18 +296,21 @@ impl PanicMessageBuilder {
         let argument_description_string = format!("{argument_description}:");
 
         // Format and push the components to the buffer
-        self.buffer.push_str(
-            format!(
-                "\n  {} {}",
-                style(argument_description_string.as_str()),
-                style(&value_description_string).fg(if value_description_string == value_string {
-                    Color::Cyan
-                } else {
-                    Color::White
-                }),
-            )
-            .as_str(),
-        );
+        let indent_argument_description = " ".repeat(2);
+
+        let mut indented_argument_description =
+            IndentWriter::new(indent_argument_description.as_str(), String::new());
+
+        write!(
+            indented_argument_description,
+            "\n  {} {}",
+            style(argument_description_string.as_str()),
+            style(&value_description_string).fg(if value_description_string == value_string {
+                Color::Cyan
+            } else {
+                Color::White
+            }),
+        )?;
 
         // If the value description is different from the value, format and push the value
         if value_description_string != value_string {
@@ -224,13 +323,12 @@ impl PanicMessageBuilder {
                 "\n{}{:#?}",
                 style(DEBUGGED_VALUE_PREFIX).dim(),
                 style(value).fg(Color::Cyan)
-            )
-            .expect("unable to write to indented writer");
+            )?;
 
             self.buffer.push_str(indented.get_ref());
         }
 
-        self
+        Ok(self)
     }
 
     /// Adds a pre-formatted argument to the panic message.
@@ -264,16 +362,21 @@ impl PanicMessageBuilder {
     /// # PanicMessageBuilder::new("lhs == rhs", Location::caller())
     /// .with_argument_formatted("lhs", lhs_description, "5");
     /// ```
-    #[must_use]
-    // If the argument description is long enough that arithmetic overflows, there's probably other
-    // issues.
-    #[allow(clippy::arithmetic_side_effects)]
+    ///
+    /// # Errors
+    ///
+    /// * Returns any errors with formatting.
+    #[allow(
+        // If the argument description is long enough that arithmetic overflows, there's probably
+        // other issues.
+        clippy::arithmetic_side_effects
+    )]
     pub fn with_argument_formatted(
         mut self,
         argument_description: impl Display,
         value_description: impl Display,
         value: impl AsRef<str>,
-    ) -> Self {
+    ) -> Result<Self, TestUrCodeXDError> {
         // Format the components
         let argument_description_string = format!("{argument_description}:");
 
@@ -300,12 +403,11 @@ impl PanicMessageBuilder {
             "\n{}{}",
             style(DEBUGGED_VALUE_PREFIX).dim(),
             style(value.as_ref()).fg(Color::Cyan)
-        )
-        .expect("unable to write to indented writer");
+        )?;
 
         self.buffer.push_str(indented.get_ref());
 
-        self
+        Ok(self)
     }
 
     /// Formats a value description
@@ -451,7 +553,12 @@ mod tests {
     #[test]
     #[should_panic(expected = "lhs == rhs")]
     fn panics() {
-        PanicMessageBuilder::new("lhs == rhs", Location::caller()).panic();
+        PanicMessageBuilder::new(
+            MessageType::AssertionFailure,
+            "lhs == rhs",
+            Location::caller(),
+        )
+        .panic();
     }
 
     #[cfg(feature = "regex")]
@@ -459,7 +566,12 @@ mod tests {
     fn format_minimal() {
         console::set_colors_enabled(false);
 
-        let message = PanicMessageBuilder::new("lhs == rhs", Location::caller()).format();
+        let message = PanicMessageBuilder::new(
+            MessageType::AssertionFailure,
+            "lhs == rhs",
+            Location::caller(),
+        )
+        .format();
 
         assert_str_matches!(
             message,
@@ -474,9 +586,11 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
     fn format_one_argument_description_matches() {
         console::set_colors_enabled(false);
 
-        let message = PanicMessageBuilder::new("", Location::caller())
-            .with_argument("lhs", "5", &5)
-            .format();
+        let message =
+            PanicMessageBuilder::new(MessageType::AssertionFailure, "", Location::caller())
+                .with_argument("lhs", "5", &5)
+                .unwrap()
+                .format();
 
         assert_str_matches!(
             message,
@@ -492,9 +606,11 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
     fn format_one_argument_description_does_not_match() {
         console::set_colors_enabled(false);
 
-        let message = PanicMessageBuilder::new("", Location::caller())
-            .with_argument("lhs", "x", &5)
-            .format();
+        let message =
+            PanicMessageBuilder::new(MessageType::AssertionFailure, "", Location::caller())
+                .with_argument("lhs", "x", &5)
+                .unwrap()
+                .format();
 
         assert_str_matches!(
             message,
@@ -511,10 +627,13 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
     fn format_two_arguments() {
         console::set_colors_enabled(false);
 
-        let message = PanicMessageBuilder::new("", Location::caller())
-            .with_argument("lhs", "x", &5)
-            .with_argument("rhs", "y", &6)
-            .format();
+        let message =
+            PanicMessageBuilder::new(MessageType::AssertionFailure, "", Location::caller())
+                .with_argument("lhs", "x", &5)
+                .unwrap()
+                .with_argument("rhs", "y", &6)
+                .unwrap()
+                .format();
 
         assert_str_matches!(
             message,
@@ -533,10 +652,11 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
     fn format_assertion_description_str() {
         console::set_colors_enabled(false);
 
-        let message = PanicMessageBuilder::new("", Location::caller())
-            .with_description("assertion description")
-            .unwrap()
-            .format();
+        let message =
+            PanicMessageBuilder::new(MessageType::AssertionFailure, "", Location::caller())
+                .with_description("assertion description")
+                .unwrap()
+                .format();
 
         assert_str_matches!(
             message,
@@ -554,10 +674,11 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
 
         // The whole point of this test is to pass in a `String`
         #[allow(clippy::unnecessary_to_owned)]
-        let message = PanicMessageBuilder::new("", Location::caller())
-            .with_description("assertion description".to_owned())
-            .unwrap()
-            .format();
+        let message =
+            PanicMessageBuilder::new(MessageType::AssertionFailure, "", Location::caller())
+                .with_description("assertion description".to_owned())
+                .unwrap()
+                .format();
 
         assert_str_matches!(
             message,
@@ -570,11 +691,13 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
 
     #[test]
     fn two_assertion_descriptions() {
-        assert!(PanicMessageBuilder::new("", Location::caller())
-            .with_description("assertion description")
-            .unwrap()
-            .with_description("assertion description")
-            .is_err());
+        assert!(
+            PanicMessageBuilder::new(MessageType::AssertionFailure, "", Location::caller())
+                .with_description("assertion description")
+                .unwrap()
+                .with_description("assertion description")
+                .is_err()
+        );
     }
 
     #[cfg(feature = "regex")]
@@ -582,17 +705,22 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
     fn format_pretty_debug_argument() {
         console::set_colors_enabled(false);
 
-        let message = PanicMessageBuilder::new("predicate description", Location::caller())
-            .with_argument(
-                "argument",
-                "value",
-                &SomeStruct {
-                    a: 1,
-                    b: 2,
-                    c: "3".to_owned(),
-                },
-            )
-            .format();
+        let message = PanicMessageBuilder::new(
+            MessageType::AssertionFailure,
+            "predicate description",
+            Location::caller(),
+        )
+        .with_argument(
+            "argument",
+            "value",
+            &SomeStruct {
+                a: 1,
+                b: 2,
+                c: "3".to_owned(),
+            },
+        )
+        .unwrap()
+        .format();
 
         assert_str_matches!(message, "\u{26cc} assertion failed at crates/test-ur-code-xd/src/utilities/panic_message_builder\\.rs:[0-9]+: predicate description
   argument: value
@@ -610,9 +738,14 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace");
     fn format_no_multiline_argument_descriptions() {
         console::set_colors_enabled(false);
 
-        let message = PanicMessageBuilder::new("predicate description", Location::caller())
-            .with_argument("argument", "a\nb", &1)
-            .format();
+        let message = PanicMessageBuilder::new(
+            MessageType::AssertionFailure,
+            "predicate description",
+            Location::caller(),
+        )
+        .with_argument("argument", "a\nb", &1)
+        .unwrap()
+        .format();
 
         assert_str_matches!(
             message,
@@ -629,13 +762,18 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
     fn format_truncate_argument_descriptions() {
         console::set_colors_enabled(false);
 
-        let message = PanicMessageBuilder::new("predicate description", Location::caller())
-            .with_argument(
-                "argument",
-                "a".repeat(VALUE_DESCRIPTION_MAX_GRAPHEME_LEN + 100),
-                &1,
-            )
-            .format();
+        let message = PanicMessageBuilder::new(
+            MessageType::AssertionFailure,
+            "predicate description",
+            Location::caller(),
+        )
+        .with_argument(
+            "argument",
+            "a".repeat(VALUE_DESCRIPTION_MAX_GRAPHEME_LEN + 100),
+            &1,
+        )
+        .unwrap()
+        .format();
 
         assert_str_matches!(
             message,

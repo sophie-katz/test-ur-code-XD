@@ -39,10 +39,12 @@
 #[macro_use]
 extern crate test_ur_code_xd;
 
-// Because some assertions will be commented out
-//
-// To add in some newlines for the demo
-#[allow(unused_variables, clippy::print_stdout)]
+#[allow(
+    // Because some assertions will be commented out
+    unused_variables,
+    // To add in some newlines for the demo
+    clippy::print_stdout
+)]
 fn main() {
     let x = 5;
     println!();

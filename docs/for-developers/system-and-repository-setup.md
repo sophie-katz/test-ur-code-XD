@@ -15,20 +15,27 @@ You should have received a copy of the GNU General Public License along with tes
 not, see <https://www.gnu.org/licenses/>.
 -->
 
-# Guides for developers of test ur code XD
+# System and repository setup
 
 * [System setup](#system-setup)
+* [Repository setup](#repository-setup)
 * [Documentation](#documentation)
-    * [Local development](#local-development)
-        * [Install dependencies](#install-dependencies)
-        * [Live server (recommended)](#live-server-recommended)
-        * [Build documentation](#build-documentation)
-    * [Deployment to GitHub Pages](#deployment-to-github-pages)
+  * [Local development](#local-development)
+    * [Install dependencies](#install-dependencies)
+    * [Live server (recommended)](#live-server-recommended)
+    * [Build documentation](#build-documentation)
+  * [Deployment to GitHub Pages](#deployment-to-github-pages)
 
 ## System setup
 
 * Install [Rust Nightly](https://www.rust-lang.org/tools/install)
 * Install recommended VS Code extensions if using VS Code
+
+## Repository setup
+
+First clone the repository. VS Code is strongly recommended for development.
+
+After opening it in VS Code, see the [project template guide](https://github.com/sophie-katz/rust-vscode-template) on how to do various developer tasks like building or testing.
 
 ## Documentation
 

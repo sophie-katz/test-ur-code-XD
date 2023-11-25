@@ -370,7 +370,7 @@ macro_rules! assert_path_starts_with {
             $crate::assertions::filesystem::assert_path_starts_with_impl(&$path, &$base),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))
+                    .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))?
                     .with_argument("base", stringify!($base), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$base))
             }
             $(, $keys = $values)*
@@ -424,7 +424,7 @@ macro_rules! assert_path_ends_with {
             $crate::assertions::filesystem::assert_path_ends_with_impl(&$path, &$child),
             |panic_message_builder| {
                 panic_message_builder
-                    .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))
+                    .with_argument("path", stringify!($path), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$path))?
                     .with_argument("child", stringify!($child), &::std::convert::AsRef::<::std::path::Path>::as_ref(&$child))
             }
             $(, $keys = $values)*
@@ -437,6 +437,7 @@ fn ensure_is_file(path: &impl AsRef<Path>) {
     if !path.as_ref().is_file() {
         PanicMessageBuilder::new("path is file", Location::caller())
             .with_argument("path", "--", &path.as_ref())
+            .expect("unable to create panic message builder")
             .panic();
     }
 }
@@ -450,7 +451,10 @@ fn unwrap_file_read<ValueType, ErrorType: Error>(
         Ok(file_text) => file_text,
         Err(error) => {
             PanicMessageBuilder::new_from_error("error reading file", Location::caller(), &error)
-                .with_argument("path", "--", &path.as_ref())
+                .and_then(|panic_message_builder| {
+                    panic_message_builder.with_argument("path", "--", &path.as_ref())
+                })
+                .expect("error while creating panic message builder")
                 .panic()
         }
     }
@@ -567,8 +571,8 @@ pub fn assert_file_text_raw_impl<OnTextType: FnOnce(&[u8])>(
                 Location::caller(),
             )
             .with_description("try setting max_len to a smaller value")
-            .expect("failed to set description")
-            .with_argument("conversion error", "--", &error.to_string())
+            .and_then(|panic_message_builder| panic_message_builder.with_argument("conversion error", "--", &error.to_string()))
+            .expect("unable to create panic message builder")
             .panic();
         }
     }
@@ -592,6 +596,7 @@ fn ensure_file_len_within_limit(path: &impl AsRef<Path>, file: &File, max_len: u
             Location::caller(),
         )
         .with_argument("path", "--", &path.as_ref())
+        .expect("unable to create panic message builder")
         .panic();
     }
 

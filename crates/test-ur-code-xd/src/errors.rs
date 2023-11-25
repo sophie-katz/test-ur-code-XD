@@ -15,6 +15,8 @@
 
 //! Error types for test ur code XD.
 
+use std::fmt;
+
 use thiserror::Error;
 
 /// A general error type for test ur code XD.
@@ -40,4 +42,10 @@ pub enum TestUrCodeXDError {
     /// ```
     #[error("cannot add multiple descriptions to a panic message")]
     PanicMessageMultipleDescriptions,
+
+    #[error("error while formatting argument: {0}")]
+    ArgumentFormatting(#[from] fmt::Error),
+
+    #[error("`MessageType::AssertionFailure` used for something other than an assertion failure")]
+    ImproperUseOfAssertionFailureMessage,
 }
